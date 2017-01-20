@@ -7,7 +7,7 @@ data = {}
 data['이동평균선'] = {}
 data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 200, 300]
 figure = {}
-figure_count = 1
+figure_count = 0
 
 def create_data(subject_code):
     global figure_count
