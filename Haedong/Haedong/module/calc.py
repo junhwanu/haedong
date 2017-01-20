@@ -20,6 +20,10 @@ def create_data(subject_code):
         data[subject_code]['이동평균선'][days] = []
 
     data[subject_code]['일목균형표'] = {}
+    data[subject_code]['일목균형표']['전환선'] = []
+    data[subject_code]['일목균형표']['기준선'] = []
+    data[subject_code]['일목균형표']['후행스팬'] = []
+    data[subject_code]['일목균형표']['선행스팬'] = []
 
     data[subject_code]['현재가'] = []
     data[subject_code]['고가'] = []
