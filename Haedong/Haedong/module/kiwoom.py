@@ -258,9 +258,9 @@ class api():
             current_price = round(float(current_price), subject.info[sSubjectCode]['자릿수'])
             if self.recent_price[sSubjectCode] != current_price:
                 # 이거 살까?
-                if santa.is_it_OK():
+                #if santa.is_it_OK():
                     # return value를 리스트로 받아와서 어떻게 사야하는지 확인
-                    pass
+                    #pass
                 
                 log.debug("price changed, " + str(self.recent_price[sSubjectCode]) + " -> " + str(current_price))
                 self.recent_price[sSubjectCode] = current_price
