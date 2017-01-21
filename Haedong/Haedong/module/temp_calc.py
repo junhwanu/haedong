@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 data = {}
 data['?̵????ռ?'] = {}
-data['?̵????ռ?']['?ϼ?'] = [5, 20, 30, 60, 100, 200, 300]
+data['?̵????ռ?']['?ϼ?'] = [5, 20, 60, 120, 200, 300]
 current_price = 0
 
 def create_data(subject_code):
@@ -30,7 +30,7 @@ def create_data(subject_code):
     plt.ion()
     data[subject_code]['?׷???']['???簡'] = plt.plot( data[subject_code]['???簡'] )[0]
     #data[subject_code]['?׷???']['?̵????ռ?'] = {}
-    #for days in [30, 60, 100]:
+    #for days in [60, 120]:
     #    data[subject_code]['?׷???']['?̵????ռ?'][days] = plt.plot( data[subject_code]['?̵????ռ?'][days] )[0]
 
     plt.show()
@@ -78,7 +78,7 @@ def push(subject_code, price):
     
     calc(subject_code)
 
-    trend = is_sorted(subject_code, [30, 60, 100])
+    trend = is_sorted(subject_code, [60, 120])
     data[subject_code]['?߼?'] = np.append(data[subject_code]['?߼?'], trend)
 
     if trend == '????':
@@ -102,7 +102,7 @@ def draw(subject_code):
         np.append( data[subject_code]['?׷???']['???簡'].get_xdata(), data[subject_code]['?׷???']['???簡'].get_xdata().size ) )
     '''
     '''
-    for days in [30, 60, 100]:
+    for days in [60, 120]:
         data[subject_code]['?׷???']['?̵????ռ?'][days].set_xdata( 
             np.append( data[subject_code]['?׷???']['?̵????ռ?'][days].get_xdata(),
                        data[subject_code]['?׷???']['?̵????ռ?'][days].get_xdata().size ) 
@@ -115,7 +115,7 @@ def draw(subject_code):
         np.append( data[subject_code]['?׷???']['???簡'].get_ydata(), data[subject_code]['???簡'][ data[subject_code]['?׷???']['???簡'].get_ydata().size ] ) )
     '''
     '''
-    for days in [30, 60, 100]:
+    for days in [60, 120]:
         data[subject_code]['?׷???']['?̵????ռ?'][days].set_ydata( 
             np.append( data[subject_code]['?׷???']['?̵????ռ?'][days].get_ydata(), 
                        data[subject_code]['?̵????ռ?'][days][ data[subject_code]['?׷???']['?̵????ռ?'][days].get_ydata().size ] )
