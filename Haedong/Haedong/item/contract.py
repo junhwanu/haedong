@@ -30,26 +30,39 @@ def add_contract(order_info): # 계약타입(목표달성 청산 또는 달성 �
     
     subject_code = order_info['종목코드']
     if subject_code in list:
-        pass
+        logger.error("%s 종목은 이미 %s계약 보유 중 입니다" % (list[subject_code]['보유수량'],subject_code))
+        return False
     else:
         list[subject_code] = {}
         
-    safe_num = int(order_info['체결수량']/2)
-    dribble_num = order_info['체결수량'] - safe_num
+        safe_num = int(order_info['체결수량']/2)
+        dribble_num = order_info['체결수량'] - safe_num
+        
+        list[subject_code]['계약타입'] = {}
+        list[subject_code]['계약타입'][SAFE] = safe_num
+        list[subject_code]['계약타입'][DRIBBLE] = dribble_num
+        list[subject_code]['체결가']
+        list[subject_code]['익절가']
+        list[subject_code]['손절가']
+        list[subject_code]['보유수량'] = order_info['체결수량'] 
     
-    list[subject_code]['계약타입'] = {}
-    list[subject_code]['계약타입'][SAFE] = safe_num
-    list[subject_code]['계약타입'][DRIBBLE] = dribble_num
-    list[subject_code]['체결가']
-    list[subject_code]['익절가']
-    list[subject_code]['손절가']
-    
-    return order_info
+    return True
     
 def remove_contract(order_info, type):
     subject_code = order_info['종목코드']
-    if type == '익절':
-        list[subject_code]['계약타입'][SAFE] = list[subject_code]['계약타입'][SAFE] - order_info['체결수량']
-    elif type == '손절':
-        del list[subject_code]
-        pass
+    if subject_code in list:
+        if type == '익절':
+            logger.debug("%s 종목 보유 중인 SAFE Type 계약 수 변경, 계약수: %s -> %s" % 
+                         (subject_code,
+                         list[subject_code]['계약타입'][SAFE],
+                         list[subject_code]['계약타입'][SAFE] - order_info['체결수량']))
+            list[subject_code]['계약타입'][SAFE] = list[subject_code]['계약타입'][SAFE] - order_info['체결수량']
+        elif type == '손절':
+            del list[subject_code]
+            logger.debug("손절로 인해 %s 종목 계약 리스트 삭제 되었습니다." % subject_code)
+        
+        return True
+        
+    else:
+        logger.error("%s 종목은 가지고 있는 계약이 없습니다." % subject_code)
+        return False

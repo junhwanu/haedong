@@ -277,7 +277,7 @@ def calc_linear_regression(subject_code):
     # 데이터와의 차 구함
     max = get_max_deifference(subject_code)
     
-    diff = max * 0.4
+    diff = max * 0.6
 
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
         if data[subject_code]['추세'][idx] == '상승세':
