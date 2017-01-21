@@ -6,6 +6,8 @@ def is_it_OK(subject_code, price):
     이거 살까?
     '''
 
+    # 종목 마감시간 확인
+
     # 이평선 정렬확인
     if calc.data[subject_code]['정배열연속틱'] < subject.info[subject_code]['최소연속일']:
         return {'신규주문':False}

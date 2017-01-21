@@ -13,3 +13,4 @@ info[CRUDEOIL]['마감시간'] = '0700'
 info[CRUDEOIL]['시작시간'] = '0800'
 info[CRUDEOIL]['시간단위'] = 120
 info[CRUDEOIL]['최소연속일'] = 40
+info[CRUDEOIL]['이동평균선'] = [60, 120]

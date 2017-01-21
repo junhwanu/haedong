@@ -51,7 +51,7 @@ def create_data(subject_code):
     data[subject_code]['그래프']['추세선'] = None
     data[subject_code]['그래프']['매매선'] = None
     data[subject_code]['그래프']['이동평균선'] = {}
-    for days in [60, 120]:
+    for days in subject.info[subject_code]['이동평균선']:
         data[subject_code]['그래프']['이동평균선'][days] = None
     data[subject_code]['그래프']['일목균형표'] = {}
     data[subject_code]['그래프']['일목균형표']['전환선'] = []
@@ -60,6 +60,11 @@ def create_data(subject_code):
     data[subject_code]['그래프']['일목균형표']['선행스팬2'] = []
     
     plt.ion()
+    for i in range(1,250):
+        if i % 10 != 0:
+            subplot.axvline(x=i, color='silver', linestyle='-')
+        else:
+            subplot.axvline(x=i, color='dimgrey', linestyle='-')
     plt.show()
 
 
@@ -127,18 +132,18 @@ def show(subject_code):
     remove_line(subject_code, data[subject_code]['그래프']['현재가'])
     data[subject_code]['그래프']['현재가'] = subplot.plot(data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - graph_width_tick_cnt: len(data[subject_code]['현재가']) ], color='black', label='Closing Price', linewidth=2)[0]
     remove_line(subject_code, data[subject_code]['그래프']['추세선'])
-    data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range+1, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line', linewidth=2)[0]
-    #remove_line(subject_code, data[subject_code]['그래프']['매매선'])
-    #data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range+1, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range: len(data[subject_code]['매매선']) ], color='gold', label='Trade Line', linewidth=2)[0]
-    data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range+1, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range: len(data[subject_code]['매매선']) ], linewidth=2)[0]
+    data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range - 1: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line', linewidth=2)[0]
+    remove_line(subject_code, data[subject_code]['그래프']['매매선'])
+    data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], color='m', label='Trade Line', linewidth=2)[0]
+    #data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], linewidth=2)[0]
     remove_line(subject_code, data[subject_code]['그래프']['일목균형표']['선행스팬1'])
-    data[subject_code]['그래프']['일목균형표']['선행스팬1'] = subplot.plot(data[subject_code]['일목균형표']['선행스팬1'][ len(data[subject_code]['일목균형표']['선행스팬1']) - graph_width_tick_cnt -26: len(data[subject_code]['일목균형표']['선행스팬1']) ], color='orange', label='Span1', linewidth=1)[0]
+    data[subject_code]['그래프']['일목균형표']['선행스팬1'] = subplot.plot(data[subject_code]['일목균형표']['선행스팬1'][ len(data[subject_code]['일목균형표']['선행스팬1']) - graph_width_tick_cnt -26: len(data[subject_code]['일목균형표']['선행스팬1']) ], color='orange', label='Span1', linewidth=1.5)[0]
     remove_line(subject_code, data[subject_code]['그래프']['일목균형표']['선행스팬2'])
-    data[subject_code]['그래프']['일목균형표']['선행스팬2'] = subplot.plot(data[subject_code]['일목균형표']['선행스팬2'][ len(data[subject_code]['일목균형표']['선행스팬2']) - graph_width_tick_cnt -26: len(data[subject_code]['일목균형표']['선행스팬2']) ], color='royalblue', label='Span2', linewidth=1)[0]
+    data[subject_code]['그래프']['일목균형표']['선행스팬2'] = subplot.plot(data[subject_code]['일목균형표']['선행스팬2'][ len(data[subject_code]['일목균형표']['선행스팬2']) - graph_width_tick_cnt -26: len(data[subject_code]['일목균형표']['선행스팬2']) ], color='royalblue', label='Span2', linewidth=1.5)[0]
 
     list_color = ['red', 'green', 'blue', 'm', 'lightpink']
     color_idx = 0
-    for days in [60, 120]:
+    for days in subject.info[subject_code]['이동평균선']:
         remove_line(subject_code, data[subject_code]['그래프']['이동평균선'][days])
         data[subject_code]['그래프']['이동평균선'][days] = subplot.plot(data[subject_code]['이동평균선'][days][ len(data[subject_code]['이동평균선'][days]) - graph_width_tick_cnt: len(data[subject_code]['이동평균선'][days]) ], color=list_color[color_idx], label='MA' + str(days), linewidth=2)[0]
         color_idx += 1
@@ -169,7 +174,7 @@ def draw(subject_code):
         np.append( data[subject_code]['그래프']['현재가'].get_xdata(), data[subject_code]['그래프']['현재가'].get_xdata().size ) )
     '''
     '''
-    for days in [60, 120]:
+    for days in subject.info[subject_code]['이동평균선']:
         data[subject_code]['그래프']['이동평균선'][days].set_xdata( 
             np.append( data[subject_code]['그래프']['이동평균선'][days].get_xdata(),
                        data[subject_code]['그래프']['이동평균선'][days].get_xdata().size ) 
@@ -182,7 +187,7 @@ def draw(subject_code):
         np.append( data[subject_code]['그래프']['현재가'].get_ydata(), data[subject_code]['현재가'][ data[subject_code]['그래프']['현재가'].get_ydata().size ] ) )
     '''
     '''
-    for days in [60, 120]:
+    for days in subject.info[subject_code]['이동평균선']:
         data[subject_code]['그래프']['이동평균선'][days].set_ydata( 
             np.append( data[subject_code]['그래프']['이동평균선'][days].get_ydata(), 
                        data[subject_code]['이동평균선'][days][ data[subject_code]['그래프']['이동평균선'][days].get_ydata().size ] )
@@ -209,13 +214,13 @@ def calc(subject_code):
     '''
     calc_ma_line(subject_code)
     
-    trend = is_sorted(subject_code, [60, 120])
+    trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
     data[subject_code]['추세'].append(trend)
 
     if trend != data[subject_code]['추세'][ data[subject_code]['idx']-1 ]:
         if data[subject_code]['정배열연속틱'] > 0:
             log.info('이동평균선 정배열 연속틱 초기화.')
-        data[subject_code]['정배열연속틱'] = 0
+        data[subject_code]['정배열연속틱'] = 1
     else:
         data[subject_code]['정배열연속틱'] += 1
         log.info('이동평균선 ' + trend + ' ' + str(data[subject_code]['정배열연속틱']) + '틱')
@@ -264,10 +269,10 @@ def calc_linear_regression(subject_code):
     data[subject_code]['매매선'].append(None)
     line_range = get_line_range(subject_code)
     
-    if data[subject_code]['idx'] < line_range:
+    if data[subject_code]['idx'] <= line_range:
         return
     
-    result = stats.linregress(list(range( 0, line_range )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range: len(data[subject_code]['현재가']) ])
+    result = stats.linregress(list(range( 0, line_range + 1 )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range - 1: len(data[subject_code]['현재가']) ])
 
     _x = 0
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
@@ -277,12 +282,12 @@ def calc_linear_regression(subject_code):
     # 데이터와의 차 구함
     max = get_max_deifference(subject_code)
     
-    diff = max * 0.6
+    diff = max * 0.4
 
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
-        if data[subject_code]['추세'][idx] == '상승세':
+        if data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '상승세':
             data[subject_code]['매매선'][idx] = data[subject_code]['추세선'][idx] - diff
-        elif data[subject_code]['추세'][idx] == '하락세':
+        elif data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '하락세':
             data[subject_code]['매매선'][idx] = data[subject_code]['추세선'][idx] + diff
     
 
