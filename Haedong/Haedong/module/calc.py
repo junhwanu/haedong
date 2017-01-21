@@ -96,9 +96,14 @@ def push(subject_code, price):
     '''
     캔들 추가
     '''
+    '''
     current_price = round(float(price['현재가']), subject.info[subject_code]['자릿수'])
     highest_price = round(float(price['고가']), subject.info[subject_code]['자릿수'])
     lowest_price = round(float(price['저가']), subject.info[subject_code]['자릿수'])
+    '''
+    current_price = float(price['현재가'])
+    highest_price = float(price['고가'])
+    lowest_price = float(price['저가'])
     data[subject_code]['현재가'].append(current_price)
     data[subject_code]['고가'].append(highest_price)
     data[subject_code]['저가'].append(lowest_price)
@@ -225,7 +230,8 @@ def calc_ma_line(subject_code):
     for days in data['이동평균선']['일수']:
         if data[subject_code]['idx'] >= days - 1:
             avg = sum( data[subject_code]['현재가'][ data[subject_code]['idx'] - days + 1 : data[subject_code]['idx'] + 1] ) / days    
-            data[subject_code]['이동평균선'][days].append(round(float(avg), subject.info[subject_code]['자릿수']))
+            #data[subject_code]['이동평균선'][days].append(round(float(avg), subject.info[subject_code]['자릿수']))
+            data[subject_code]['이동평균선'][days].append(avg)
         else:
             data[subject_code]['이동평균선'][days].append(None)
                 
