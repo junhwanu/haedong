@@ -31,7 +31,7 @@ def add_contract(order_info): # 계약타입(목표달성 청산 또는 달성 �
     subject_code = order_info['종목코드']
     if subject_code in list:
         logger.error("%s 종목은 이미 %s계약 보유 중 입니다" % (list[subject_code]['보유수량'],subject_code))
-        return None
+        return False
     else:
         list[subject_code] = {}
         
@@ -46,7 +46,7 @@ def add_contract(order_info): # 계약타입(목표달성 청산 또는 달성 �
         list[subject_code]['손절가']
         list[subject_code]['보유수량'] = order_info['체결수량'] 
     
-    return order_info
+    return True
     
 def remove_contract(order_info, type):
     subject_code = order_info['종목코드']
@@ -60,5 +60,9 @@ def remove_contract(order_info, type):
         elif type == '손절':
             del list[subject_code]
             logger.debug("손절로 인해 %s 종목 계약 리스트 삭제 되었습니다." % subject_code)
+        
+        return True
+        
     else:
         logger.error("%s 종목은 가지고 있는 계약이 없습니다." % subject_code)
+        return False
