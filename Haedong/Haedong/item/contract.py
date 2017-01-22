@@ -5,8 +5,9 @@ list = {}
 
 SAFE = '목표달성청산'
 DRIBBLE = '드리블'
+ALL = '전체'
 
-def add_contract(order_info): # 계약타입(목표달성 청산 또는 달성 후 드리블)
+def add_contract(order_info, order_contents): # 계약타입(목표달성 청산 또는 달성 후 드리블)
     """
     신규계약을 관리리스트에 추가한다.
       
@@ -41,26 +42,31 @@ def add_contract(order_info): # 계약타입(목표달성 청산 또는 달성 �
         list[subject_code]['계약타입'] = {}
         list[subject_code]['계약타입'][SAFE] = safe_num
         list[subject_code]['계약타입'][DRIBBLE] = dribble_num
-        list[subject_code]['체결가']
-        list[subject_code]['익절가']
-        list[subject_code]['손절가']
+        list[subject_code]['체결가'] = order_info['체결가']
+        
+        list[subject_code]['익절가'] = list[subject_code]['체결가'] + order_contents['목표틱'] * subject.info[subject_code]['단위']
+        list[subject_code]['손절가'] = list[subject_code]['체결가'] - order_contents['목표틱'] * subject.info[subject_code]['단위']
         list[subject_code]['보유수량'] = order_info['체결수량'] 
     
     return True
     
-def remove_contract(order_info, type):
+def remove_contract(order_info):
     subject_code = order_info['종목코드']
+    remove_cnt = order_info['체결수량']
+    
     if subject_code in list:
-        if type == '익절':
-            logger.debug("%s 종목 보유 중인 SAFE Type 계약 수 변경, 계약수: %s -> %s" % 
-                         (subject_code,
-                         list[subject_code]['계약타입'][SAFE],
-                         list[subject_code]['계약타입'][SAFE] - order_info['체결수량']))
-            list[subject_code]['계약타입'][SAFE] = list[subject_code]['계약타입'][SAFE] - order_info['체결수량']
-        elif type == '손절':
-            del list[subject_code]
-            logger.debug("손절로 인해 %s 종목 계약 리스트 삭제 되었습니다." % subject_code)
+        if list[subject_code]['계약타입'][SAFE] >= remove_cnt:
+            log.info("%s 종목 보유 중인 SAFE Type 계약 수 변경, 계약수 %s -> %s" % (subject_code,list[subject_code]['계약타입'][SAFE],
+                                                                      list[subject_code]['계약타입'][SAFE]-remove_cnt))
+            list[subject_code]['계약타입'][SAFE] -= remove_cnt
         
+        else:
+            remove_cnt -= list[subject_code]['계약타입'][SAFE]
+            list[subject_code]['계약타입'][SAFE] = 0
+            list[subject_code]['계약타입'][DRIBBLE] -= remove_cnt
+            del list[subject_code]
+            log.info("%s 종목 모든 계약 청산 합니다." % subject_code)
+
         return True
         
     else:
