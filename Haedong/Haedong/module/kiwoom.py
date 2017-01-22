@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import sys, time, os
-import gmail, log, calc, santa
+import gmail, log, calc, santa, screen
 import json
 import subject, contract
 
@@ -65,6 +65,23 @@ class api():
         :return: TAG값에 따른 데이터 반환
         """
         return self.ocx.dynamicCall("GetLoginInfo(QString)", [sTag]).rstrip(';')
+    
+    def get_dynamic_subject_info(self):
+        self.get_dynamic_subject_code()
+        self.get_dynamic_subject_market_time()
+    
+    def get_dynamic_subject_code(self):
+        lists = ['MTL','ENG','CUR','IDX','CMD']
+        for list in lists:
+            self.set_input_value("상품코드", list)
+            self.comm_rq_data("상품별현재가조회", "opt10006", "", screen.S0010)
+        
+    def get_dynamic_subject_market_time(self):
+        lists = ['MTL','ENG','CUR','IDX','CMD']
+        for list in lists:
+            self.set_input_value("품목구분", list)
+            self.comm_rq_data("장운영정보조회", "opw50001", "", screen.S0011)
+        
 
     def send_order(self, contract_type, subject_code, contract_cnt):
         
@@ -112,7 +129,7 @@ class api():
         else: return -300
 
         return self.ocx.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, QString, QString, QString, QString)",
-                                    [contract_type, '0101', account, _contract_type, subject_code, contract_cnt, '0', '0', '1', ''])
+                                    [contract_type, '0101', self.account, _contract_type, subject_code, contract_cnt, '0', '0', '1', ''])
 
     def request_tick_info(self, subject_code, tick_unit, prevNext):
 
@@ -132,7 +149,7 @@ class api():
 
         if rtn != 0:
             # 에러코드별 로그
-            log.error(rtn)
+            log.error(self.parse_error_code(rtn))
             
         while rtn == -200:
             time.sleep(0.05)
@@ -182,7 +199,7 @@ class api():
         Tran 수신시 이벤트
         서버통신 후 데이터를 받은 시점을 알려준다.
 
-        :param sScrNo: 화면번호
+        :param py: 화면번호
         :param sRQName: 사용자구분 명
         :param sTrCode: Tran 명
         :param sRecordName: Record 명
@@ -235,10 +252,40 @@ class api():
                         calc.show_current_price(subject_code, self.recent_price[subject_code])
                         
                     break
+                
+        if sRQName == '상품별현재가조회':
+            
+            for i in range(20):
+                
+                subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '종목코드n').strip() #현재가 = 틱의 종가
+                subject_symbol = subject_code[:2].upper() 
+                if subject_symbol in subject.sub_info.keys():
+                    log.info("금일 %s의 종목코드는 %s 입니다." % (subject.sub_info[subject_symbol]["종목명"],subject_code))
+                    subject.sub_info[subject_symbol]["종목코드"] = subject_code
+                    
+                    if subject.sub_info[subject_symbol]["종목명"] == "CRUDEOIL":
+                        subject.CRUDEOIL = subject_code
+                        log.info("%s 종목 코드 업데이트" % subject_code)
+                    
+                    # 초기 데이터 요청
+                    #self.request_tick_info(subject.sub_info[subject_symbol]["종목코드"],subject.sub_info[subject_symbol]["시간단위"], "")
         
-
-
-
+        if sRQName == "장운영정보조회":
+            
+            log.info("장운영정보조회")
+            for i in range(20):
+                subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '파생품목코드')
+                market_time1 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '장운영시간1')
+                market_time2 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '장운영시간2')
+                market_time3 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '장운영시간3')
+                market_time4 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '장운영시간4')
+                
+                log.info(subject_code)
+                log.info(market_time1)
+                log.info(market_time2)
+                log.info(market_time3)
+                log.info(market_time4)
+            
     def OnReceiveRealData(self, sSubjectCode, sRealType, sRealData):
         """
         실시간 시세 이벤트
@@ -251,6 +298,10 @@ class api():
         # 캔들 생기는 시점 확인해서 가격이 안바뀌어도 옥수수에 3틱으로 설정할 경우 가격변동없이 캔들이 생기는 경우가 있으니 request_tick_info 시점 확인
         
         #log.debug("OnReceiveRealData entered.")
+        if sSubjectCode[:2] not in subject.sub_info.keys(): #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
+            self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
+            self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
+            
         if sRealType == '해외선물시세':
             current_price = self.ocx.dynamicCall("GetCommRealData(QString, int)", "현재가", 140)    # 140이 뭔지 확인
             current_time = self.ocx.dynamicCall("GetCommRealData(QString, int)", "체결시간", 20)    # 체결시간이 뭔지 확인
@@ -322,16 +373,19 @@ class api():
         
         if nErrCode == 0:
             print("로그인 성공")
-
             # 계좌번호 저장
             self.account = self.get_login_info("ACCNO")
             log.info("계좌번호 : " + self.account)
+            
+            # 다이나믹 종목 정보 요청
+            #self.get_dynamic_subject_code()
 
             # 초기 데이터 요청
             self.request_tick_info(subject.CRUDEOIL, subject.info[subject.CRUDEOIL]['시간단위'], "")
-
+            
             # 종목 정보 로그 찍기
-            log.info("참여 종목 : " + subject.CRUDEOIL)
+            log.info("참여 종목 : %s" % subject.sub_info.values())
+
 
         else:
             c_time = "%02d%02d" % (time.localtime().tm_hour, time.localtime().tm_min)
