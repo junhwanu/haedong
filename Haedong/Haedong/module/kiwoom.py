@@ -75,12 +75,14 @@ class api():
         for list in lists:
             self.set_input_value("상품코드", list)
             self.comm_rq_data("상품별현재가조회", "opt10006", "", screen.S0010)
+            time.sleep(0.5)
         
     def get_dynamic_subject_market_time(self):
         lists = ['MTL','ENG','CUR','IDX','CMD']
         for list in lists:
             self.set_input_value("품목구분", list)
             self.comm_rq_data("장운영정보조회", "opw50001", "", screen.S0011)
+            time.sleep(0.5)
         
 
     def send_order(self, contract_type, subject_code, contract_cnt):
@@ -258,7 +260,7 @@ class api():
             for i in range(20):
                 
                 subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '종목코드n').strip() #현재가 = 틱의 종가
-                subject_symbol = subject_code[:2].upper() 
+                subject_symbol = subject_code[:2] 
                 if subject_symbol in subject.sub_info.keys():
                     log.info("금일 %s의 종목코드는 %s 입니다." % (subject.sub_info[subject_symbol]["종목명"],subject_code))
                     subject.sub_info[subject_symbol]["종목코드"] = subject_code
@@ -268,7 +270,7 @@ class api():
                         log.info("%s 종목 코드 업데이트" % subject_code)
                     
                     # 초기 데이터 요청
-                    #self.request_tick_info(subject.sub_info[subject_symbol]["종목코드"],subject.sub_info[subject_symbol]["시간단위"], "")
+                    self.request_tick_info(subject.sub_info[subject_symbol]["종목코드"],subject.sub_info[subject_symbol]["시간단위"], "")
         
         if sRQName == "장운영정보조회":
             
@@ -378,10 +380,11 @@ class api():
             log.info("계좌번호 : " + self.account)
             
             # 다이나믹 종목 정보 요청
-            #self.get_dynamic_subject_code()
+            #self.get_dynamic_subject_info()
+            self.get_dynamic_subject_code()
 
             # 초기 데이터 요청
-            self.request_tick_info(subject.CRUDEOIL, subject.info[subject.CRUDEOIL]['시간단위'], "")
+            #self.request_tick_info(subject.CRUDEOIL, subject.info[subject.CRUDEOIL]['시간단위'], "")
             
             # 종목 정보 로그 찍기
             log.info("참여 종목 : %s" % subject.sub_info.values())
