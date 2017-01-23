@@ -297,7 +297,7 @@ def calc_linear_regression(subject_code):
     
 
 def get_line_range(subject_code):
-    line_range = data[subject_code]['정배열연속틱']
+    line_range = data[subject_code]['idx'] - find_trend_start_index(subject_code)
     if line_range < 10:
         line_range = 10
 
@@ -318,3 +318,24 @@ def get_max_deifference(subject_code):
             if data[subject_code]['추세선'][idx] <= data[subject_code]['현재가'][idx] and abs(data[subject_code]['추세선'][idx] - data[subject_code]['현재가'][idx]) > max:
                 max = abs(data[subject_code]['추세선'][idx] - data[subject_code]['현재가'][idx])
     return max
+
+def find_trend_start_index(subject_code):
+    start_index = data[subject_code]['idx'] - data[subject_code]['정배열연속틱']
+    past_trend = data[subject_code]['추세'][ start_index ]
+    max = 0.0
+    min = 99999.99
+    point = start_index
+    for idx in range(start_index, 0, -1):
+        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
+            break
+
+        if past_trend == '하락세':
+            if data[subject_code]['현재가'][idx] < min:
+                min = data[subject_code]['현재가'][idx]
+                point = idx
+        elif past_trend == '상승세':
+            if data[subject_code]['현재가'][idx] < max:
+                max = data[subject_code]['현재가'][idx]
+                point = idx
+    
+    return point
