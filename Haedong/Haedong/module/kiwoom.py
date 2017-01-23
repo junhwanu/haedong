@@ -238,7 +238,7 @@ class api():
                         calc.create_data(subject_code)
                         
                         current_idx = len(data) - 7
-                        
+                        start_time = self.get_start_time(subject_code)
                         while current_idx > 8:
                             
                             price['현재가'] = data[current_idx]
@@ -246,7 +246,8 @@ class api():
                             price['저가'] = data[current_idx + 5]
                             
                             current_idx -= 7
-                            calc.push(subject_code, price)
+                            if int(data[current_idx + 2]) >= int(start_time):
+                                calc.push(subject_code, price)
 
                         # 최근가
                         self.recent_price[subject_code] = round(float(data[1]), subject.info[subject_code]['자릿수'])
@@ -311,18 +312,20 @@ class api():
             current_price = round(float(current_price), subject.info[sSubjectCode]['자릿수'])
             if self.recent_price[sSubjectCode] != current_price:
                 # 신규주문
-                order_contents = santa.is_it_OK(sSubjectCode, current_price)
-                if order_contents['신규주문'] == True:
-                    # return value를 리스트로 받아와서 어떻게 사야하는지 확인
-                    self.send_order(order_contents['매도수구분'], sSubjectCode, order_contents['수량'])
-                    subject.info[sSubjectCode]['주문내용'] = order_contents
-                    log.info("%s 종목 %s %s개 요청." % (sSubjectCode, order_contents['매도수구분'], order_contents['수량']))
+                if contract.get_contract_count(sSubjectCode) == 0:
+                    order_contents = santa.is_it_OK(sSubjectCode, current_price)
+                    if order_contents['신규주문'] == True:
+                        # return value를 리스트로 받아와서 어떻게 사야하는지 확인
+                        self.send_order(order_contents['매도수구분'], sSubjectCode, order_contents['수량'])
+                        subject.info[sSubjectCode]['주문내용'] = order_contents
+                        log.info("%s 종목 %s %s개 요청." % (sSubjectCode, order_contents['매도수구분'], order_contents['수량']))
 
                 # 청산
-                sell_contents = santa.is_it_sell(sSubjectCode, current_price)
-                if sell_contents['신규주문'] == True:
-                    self.send_order(sell_contents['매도수구분'], sSubjectCode, sell_contents['수량'])
-                    log.info("%s 종목 %s %s개 청산요청." % (sSubjectCode, sell_contents['매도수구분'], sell_contents['수량']))
+                else:
+                    sell_contents = santa.is_it_sell(sSubjectCode, current_price)
+                    if sell_contents['신규주문'] == True:
+                        self.send_order(sell_contents['매도수구분'], sSubjectCode, sell_contents['수량'])
+                        log.info("%s 종목 %s %s개 청산요청." % (sSubjectCode, sell_contents['매도수구분'], sell_contents['수량']))
 
                 santa.update_state_by_current_price(sSubjectCode, current_price)
 
@@ -454,3 +457,31 @@ class api():
             "-306": "주문수량은 총발행주수의 3%를 초과할 수 없습니다."
         }
         return ht[err_code] + " (%s)" % err_code if err_code in ht else err_code
+
+    def get_start_time(self, subject_code):
+        start_time = int(subject.info[subject_code]['시작시간'])
+        end_time = int(subject.info[subject_code]['마감시간'])
+        current_hour = time.localtime().tm_hour
+        current_min = time.localtime().tm_min
+        current_time = current_hour*100 + current_min
+        return_time = ''
+        if current_time < end_time:
+            yesterday = time.localtime(time.time() - 86400)
+            mon = yesterday.tm_mon
+            if mon < 10:
+                mon = '0' + str(mon)
+            day = yesterday.tm_mday
+            if day < 10:
+                day = '0' + str(day)
+            return_time = str(yesterday.tm_year) + str(mon) + str(day) + subject.info[subject_code]['시작시간'] + '00'
+        elif current_time >= start_time:
+            today = time.localtime()
+            mon = today.tm_mon
+            if mon < 10:
+                mon = '0' + str(mon)
+            day = today.tm_mday
+            if day < 10:
+                day = '0' + str(day)
+            return_time = str(today.tm_year) + str(mon) + str(day) + subject.info[subject_code]['시작시간'] + '00'
+
+        return return_time

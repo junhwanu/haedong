@@ -7,36 +7,49 @@ def is_it_OK(subject_code, current_price):
     '''
 
     # 종목 마감시간 확인
-    current_time = time.localtime().tm_hour * 100 + time.localtime().tm_min
-    if current_time + 30 >= int(subject.info[subject_code]['마감시간']):
-        return {'신규주문':False}
+    current_hour = time.localtime().tm_hour
+    current_min = time.localtime().tm_min
+    if current_min + 30 >= 60:
+        current_hour += 1
+        current_min -= 60
 
+    current_time = current_hour*100 + current_min
+    if current_time + 30 >= int(subject.info[subject_code]['마감시간']) and current_time < int(subject.info[subject_code]['마감시간']):
+        log.debug('마감시간 임박으로 구매 불가')
+        return {'신규주문':False}
+   
     # 이평선 정렬확인
     if calc.data[subject_code]['정배열연속틱'] < subject.info[subject_code]['최소연속틱']:
         return {'신규주문':False}
-
+    log.debug('정배열연속틱 : ' + str(calc.data[subject_code]['정배열연속틱']) + ' >= 최소연속틱 : ' + str(subject.info[subject_code]['최소연속틱']) + ' 구매조건 통과.')
     # 일목균형표 확인
     if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
         if calc.data[subject_code]['일목균형표']['선행스팬1'][ calc.data[subject_code]['idx'] ] > current_price and calc.data[subject_code]['일목균형표']['선행스팬2'][ calc.data[subject_code]['idx'] ] > current_price:
             return {'신규주문':False}
-
+        log.debug('현재가가 일목균형표 구름대보다 위에 있는 구매조건 통과.')    
     elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
         if calc.data[subject_code]['일목균형표']['선행스팬1'][ calc.data[subject_code]['idx'] ] < current_price and calc.data[subject_code]['일목균형표']['선행스팬2'][ calc.data[subject_code]['idx'] ] < current_price:
             return {'신규주문':False}
+        log.debug('현재가가 일목균형표 구름대보다 아래에 있는 구매조건 통과.')
 
+    
     # 추세선 터치여부 확인
     if subject.info[subject_code]['상태'] == '매매구간진입' and subject.info[subject_code]['매매구간누적캔들'] >= 1:
+        log.debug('현재가가 매매구간진입 상태이며, 매매구간누적캔들 ' + str(subject.info[subject_code]['매매구간누적캔들']) + '개로 구매조건 통과.')
         pass
-    else: return {'신규주문':False}
+    else: 
+        log.debug('현재상태 : ' + subject.info[subject_code]['상태'] + ', 매매구간누적캔들 : ' + str(subject.info[subject_code]['매매구간누적캔들']) + '로 구매조건 미달.')
+        return {'신규주문':False}
         
     # 추세선의 기울기가 추세와 같은지 확인
     if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
         if calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] ] - calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] - 1] < 0:
             return {'신규주문':False}
-
+        
     elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
         if calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] ] - calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] - 1] > 0:
             return {'신규주문':False}
+    log.debug('추세선 기울기가 추세와 같은 구매조건 통과.')
 
     # 모든 조건 충족 시 현재 보유 계약 상태 확인해서 리턴
 
@@ -50,7 +63,10 @@ def is_it_OK(subject_code, current_price):
     elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
         mesu_medo_type = '신규매도'
 
-    return {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':10, '손절틱':10, '수량':contract_cnt}
+    order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':10, '손절틱':10, '수량':contract_cnt}
+    log.debug('santa.is_it_OK() : 모든 구매조건 통과.')
+    log.debug(order_contents)
+    return order_contents
 
 
 def is_it_sell(subject_code, current_price):
@@ -94,9 +110,11 @@ def update_state_by_current_price(subject_code, current_price):
             if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
                 if calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ] >= current_price:
                     subject.info[subject_code]['상태'] = '매매선터치'
+                    log.debug('상태변경 : 중립대기 -> 매매선터치')
             elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
                 if calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ] <= current_price:
                     subject.info[subject_code]['상태'] = '매매선터치'
+                    log.debug('상태변경 : 중립대기 -> 매매선터치')
                 
 
 def update_state_by_current_candle(subject_code, price):
@@ -107,16 +125,22 @@ def update_state_by_current_candle(subject_code, price):
         if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
             if current_price >= calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ]:
                 if start_price < calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ]:
-                    subject.info[subject_code]['상태'] == '매매선터치'
+                    log.debug('상태변경 : ' + subject.info[subject_code]['상태'] + ' -> 매매선터치')
+                    subject.info[subject_code]['상태'] = '매매선터치'
                     subject.info[subject_code]['매매구간누적캔들'] = 0
                 else:
-                    subject.info[subject_code]['상태'] == '매매구간진입'
+                    log.debug('상태변경 : ' + subject.info[subject_code]['상태'] + ' -> 매매구간진입')
+                    subject.info[subject_code]['상태'] = '매매구간진입'
                     subject.info[subject_code]['매매구간누적캔들'] += 1
+                    log.debug('매매구간 누적캔들 : ' + str(subject.info[subject_code]['매매구간누적캔들']))
         elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
             if current_price <= calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ]:
-                if start_price < calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ]:
-                    subject.info[subject_code]['상태'] == '매매선터치'
+                if start_price > calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ]:
+                    log.debug('상태변경 : ' + subject.info[subject_code]['상태'] + ' -> 매매선터치')
+                    subject.info[subject_code]['상태'] = '매매선터치'
                     subject.info[subject_code]['매매구간누적캔들'] = 0
                 else:
-                    subject.info[subject_code]['상태'] == '매매구간진입'
+                    log.debug('상태변경 : ' + subject.info[subject_code]['상태'] + ' -> 매매구간진입')
+                    subject.info[subject_code]['상태'] = '매매구간진입'
                     subject.info[subject_code]['매매구간누적캔들'] += 1
+                    log.debug('매매구간 누적캔들 : ' + str(subject.info[subject_code]['매매구간누적캔들']))

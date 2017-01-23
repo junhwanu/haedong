@@ -334,7 +334,7 @@ def find_trend_start_index(subject_code):
                 min = data[subject_code]['현재가'][idx]
                 point = idx
         elif past_trend == '상승세':
-            if data[subject_code]['현재가'][idx] < max:
+            if data[subject_code]['현재가'][idx] > max:
                 max = data[subject_code]['현재가'][idx]
                 point = idx
     
