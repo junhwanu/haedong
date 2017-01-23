@@ -86,7 +86,6 @@ def is_sorted(subject_code, lst):
     for days in lst:
         lst_real.append(data[subject_code]['이동평균선'][days][ data[subject_code]['idx'] ])
     
-    log.debug(lst_real)
     lst_tmp = lst_real[:]
     lst_tmp.sort()
     if lst_real == lst_tmp:
@@ -131,7 +130,7 @@ def show(subject_code):
     subplot = data[subject_code]['그래프']['서브플롯']
     
     remove_line(subject_code, data[subject_code]['그래프']['현재가'])
-    data[subject_code]['그래프']['현재가'] = subplot.plot(data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - graph_width_tick_cnt: len(data[subject_code]['현재가']) ], color='black', label='Closing Price', linewidth=2)[0]
+    data[subject_code]['그래프']['현재가'] = subplot.plot(data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - graph_width_tick_cnt: len(data[subject_code]['현재가']) ], color='black', label='Closing price', linewidth=2)[0]
     remove_line(subject_code, data[subject_code]['그래프']['추세선'])
     data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range - 1: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line', linewidth=2)[0]
     remove_line(subject_code, data[subject_code]['그래프']['매매선'])
@@ -155,7 +154,7 @@ def show(subject_code):
 def show_current_price(subject_code, current_price):
     subplot = data[subject_code]['그래프']['서브플롯']
     remove_line(subject_code, data[subject_code]['그래프']['최근가'])
-    data[subject_code]['그래프']['최근가'] = subplot.axhline(y=round(float(current_price), subject.info[subject_code]['자릿수']), color='r', linestyle='-', label='Current Price')
+    data[subject_code]['그래프']['최근가'] = subplot.axhline(y=round(float(current_price), subject.info[subject_code]['자릿수']), color='r', linestyle='-', label='Current price')
     
     plt.legend(loc='best')
     plt.show()
@@ -218,10 +217,11 @@ def calc(subject_code):
     trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
     data[subject_code]['추세'].append(trend)
 
-    if trend != data[subject_code]['추세'][ data[subject_code]['idx']-1 ]:
+    if trend == '모름' or trend != data[subject_code]['추세'][ data[subject_code]['idx']-1 ]:
         if data[subject_code]['정배열연속틱'] > 0:
             log.info('이동평균선 정배열 연속틱 초기화.')
         data[subject_code]['정배열연속틱'] = 1
+        subject.info[subject_code]['상태'] = '중립대기'
     else:
         data[subject_code]['정배열연속틱'] += 1
         log.info('이동평균선 ' + trend + ' ' + str(data[subject_code]['정배열연속틱']) + '틱')
@@ -258,9 +258,13 @@ def calc_ilmok_chart(subject_code):
 
     if data[subject_code]['idx'] >= 26:
         data[subject_code]['일목균형표']['선행스팬1'].append( (data[subject_code]['일목균형표']['전환선'][data[subject_code]['idx']] + data[subject_code]['일목균형표']['기준선'][data[subject_code]['idx']]) / 2)
+    else:
+        data[subject_code]['일목균형표']['선행스팬1'].append(None)
 
     if data[subject_code]['idx'] >= 52:
         data[subject_code]['일목균형표']['선행스팬2'].append( (max( data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] ) + min(  data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] )) / 2)
+    else:
+        data[subject_code]['일목균형표']['선행스팬2'].append(None)
 
 def calc_linear_regression(subject_code):
     '''
@@ -276,7 +280,7 @@ def calc_linear_regression(subject_code):
     result = stats.linregress(list(range( 0, line_range + 1 )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range - 1: len(data[subject_code]['현재가']) ])
 
     _x = 0
-    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
         data[subject_code]['추세선'][idx] = result.slope * _x + result.intercept
         _x+=1
 
@@ -285,7 +289,7 @@ def calc_linear_regression(subject_code):
     
     diff = max * 0.4
 
-    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
         if data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '상승세':
             data[subject_code]['매매선'][idx] = data[subject_code]['추세선'][idx] - diff
         elif data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '하락세':

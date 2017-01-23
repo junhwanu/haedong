@@ -12,8 +12,8 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
     신규계약을 관리리스트에 추가한다.
       
     :param subject_code: 종목코드
-    :param chegyul_price: 체결가
-    :param goal_price: 목표가
+    :param chegyul_current_price: 체결가
+    :param goal_current_price: 목표가
     :param sonjul_prcie: 손절가
     :param contract_type: 계약타입(contract.SAFE | contract.DRIBBLE)
     
@@ -43,7 +43,8 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
         list[subject_code]['계약타입'][SAFE] = safe_num
         list[subject_code]['계약타입'][DRIBBLE] = dribble_num
         list[subject_code]['체결가'] = order_info['체결가']
-        
+        list[subject_code]['매도수구분'] = order_contents['매도수구분']
+
         list[subject_code]['익절가'] = list[subject_code]['체결가'] + order_contents['목표틱'] * subject.info[subject_code]['단위']
         list[subject_code]['손절가'] = list[subject_code]['체결가'] - order_contents['목표틱'] * subject.info[subject_code]['단위']
         list[subject_code]['보유수량'] = order_info['체결수량'] 
@@ -72,3 +73,10 @@ def remove_contract(order_info):
     else:
         logger.error("%s 종목은 가지고 있는 계약이 없습니다." % subject_code)
         return False
+
+def get_contract_count(subject_code):
+    if subject_code in list:
+        count = list[subject_code][SAFE] + list[subject_code][DRIBBLE]
+        return count
+    else:
+        return 0

@@ -75,12 +75,14 @@ class api():
         for list in lists:
             self.set_input_value("상품코드", list)
             self.comm_rq_data("상품별현재가조회", "opt10006", "", screen.S0010)
+            time.sleep(0.5)
         
     def get_dynamic_subject_market_time(self):
         lists = ['MTL','ENG','CUR','IDX','CMD']
         for list in lists:
             self.set_input_value("품목구분", list)
             self.comm_rq_data("장운영정보조회", "opw50001", "", screen.S0011)
+            time.sleep(0.5)
         
 
     def send_order(self, contract_type, subject_code, contract_cnt):
@@ -122,9 +124,9 @@ class api():
 
         """
         _contract_type = 0
-        if contract_type == '매수':
+        if contract_type == '신규매수':
             _contract_type = 1
-        elif contract_type == '매도':
+        elif contract_type == '신규매도':
             _contract_type = 2
         else: return -300
 
@@ -219,10 +221,12 @@ class api():
                         price['현재가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '현재가')
                         price['저가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '저가')
                         price['고가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '고가')
+                        price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
 
                         # 캔들이 갱신되었는지 확인
                         if self.recent_candle_time[subject_code] != self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간'):
                             # 캔들 갱신
+                            santa.update_state_by_current_candle(subject_code, price)
                             calc.push(subject_code, price)
                             self.recent_candle_time[subject_code] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
                             log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
@@ -234,12 +238,13 @@ class api():
                         calc.create_data(subject_code)
                         
                         current_idx = len(data) - 7
+                        
                         while current_idx > 8:
                             
                             price['현재가'] = data[current_idx]
                             price['고가'] = data[current_idx + 4]
                             price['저가'] = data[current_idx + 5]
-
+                            
                             current_idx -= 7
                             calc.push(subject_code, price)
 
@@ -258,17 +263,14 @@ class api():
             for i in range(20):
                 
                 subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '종목코드n').strip() #현재가 = 틱의 종가
-                subject_symbol = subject_code[:2].upper() 
-                if subject_symbol in subject.sub_info.keys():
-                    log.info("금일 %s의 종목코드는 %s 입니다." % (subject.sub_info[subject_symbol]["종목명"],subject_code))
-                    subject.sub_info[subject_symbol]["종목코드"] = subject_code
-                    
-                    if subject.sub_info[subject_symbol]["종목명"] == "CRUDEOIL":
-                        subject.CRUDEOIL = subject_code
-                        log.info("%s 종목 코드 업데이트" % subject_code)
+                subject_symbol = subject_code[:2] 
+                if subject_symbol in subject.info.keys():
+                    log.info("금일 %s의 종목코드는 %s 입니다." % (subject.info[subject_symbol]["종목명"],subject_code))
+                    subject.info[subject_code] = subject.info[subject_symbol]
+                    del subject.info[subject_symbol]
                     
                     # 초기 데이터 요청
-                    #self.request_tick_info(subject.sub_info[subject_symbol]["종목코드"],subject.sub_info[subject_symbol]["시간단위"], "")
+                    self.request_tick_info(subject_coe,subject.info[subject_code]["시간단위"], "")
         
         if sRQName == "장운영정보조회":
             
@@ -298,7 +300,7 @@ class api():
         # 캔들 생기는 시점 확인해서 가격이 안바뀌어도 옥수수에 3틱으로 설정할 경우 가격변동없이 캔들이 생기는 경우가 있으니 request_tick_info 시점 확인
         
         #log.debug("OnReceiveRealData entered.")
-        if sSubjectCode[:2] not in subject.sub_info.keys(): #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
+        if sSubjectCode[:2] not in subject.info.keys(): #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
             
@@ -308,11 +310,22 @@ class api():
             
             current_price = round(float(current_price), subject.info[sSubjectCode]['자릿수'])
             if self.recent_price[sSubjectCode] != current_price:
-                # 이거 살까?
-                #if santa.is_it_OK():
+                # 신규주문
+                order_contents = santa.is_it_OK(sSubjectCode, current_price)
+                if order_contents['신규주문'] == True:
                     # return value를 리스트로 받아와서 어떻게 사야하는지 확인
-                    #pass
-                
+                    self.send_order(order_contents['매도수구분'], sSubjectCode, order_contents['수량'])
+                    subject.info[sSubjectCode]['주문내용'] = order_contents
+                    log.info("%s 종목 %s %s개 요청." % (sSubjectCode, order_contents['매도수구분'], order_contents['수량']))
+
+                # 청산
+                sell_contents = santa.is_it_sell(sSubjectCode, current_price)
+                if sell_contents['신규주문'] == True:
+                    self.send_order(sell_contents['매도수구분'], sSubjectCode, sell_contents['수량'])
+                    log.info("%s 종목 %s %s개 청산요청." % (sSubjectCode, sell_contents['매도수구분'], sell_contents['수량']))
+
+                santa.update_state_by_current_price(sSubjectCode, current_price)
+
                 log.debug("price changed, " + str(self.recent_price[sSubjectCode]) + " -> " + str(current_price))
                 self.recent_price[sSubjectCode] = current_price
                 self.request_tick_info(sSubjectCode, subject.info[sSubjectCode]['시간단위'], "")
@@ -346,22 +359,28 @@ class api():
 
         if sGubun == '0':
             # 주문체결통보
-            log.info(order_info)
             pass
                 
 
         if sGubun == '1':
+            
+            log.info(order_info)
+
             # 잔고통보
 
-            # 원주문번호가 contract.list에 있을 경우 청산
-
-            # 원주문번호가 contract.list에 없을 경우 주문번호로 신규주문 추가
-
-            # 위의 개념이 맞는지 확인 요
-
-            
-            pass
-
+            # 종목코드가 contract.list에 있을 경우 청산
+            if order_info['종목코드'] in contract.list:
+                contract.remove_contract(order_info)
+                log.info("%s 종목 %s개 청산." % (order_info['종목코드'], order_info['체결수량']))
+                
+            # 종목코드가 contract.list에 없을 경우 주문번호로 신규주문 추가
+            else :
+                contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
+                if order_info['매도수구분'] == 1:
+                    log.info("%s 종목 %s개 신규매수." % (order_info['종목코드'], order_info['체결수량']))
+                elif order_info['매도수구분'] == 2:
+                    log.info("%s 종목 %s개 신규매도." % (order_info['종목코드'], order_info['체결수량']))
+                
 
     def OnEventConnect(self, nErrCode):
         """
@@ -378,13 +397,14 @@ class api():
             log.info("계좌번호 : " + self.account)
             
             # 다이나믹 종목 정보 요청
+            #self.get_dynamic_subject_info()
             #self.get_dynamic_subject_code()
 
             # 초기 데이터 요청
-            self.request_tick_info(subject.CRUDEOIL, subject.info[subject.CRUDEOIL]['시간단위'], "")
+            self.request_tick_info('CLH17', subject.info['CLH17']['시간단위'], "")
             
             # 종목 정보 로그 찍기
-            log.info("참여 종목 : %s" % subject.sub_info.values())
+            log.info("참여 종목 : %s" % subject.info.values())
 
 
         else:
@@ -434,4 +454,3 @@ class api():
             "-306": "주문수량은 총발행주수의 3%를 초과할 수 없습니다."
         }
         return ht[err_code] + " (%s)" % err_code if err_code in ht else err_code
-

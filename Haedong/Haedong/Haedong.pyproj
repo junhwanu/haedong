@@ -48,9 +48,6 @@
     <Compile Include="module\calc.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="module\temp_calc.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="module\" />
