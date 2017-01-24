@@ -5,7 +5,7 @@ def is_it_OK(subject_code, current_price):
     '''
     이거 살까?
     '''
-
+    
     # 종목 마감시간 확인
     current_hour = time.localtime().tm_hour
     current_min = time.localtime().tm_min
@@ -52,7 +52,7 @@ def is_it_OK(subject_code, current_price):
     log.debug('추세선 기울기가 추세와 같은 구매조건 통과.')
 
     # 모든 조건 충족 시 현재 보유 계약 상태 확인해서 리턴
-
+    
     # 초기에 계좌 잔고 저장해서, 몇개 살 수 있는지 확인해서 리턴
     contract_cnt = 2
 
@@ -75,34 +75,41 @@ def is_it_sell(subject_code, current_price):
         if contract.list[subject_code]['매도수구분'] == '신규매수':
             # 매수일때
             if current_price >= contract.list[subject_code]['익절가']: 
-                # 목표달성 청산
-                if contract.list[subject_code][contract.DRIBBLE] > 0:
+                if contract.list[subject_code]['계약타입'][contract.DRIBBLE] > 0:
                     # 드리블 수량이 남아있다면
+                    log.info("드리블 목표 달성으로 익절가 수정.")
                     contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['주문내용']['익절틱'] * subject.info[subject_code]['단위'] )
                     contract.list[subject_code]['손절가'] = current_price - ( (subject.info[subject_code]['주문내용']['손절틱'] - 1) * subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
 
-                return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code][contract.SAFE]}
-
+                # 목표달성 청산
+                if contract.list[subject_code]['계약타입'][contract.SAFE] > 0:
+                    log.info("목표달성 청산으로 드리블 수량 제외하고 " + str(contract.list[subject_code]['계약타입'][contract.SAFE]) + "개 청산 요청.")
+                    return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE]}
+                
             elif current_price <= contract.list[subject_code]['손절가']: 
                 # 손절 청산
-                return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code][contract.SAFE] + contract.list[subject_code][contract.DRIBBLE]}
+                log.info("손절가가 되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
+                return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
         
         elif contract.list[subject_code]['매도수구분'] == '신규매도':
             # 매도일때
             if current_price <= contract.list[subject_code]['익절가']: 
-                # 목표달성 청산
-                if contract.list[subject_code][contract.DRIBBLE] > 0:
+                if contract.list[subject_code]['계약타입'][contract.DRIBBLE] > 0:
                     # 드리블 수량이 남아있다면
                     contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['주문내용']['익절틱'] * subject.info[subject_code]['단위'] )
                     contract.list[subject_code]['손절가'] = current_price + ( (subject.info[subject_code]['주문내용']['손절틱'] - 1) * subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
-
-                return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code][contract.SAFE]}
-
+                    
+                # 목표달성 청산
+                if contract.list[subject_code]['계약타입'][contract.SAFE] > 0:
+                    log.info("목표달성 청산으로 드리블 수량 제외하고 " + str(contract.list[subject_code]['계약타입'][contract.SAFE]) + "개 청산 요청.")
+                    return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE]}
+                
             elif current_price >= contract.list[subject_code]['손절가']: 
                 # 손절청산
-                return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code][contract.SAFE] + contract.list[subject_code][contract.DRIBBLE]}
+                log.info("손절가가 되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
+                return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
 
-    else: return {'신규주문':False}
+    return {'신규주문':False}
 
 def update_state_by_current_price(subject_code, current_price):
     if subject.info[subject_code]['상태'] == '중립대기':

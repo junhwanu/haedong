@@ -221,7 +221,9 @@ def calc(subject_code):
         if data[subject_code]['정배열연속틱'] > 0:
             log.info('이동평균선 정배열 연속틱 초기화.')
         data[subject_code]['정배열연속틱'] = 1
-        subject.info[subject_code]['상태'] = '중립대기'
+        if contract.get_contract_count(subject_code) == 0:
+            log.info('종목코드 : ' + subject_code + ' 상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
+            subject.info[subject_code]['상태'] = '중립대기'
     else:
         data[subject_code]['정배열연속틱'] += 1
         log.info('이동평균선 ' + trend + ' ' + str(data[subject_code]['정배열연속틱']) + '틱')
