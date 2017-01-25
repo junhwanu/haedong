@@ -40,22 +40,25 @@ def is_it_OK(subject_code, current_price):
         log.debug('현재상태 : ' + subject.info[subject_code]['상태'] + ', 매매구간누적캔들 : ' + str(subject.info[subject_code]['매매구간누적캔들']) + '로 구매조건 미달.')
         return {'신규주문':False}
 
-        
-    # 추세선의 기울기가 추세와 같은지 확인
-    if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
-        if calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] ] - calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] - 1] < 0:
-            return {'신규주문':False}
-        
-    elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
-        if calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] ] - calc.data[subject_code]['추세선'][ calc.data[subject_code]['idx'] - 1] > 0:
-            return {'신규주문':False}
-    log.debug('추세선 기울기가 추세와 같은 구매조건 통과.')
-
     # 매매선과 5틱 이내일때만 구매
     if abs(current_price - calc.data[subject_code]['매매선'][-1]) > 5 * subject.info[subject_code]['단위']:
         log.debug('현재가 : ' + str(current_price) + ', 매매선가 : ' + str(calc.data[subject_code]['매매선'][-1]) + ' 5틱 이상 차이로 구매 안함.')
         return {'신규주문':False}
     log.debug('매매선과 현재가가 5틱 이내로 구매조건 통과.')
+
+    # 추세선 기울기가 너무 작은지 확인
+    if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
+        if calc.data[subject_code]['추세선기울기'] < 0.002:
+            log.debug('추세선 기울기가 ' + str(calc.data[subject_code]['추세선기울기']) + '로 너무 작아 매매 불가.')
+            return {'신규주문':False}
+        else:
+            log.debug('추세선 기울기 : ' + str(calc.data[subject_code]['추세선기울기']) + '로 구매조건 통과.')
+    elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
+        if calc.data[subject_code]['추세선기울기'] > -0.002:
+            log.debug('추세선 기울기가 ' + str(calc.data[subject_code]['추세선기울기']) + '로 너무 작아 매매 불가.')
+            return {'신규주문':False}
+        else:
+            log.debug('추세선 기울기 : ' + str(calc.data[subject_code]['추세선기울기']) + '로 구매조건 통과.')
 
     # 모든 조건 충족 시 현재 보유 계약 상태 확인해서 리턴
     

@@ -38,7 +38,7 @@ def create_data(subject_code):
     data[subject_code]['추세선'] = []
     data[subject_code]['매매선'] = []
     data[subject_code]['그래프'] = {}
-    
+    data[subject_code]['추세선기울기'] = 0
     
     figure[subject_code] = plt.figure(figure_count)
     figure_count = figure_count + 1
@@ -281,6 +281,7 @@ def calc_linear_regression(subject_code):
     
     result = stats.linregress(list(range( 0, line_range + 1 )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range - 1: len(data[subject_code]['현재가']) ])
 
+    data[subject_code]['추세선기울기'] = result.slope
     _x = 0
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
         data[subject_code]['추세선'][idx] = result.slope * _x + result.intercept
