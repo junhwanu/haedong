@@ -318,7 +318,16 @@ class api():
             
             current_price = round(float(current_price), subject.info[sSubjectCode]['자릿수'])
 
-            self.price_changed_cnt += 1
+            # 마감시간 임박 계약 청산
+            if int(current_time[:4]) + 1 <= int(subject.info[sSubjectCode]['마감시간']):
+                if contract.get_contract_count(sSubjectCode) > 0:
+                    if contract.list[sSubjectCode]['매도수구분'] == '신규매도':
+                        self.send_order('신규매수', sSubjectCode, contract.get_contract_count(sSubjectCode))
+                    elif contract.list[sSubjectCode]['매도수구분'] == '신규매수':
+                        self.send_order('신규매도', sSubjectCode, contract.get_contract_count(sSubjectCode))
+
+            self.price_changed_cnt += 1 # 시세 조회 횟수 누적
+
             if self.recent_price[sSubjectCode] != current_price and ( self.price_changed_cnt >= subject.info[sSubjectCode]['시간단위']/2 or (time.time() - self.recent_request_candle_time) >= 5.0):
                 # 신규주문
                 if contract.get_contract_count(sSubjectCode) == 0 and subject.info[sSubjectCode]['상태'] != '매매시도중' and subject.info[sSubjectCode]['상태'] != '매매완료':
@@ -391,6 +400,50 @@ class api():
 
             # 잔고통보
 
+            subject_code = order_info['종목코드']
+            add_cnt = int(order_info['신규수량'])
+            remove_cnt = int(order_info['청산수량'])
+
+            # 청산
+            if remove_cnt > 0:
+                # 관리되고 있는 계약이 있으면,
+                if subject_code in contract.list:
+                    if contract.get_contract_count(subject_code) > 0:
+                        contract.remove_contract(order_info)
+                        if contract.get_contract_count(subject_code) > 0:
+                            log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
+                            subject.info[subject_code]['상태'] = '매매중'
+                        else:
+                            if order_info['매도수구분'] == '1':
+                                if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx']] == '상승세':
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
+                                    subject.info[subject_code]['상태'] = '매매완료'
+                                else:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
+                                    subject.info[subject_code]['상태'] = '중립대기'
+                            elif order_info['매도수구분'] == '2':
+                                if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx']] == '하락세':
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
+                                    subject.info[subject_code]['상태'] = '매매완료'
+                                else:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
+                                    subject.info[subject_code]['상태'] = '중립대기'
+                    else:
+                        log.error('관리되지 않은 계약 ' + str(remove_cnt) + '개 청산 됨.')
+                else:
+                    log.error('관리되지 않은 계약 ' + str(remove_cnt) + '개 청산 됨.')
+
+            # 신규매매
+            if add_cnt > 0:
+                contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
+                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
+                subject.info[subject_code]['상태'] = '매매중'
+                if order_info['매도수구분'] == 2:
+                    log.info("%s 종목 %s개 신규매수." % (subject_code, order_info['신규수량']))
+                elif order_info['매도수구분'] == 1:
+                    log.info("%s 종목 %s개 신규매도." % (subject_code, order_info['신규수량']))
+
+            '''
             # 종목코드가 contract.list에 있을 경우 청산
             if order_info['종목코드'] in contract.list:
                 contract.remove_contract(order_info)
@@ -422,6 +475,7 @@ class api():
                     log.info("%s 종목 %s개 신규매수." % (order_info['종목코드'], order_info['체결수량']))
                 elif order_info['매도수구분'] == 1:
                     log.info("%s 종목 %s개 신규매도." % (order_info['종목코드'], order_info['체결수량']))
+            '''
                 
 
     def OnEventConnect(self, nErrCode):

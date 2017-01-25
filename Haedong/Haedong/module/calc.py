@@ -6,7 +6,7 @@ from scipy import stats
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 60, 120, 200, 300]
+data['이동평균선']['일수'] = [5, 30, 60, 120, 200, 300]
 figure = {}
 figure_count = 0
 

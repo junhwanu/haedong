@@ -32,12 +32,24 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
     subject_code = order_info['종목코드']
     if subject_code in list:
         logger.error("%s 종목은 이미 %s계약 보유 중 입니다" % (list[subject_code]['보유수량'],subject_code))
-        return False
+        
+        safe_num = 0
+        dribble_num = 0
+        if list[subject_code]['계약타입'][SAFE] > list[subject_code]['계약타입'][DRIBBLE]:
+            safe_num = int(int(order_info['신규수량'])/2)
+            dribble_num = int(order_info['신규수량']) - safe_num
+        else:
+            dribble_num = int(int(order_info['신규수량'])/2)
+            safe_num = int(order_info['신규수량']) - dribble_num
+        
+        list[subject_code]['계약타입'][SAFE] += safe_num
+        list[subject_code]['계약타입'][DRIBBLE] += dribble_num
+        log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
     else:
         list[subject_code] = {}
         
-        safe_num = int(int(order_info['체결수량'])/2)
-        dribble_num = int(order_info['체결수량']) - safe_num
+        safe_num = int(int(order_info['신규수량'])/2)
+        dribble_num = int(order_info['신규수량']) - safe_num
         
         list[subject_code]['계약타입'] = {}
         list[subject_code]['계약타입'][SAFE] = safe_num
@@ -51,13 +63,13 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
         elif order_contents['매도수구분'] == '신규매수':
             list[subject_code]['익절가'] = list[subject_code]['체결가'] + order_contents['익절틱'] * subject.info[subject_code]['단위']
             list[subject_code]['손절가'] = list[subject_code]['체결가'] - order_contents['익절틱'] * subject.info[subject_code]['단위']
-        list[subject_code]['보유수량'] = int(order_info['체결수량'])
-    
+        list[subject_code]['보유수량'] = int(order_info['신규수량'])
+        log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
     return True
     
 def remove_contract(order_info):
     subject_code = order_info['종목코드']
-    remove_cnt = int(order_info['체결수량'])
+    remove_cnt = int(order_info['청산수량'])
     
     if subject_code in list:
         if list[subject_code]['계약타입'][SAFE] >= remove_cnt:
@@ -69,8 +81,10 @@ def remove_contract(order_info):
             remove_cnt -= list[subject_code]['계약타입'][SAFE]
             list[subject_code]['계약타입'][SAFE] = 0
             list[subject_code]['계약타입'][DRIBBLE] -= remove_cnt
-            del list[subject_code]
-            log.info(subject_code + " 종목 모든 계약 청산 합니다.")
+
+            if list[subject_code]['계약타입'][DRIBBLE] == 0:
+                del list[subject_code]
+                log.info(subject_code + " 종목 모든 계약 청산 합니다.")
 
         return True
         
