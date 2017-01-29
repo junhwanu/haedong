@@ -139,8 +139,12 @@ class api():
             _contract_type = 1
         else: return -300
 
-        return self.ocx.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, QString, QString, QString, QString)",
-                                    [contract_type, '0101', self.account, _contract_type, subject_code, contract_cnt, '0', '0', '1', ''])
+        if self.mode == 1:
+            return self.ocx.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, QString, QString, QString, QString)",
+                                        [contract_type, '0101', self.account, _contract_type, subject_code, contract_cnt, '0', '0', '1', ''])
+        elif self.mod == 2: #테스트
+            tester.send_order(contract_type, subject_code, contract_cnt, '1')
+            return 0
 
     def request_tick_info(self, subject_code, tick_unit, prevNext):
 
@@ -205,7 +209,7 @@ class api():
     # Control Event Handlers
     ####################################################
 
-    def OnReceiveTrData(self, sScrNo, sRQName, sTrCode, sRecordName, sPreNext):
+    def OnReceiveTrData(self, sScrNo, sRQName, sTrCode, sRecordName, sPreNext, candle = None):
         """
         Tran 수신시 이벤트
         서버통신 후 데이터를 받은 시점을 알려준다.
@@ -225,13 +229,19 @@ class api():
         
         if sRQName == "해외선물옵션틱그래프조회":
             for subject_code in subject.info.keys():
-                if sScrNo == subject.info[subject_code]['화면번호']:                    
+                if sScrNo == subject.info[subject_code]['화면번호']:   
+                    if self.mode == 2 and subject_code not in calc.data: # 테스트
+                        calc.create_data(subject_code)
+
                     if subject_code in calc.data:
-                        price['현재가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '현재가')
-                        price['저가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '저가')
-                        price['고가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '고가')
-                        price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
-                        price['시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
+                        if self.mode == 1: # 실제투자
+                            price['현재가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '현재가')
+                            price['저가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '저가')
+                            price['고가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '고가')
+                            price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
+                            price['체결시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
+                        elif self.mode == 2: # 테스트
+                            price = candle
 
                         # 캔들이 갱신되었는지 확인
                         if self.recent_candle_time[subject_code] != price['시간']:
@@ -241,6 +251,8 @@ class api():
                             self.recent_candle_time[subject_code] = price['시간']
                             log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
                     else:
+                        if self.mode == 2: #테스트
+                            return
                         # 초기 데이터 수신
                         data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
                         data = data.split()
@@ -316,15 +328,19 @@ class api():
         # 캔들 생기는 시점 확인해서 가격이 안바뀌어도 옥수수에 3틱으로 설정할 경우 가격변동없이 캔들이 생기는 경우가 있으니 request_tick_info 시점 확인
         
         #log.debug("OnReceiveRealData entered.")
-        if sSubjectCode[:2] not in subject.info.keys(): #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
+        if sSubjectCode[:2] not in subject.info.keys() and self.mode == 1: #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
             
 
         if sRealType == '해외선물시세':
-            current_price = self.ocx.dynamicCall("GetCommRealData(QString, int)", "현재가", 140)    # 140이 뭔지 확인
-            current_time = self.ocx.dynamicCall("GetCommRealData(QString, int)", "체결시간", 20)    # 체결시간이 뭔지 확인
-            
+            if self.mode == 1: #실제투자
+                current_price = self.ocx.dynamicCall("GetCommRealData(QString, int)", "현재가", 140)    # 140이 뭔지 확인
+                current_time = self.ocx.dynamicCall("GetCommRealData(QString, int)", "체결시간", 20)    # 체결시간이 뭔지 확인
+            elif self.mode == 2: #테스트
+                current_price = sRealData['현재가']    
+                current_time = sRealData['체결시간']
+                    
             current_price = round(float(current_price), subject.info[sSubjectCode]['자릿수'])
 
             # 마감시간 임박 계약 청산
@@ -380,7 +396,7 @@ class api():
             log.error(sRealType + ' / ' + sSubjectCode + ' / ' + sRealData)
         
 
-    def OnReceiveChejanData(self, sGubun, nItemCnt, sFidList):
+    def OnReceiveChejanData(self, sGubun, nItemCnt, sFidList, o_info = None):
         """
         체결데이터를 받은 시점을 알려준다.
 
@@ -390,15 +406,19 @@ class api():
         """
 
         order_info = {}
-        order_info['주문번호'] = int(self.ocx.dynamicCall("GetChejanData(int)", 9203))        # 주문번호 
-        order_info['원주문번호'] = int(self.ocx.dynamicCall("GetChejanData(int)", 904))       # 원주문번호
-        order_info['주문유형'] = int(self.ocx.dynamicCall("GetChejanData(int)", 906))         # 주문유형(1 : 시장가, 2 : 지정가, 3 : STOP)
-        order_info['종목코드'] = self.ocx.dynamicCall("GetChejanData(int)", 9001)             # 종목코드
-        order_info['매도수구분'] = self.ocx.dynamicCall("GetChejanData(int)", 907)       # 매도수구분(1 : 매도, 2 : 매수)
-        order_info['체결표시가격'] = self.ocx.dynamicCall("GetChejanData(int)", 13331)        # 체결표시가격
-        order_info['신규수량'] = self.ocx.dynamicCall("GetChejanData(int)", 13327)       # 신규수량
-        order_info['청산수량'] = self.ocx.dynamicCall("GetChejanData(int)", 13328)       # 청산수량
-        order_info['체결수량'] = self.ocx.dynamicCall("GetChejanData(int)", 911)         # 체결수량
+
+        if self.mode == 1: #실제투자
+            order_info['주문번호'] = int(self.ocx.dynamicCall("GetChejanData(int)", 9203))        # 주문번호 
+            order_info['원주문번호'] = int(self.ocx.dynamicCall("GetChejanData(int)", 904))       # 원주문번호
+            order_info['주문유형'] = int(self.ocx.dynamicCall("GetChejanData(int)", 906))         # 주문유형(1 : 시장가, 2 : 지정가, 3 : STOP)
+            order_info['종목코드'] = self.ocx.dynamicCall("GetChejanData(int)", 9001)             # 종목코드
+            order_info['매도수구분'] = self.ocx.dynamicCall("GetChejanData(int)", 907)       # 매도수구분(1 : 매도, 2 : 매수)
+            order_info['체결표시가격'] = self.ocx.dynamicCall("GetChejanData(int)", 13331)        # 체결표시가격
+            order_info['신규수량'] = self.ocx.dynamicCall("GetChejanData(int)", 13327)       # 신규수량
+            order_info['청산수량'] = self.ocx.dynamicCall("GetChejanData(int)", 13328)       # 청산수량
+            order_info['체결수량'] = self.ocx.dynamicCall("GetChejanData(int)", 911)         # 체결수량
+        elif self.mode == 2: # 테스트
+            order_info = o_info
 
         if sGubun == '0':
             # 주문체결통보
@@ -408,7 +428,7 @@ class api():
         if sGubun == '1':
             
             log.info(order_info)
-
+            res.info(order_info)
             # 잔고통보
 
             subject_code = order_info['종목코드']
@@ -421,6 +441,16 @@ class api():
                 if subject_code in contract.list:
                     if contract.get_contract_count(subject_code) > 0:
                         contract.remove_contract(order_info)
+
+                        profit = 0
+                        if order_info['매도수구분'] == '1':
+                            profit = (float(order_info['체결표시가']) - float(contract.list[subject_code]['체결가']) * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
+                        elif order_info['매도수구분'] == '2':
+                            profit = (float(order_info['체결표시가']) - float(contract.list[subject_code]['체결가']) * subject.info[subject_code]['틱가치'] - 15) * -remove_cnt
+
+                        subject.info[subject_code]['누적수익'] += profit
+                        res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
+
                         if contract.get_contract_count(subject_code) > 0:
                             log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
                             subject.info[subject_code]['상태'] = '매매중'
