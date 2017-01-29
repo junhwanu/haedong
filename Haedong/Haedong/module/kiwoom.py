@@ -3,6 +3,7 @@ import sys, time, os
 import gmail, log, calc, santa, screen
 import json
 import subject, contract
+import log_result as res
 
 from PyQt5.QAxContainer import QAxWidget
 from PyQt5.QtWidgets import QApplication
