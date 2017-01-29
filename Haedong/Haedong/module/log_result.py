@@ -20,7 +20,7 @@ def init(path):
         file = open(log_file, 'w')
         file.close()
             
-    logger = logging.getLogger('mylogger')
+    logger = logging.getLogger('result')
     fomatter = logging.Formatter('[%(levelname)s:%(lineno)s] %(asctime)s > %(message)s')
 
     fileHandler = logging.FileHandler(log_file, encoding='utf-8')

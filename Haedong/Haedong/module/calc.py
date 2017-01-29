@@ -2,7 +2,7 @@
 import subject, contract, log
 import matplotlib.pyplot as plt
 from scipy import stats
-
+import log_result as res
 
 data = {}
 data['이동평균선'] = {}
@@ -125,7 +125,8 @@ def push(subject_code, price):
 
     #draw(subject_code)
     if data[subject_code]['idx'] > 595:
-        show(subject_code)
+        #show(subject_code)
+        pass
         
 
      
@@ -228,7 +229,7 @@ def calc(subject_code):
             init_sar(subject_code)
         
         elif data[subject_code]['idx'] > 5:
-            calculate_sar(subject_code, sar)
+            calculate_sar(subject_code)
         
         calc_ma_line(subject_code)
         
@@ -461,11 +462,11 @@ def init_sar(subject_code):
     subject.info[subject_code]['sar'] = sar
     subject.info[subject_code]['ep'] = ep
     subject.info[subject_code]['af'] = af
-    flow = subject.info[subject_code]['flow'] = temp_flow
+    subject.info[subject_code]['flow'] = temp_flow
     
-    calculate_sar(subject_code, index)
+    calculate_sar(subject_code)
 
-def calculate_sar(subject_code, index):
+def calculate_sar(subject_code):
 
     sar = subject.info[subject_code]['sar']
     af = subject.info[subject_code]['af']
@@ -506,6 +507,10 @@ def calculate_sar(subject_code, index):
             the_highest_price = 0
             the_lowest_price = data[subject_code]['저가'][index]
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+            res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]))
+            if subject.info[subject_code]['상태'] == '매매완료':
+                log.info('상태 변경, 매매완료 -> 중립대기')
+                subject.info[subject_code]['상태'] = '중립대기'
        
 
     elif temp_flow == "하향":
@@ -527,6 +532,10 @@ def calculate_sar(subject_code, index):
             the_lowest_price = 0
             the_highest_price = data[subject_code]['고가'][index]
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+            res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]))
+            if subject.info[subject_code]['상태'] == '매매완료':
+                log.info('상태 변경, 매매완료 -> 중립대기')
+                subject.info[subject_code]['상태'] = '중립대기'
        
 
     next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
@@ -536,7 +545,7 @@ def calculate_sar(subject_code, index):
     #log.info("ep:"+str(ep))
     #log.info("flow:"+str(temp_flow))
     #log.info("sar:%s" % str(next_sar))
-    log.info("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
+    #log.debug("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
     #log.info("---------------")
     
     subject.info[subject_code]['sar'] = next_sar
