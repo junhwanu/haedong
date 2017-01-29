@@ -7,7 +7,7 @@ def is_it_OK(subject_code, current_price):
     '''
     
     # 마감시간 임박 구매 불가
-    if get_current_time() + 30 >= int(subject.info[subject_code]['마감시간']) and get_current_time() < int(subject.info[subject_code]['마감시간']):
+    if get_time(30) >= int(subject.info[subject_code]['마감시간']) and get_time(0) < int(subject.info[subject_code]['마감시간']):
         log.debug('마감시간 임박으로 구매 불가')
         return {'신규주문':False}
    
@@ -30,21 +30,23 @@ def is_it_OK(subject_code, current_price):
 
     
     # 추세선 터치여부 확인
-    '''
-    if subject.info[subject_code]['상태'] == '매매구간진입' and subject.info[subject_code]['매매구간누적캔들'] >= 1:
-        log.debug('현재가가 매매구간진입 상태이며, 매매구간누적캔들 ' + str(subject.info[subject_code]['매매구간누적캔들']) + '개로 구매조건 통과.')
+    
     '''
     if subject.info[subject_code]['상태'] == '매매구간진입':
         log.debug('현재가가 매매구간진입 상태로 구매조건 통과.')
+    '''
+    if subject.info[subject_code]['상태'] == '매매구간진입' and subject.info[subject_code]['매매구간누적캔들'] >= 1:
+        log.debug('현재가가 매매구간진입 상태이며, 매매구간누적캔들 ' + str(subject.info[subject_code]['매매구간누적캔들']) + '개로 구매조건 통과.')
     else: 
         log.debug('현재상태 : ' + subject.info[subject_code]['상태'] + ', 매매구간누적캔들 : ' + str(subject.info[subject_code]['매매구간누적캔들']) + '로 구매조건 미달.')
         return {'신규주문':False}
 
     # 매매선과 5틱 이내일때만 구매
-    if abs(current_price - calc.data[subject_code]['매매선'][-1]) > 5 * subject.info[subject_code]['단위']:
-        log.debug('현재가 : ' + str(current_price) + ', 매매선가 : ' + str(calc.data[subject_code]['매매선'][-1]) + ' 5틱 이상 차이로 구매 안함.')
+    min_tick = 2
+    if abs(current_price - calc.data[subject_code]['매매선'][-1]) > min_tick * subject.info[subject_code]['단위']:
+        log.debug('현재가 : ' + str(current_price) + ', 매매선가 : ' + str(calc.data[subject_code]['매매선'][-1]) + ' ' + str(min_tick) + '틱 이상 차이로 구매 안함.')
         return {'신규주문':False}
-    log.debug('매매선과 현재가가 5틱 이내로 구매조건 통과.')
+    log.debug('매매선과 현재가가 '  + str(min_tick) + '틱 이내로 구매조건 통과.')
 
     # 추세선 기울기가 너무 작은지 확인
     if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
@@ -72,7 +74,10 @@ def is_it_OK(subject_code, current_price):
     elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
         mesu_medo_type = '신규매도'
 
-    order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':10, '손절틱':10, '수량':contract_cnt}
+    profit_tick = int(abs(calc.data[subject_code]['추세선기울기'] * 5000))
+    if profit_tick > 10: profit_tick = 10
+
+    order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':profit_tick, '수량':contract_cnt}
     log.debug('santa.is_it_OK() : 모든 구매조건 통과.')
     log.debug(order_contents)
     return order_contents
@@ -86,7 +91,7 @@ def is_it_sell(subject_code, current_price):
             if current_price >= contract.list[subject_code]['익절가']: 
                 if contract.list[subject_code]['계약타입'][contract.DRIBBLE] > 0:
                     # 드리블 수량이 남아있다면
-                    if get_current_time() + 30 >= int(subject.info[subject_code]['마감시간']) and get_current_time() < int(subject.info[subject_code]['마감시간']):
+                    if get_time(30) >= int(subject.info[subject_code]['마감시간']) and get_time(0) < int(subject.info[subject_code]['마감시간']):
                         log.info('마감시간 임박으로 드리블 불가. 모두 청산.')
                         return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
                     else:
@@ -109,7 +114,7 @@ def is_it_sell(subject_code, current_price):
             if current_price <= contract.list[subject_code]['익절가']: 
                 if contract.list[subject_code]['계약타입'][contract.DRIBBLE] > 0:
                     # 드리블 수량이 남아있다면
-                    if get_current_time() + 30 >= int(subject.info[subject_code]['마감시간']) and get_current_time() < int(subject.info[subject_code]['마감시간']):
+                    if get_time(30) >= int(subject.info[subject_code]['마감시간']) and get_time(0) < int(subject.info[subject_code]['마감시간']):
                         log.info('마감시간 임박으로 드리블 불가. 모두 청산.')
                         return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
                     else:
@@ -145,7 +150,7 @@ def update_state_by_current_price(subject_code, current_price):
 def update_state_by_current_candle(subject_code, price):
     current_price = float(price['현재가'])
     start_price = float(price['시가'])
-
+    '''
     if subject.info[subject_code]['상태'] == '매매선터치' or subject.info[subject_code]['상태'] == '매매구간진입' :
         if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
             if current_price >= calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ]:
@@ -191,13 +196,13 @@ def update_state_by_current_candle(subject_code, price):
                     subject.info[subject_code]['상태'] = '매매구간진입'
                     subject.info[subject_code]['매매구간누적캔들'] += 1
                     log.debug('매매구간 누적캔들 : ' + str(subject.info[subject_code]['매매구간누적캔들']))
-    '''
+    
 
-def get_current_time():
+def get_time(add_min):
     # 현재 시간 정수형으로 return
     current_hour = time.localtime().tm_hour
     current_min = time.localtime().tm_min
-    if current_min + 30 >= 60:
+    if current_min + add_min >= 60:
         current_hour += 1
         current_min -= 60
 

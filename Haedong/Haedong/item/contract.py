@@ -31,7 +31,7 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
     
     subject_code = order_info['종목코드']
     if subject_code in list:
-        logger.error("%s 종목은 이미 %s계약 보유 중 입니다" % (list[subject_code]['보유수량'],subject_code))
+        log.error("%s 종목은 이미 %s계약 보유 중 입니다" % (subject_code, list[subject_code]['계약타입'][SAFE] + list[subject_code]['계약타입'][DRIBBLE]))
         
         safe_num = 0
         dribble_num = 0

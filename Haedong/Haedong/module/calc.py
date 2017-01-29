@@ -37,6 +37,7 @@ def create_data(subject_code):
     data[subject_code]['추세'] = []
     data[subject_code]['추세선'] = []
     data[subject_code]['매매선'] = []
+    data[subject_code]['결정계수'] = 0
     data[subject_code]['그래프'] = {}
     data[subject_code]['추세선기울기'] = 0
     
@@ -132,7 +133,7 @@ def show(subject_code):
     remove_line(subject_code, data[subject_code]['그래프']['현재가'])
     data[subject_code]['그래프']['현재가'] = subplot.plot(data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - graph_width_tick_cnt: len(data[subject_code]['현재가']) ], color='black', label='Closing price', linewidth=2)[0]
     remove_line(subject_code, data[subject_code]['그래프']['추세선'])
-    data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range - 1: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line', linewidth=2)[0]
+    data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range - 1: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line' + 'r-squared = ' + str(data[subject_code]['결정계수']), linewidth=2)[0]
     remove_line(subject_code, data[subject_code]['그래프']['매매선'])
     data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], color='m', label='Trade Line', linewidth=2)[0]
     #data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], linewidth=2)[0]
@@ -279,18 +280,31 @@ def calc_linear_regression(subject_code):
     if data[subject_code]['idx'] <= line_range:
         return
     
+    if data[subject_code]['idx'] > 50 and get_past_trend_count(subject_code) <= 50:
+        # 잠깐 움직였다고 가정
+        reverse_past_trend(subject_code)
+        data[subject_code]['추세선'].pop()
+        data[subject_code]['매매선'].pop()
+        
+        calc_linear_regression(subject_code)
+        return
+
     result = stats.linregress(list(range( 0, line_range + 1 )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range - 1: len(data[subject_code]['현재가']) ])
 
     data[subject_code]['추세선기울기'] = result.slope
+    data[subject_code]['결정계수'] = (result.rvalue**2)
     _x = 0
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
         data[subject_code]['추세선'][idx] = result.slope * _x + result.intercept
         _x+=1
 
+    
     # 데이터와의 차 구함
     max = get_max_deifference(subject_code)
     
-    diff = max * 0.4
+    diff = max * 0.6
+    if diff > 10 * subject.info[subject_code]['단위']:
+       diff = 10 *subject.info[subject_code]['단위']
 
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
         if data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '상승세':
@@ -298,7 +312,46 @@ def calc_linear_regression(subject_code):
         elif data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '하락세':
             data[subject_code]['매매선'][idx] = data[subject_code]['추세선'][idx] + diff
     
+    # 달마식으로 매매선 구해보자...
 
+    
+def get_trade_line_by_dalma(subject_code):
+    max1 = 0
+    idx1 = 0
+    max2 = 0
+    idx2 = 0
+
+def get_past_trend_count(subject_code):
+    start_index = data[subject_code]['idx'] - data[subject_code]['정배열연속틱']
+    past_trend = data[subject_code]['추세'][ start_index ]
+    if past_trend == '모름':
+        return 100
+    count = 0
+    for idx in range(start_index, 0, -1):
+        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
+            break
+        count+=1
+
+    return count
+
+def get_current_trend_count(subject_code):
+    current_trend = data[subject_code]['추세'][-1]
+    count = 0
+    for idx in range( data[subject_code]['idx'], 0, -1 ):
+        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != current_trend:
+            break
+        count+=1
+
+    return count
+
+def reverse_past_trend(subject_code):
+    start_index = data[subject_code]['idx'] - get_current_trend_count(subject_code)
+    past_trend = data[subject_code]['추세'][ start_index ]
+    for idx in range(start_index, 0, -1):
+        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
+            break
+        data[subject_code]['추세'][idx] = data[subject_code]['추세'][-1]
+    
 def get_line_range(subject_code):
     line_range = data[subject_code]['idx'] - find_trend_start_index(subject_code)
     if line_range < 10:
@@ -325,6 +378,7 @@ def get_max_deifference(subject_code):
 def find_trend_start_index(subject_code):
     start_index = data[subject_code]['idx'] - data[subject_code]['정배열연속틱']
     past_trend = data[subject_code]['추세'][ start_index ]
+    current_trend = data[subject_code]['추세'][ -1 ]
     max = 0.0
     min = 99999.99
     point = start_index
@@ -332,11 +386,11 @@ def find_trend_start_index(subject_code):
         if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
             break
 
-        if past_trend == '하락세':
+        if current_trend == '상승세':
             if data[subject_code]['현재가'][idx] < min:
                 min = data[subject_code]['현재가'][idx]
                 point = idx
-        elif past_trend == '상승세':
+        elif current_trend == '하락세':
             if data[subject_code]['현재가'][idx] > max:
                 max = data[subject_code]['현재가'][idx]
                 point = idx

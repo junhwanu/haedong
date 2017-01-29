@@ -319,8 +319,9 @@ class api():
             current_price = round(float(current_price), subject.info[sSubjectCode]['자릿수'])
 
             # 마감시간 임박 계약 청산
-            if int(current_time[:4]) + 1 <= int(subject.info[sSubjectCode]['마감시간']):
+            if santa.get_time(3) < int(subject.info[sSubjectCode]['시작시간']) and santa.get_time(3) >= int(subject.info[sSubjectCode]['마감시간']):
                 if contract.get_contract_count(sSubjectCode) > 0:
+                    log.info('마감시간 임박으로 모든 계약 청산 요청.')
                     if contract.list[sSubjectCode]['매도수구분'] == '신규매도':
                         self.send_order('신규매수', sSubjectCode, contract.get_contract_count(sSubjectCode))
                     elif contract.list[sSubjectCode]['매도수구분'] == '신규매수':
@@ -328,9 +329,9 @@ class api():
 
             self.price_changed_cnt += 1 # 시세 조회 횟수 누적
 
-            if self.recent_price[sSubjectCode] != current_price and ( self.price_changed_cnt >= subject.info[sSubjectCode]['시간단위']/2 or (time.time() - self.recent_request_candle_time) >= 5.0):
+            if self.recent_price[sSubjectCode] != current_price:
                 # 신규주문
-                if contract.get_contract_count(sSubjectCode) == 0 and subject.info[sSubjectCode]['상태'] != '매매시도중' and subject.info[sSubjectCode]['상태'] != '매매완료':
+                if contract.get_contract_count(sSubjectCode) == 0 and subject.info[sSubjectCode]['상태'] != '매매시도중' and subject.info[sSubjectCode]['상태'] != '매매완료' and subject.info[sSubjectCode]['상태'] != '청산시도중':
                     order_contents = santa.is_it_OK(sSubjectCode, current_price)
                     if order_contents['신규주문'] == True:
                         # return value를 리스트로 받아와서 어떻게 사야하는지 확인
@@ -359,9 +360,10 @@ class api():
 
                 log.debug("price changed, " + str(self.recent_price[sSubjectCode]) + " -> " + str(current_price))
                 self.recent_price[sSubjectCode] = current_price
-                self.request_tick_info(sSubjectCode, subject.info[sSubjectCode]['시간단위'], "")
-                self.recent_request_candle_time = time.time()
-                self.price_changed_cnt = 0
+                if self.price_changed_cnt >= subject.info[sSubjectCode]['시간단위']/2 or (time.time() - self.recent_request_candle_time) >= 5.0:
+                    self.request_tick_info(sSubjectCode, subject.info[sSubjectCode]['시간단위'], "")
+                    self.recent_request_candle_time = time.time()
+                    self.price_changed_cnt = 0
                 calc.show_current_price(sSubjectCode, current_price)
                 
         else:
