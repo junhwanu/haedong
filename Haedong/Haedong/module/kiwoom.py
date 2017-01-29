@@ -230,14 +230,14 @@ class api():
                         price['저가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '저가')
                         price['고가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '고가')
                         price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
-                        price['시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
+                        price['체결시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
 
                         # 캔들이 갱신되었는지 확인
-                        if self.recent_candle_time[subject_code] != price['시간']:
+                        if self.recent_candle_time[subject_code] != price['체결시간']:
                             # 캔들 갱신
                             santa.update_state_by_current_candle(subject_code, price)
                             calc.push(subject_code, price)
-                            self.recent_candle_time[subject_code] = price['시간']
+                            self.recent_candle_time[subject_code] = price['체결시간']
                             log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
                     else:
                         # 초기 데이터 수신
@@ -253,7 +253,7 @@ class api():
                             price['현재가'] = data[current_idx]
                             price['고가'] = data[current_idx + 4]
                             price['저가'] = data[current_idx + 5]
-                            price['시간'] = data[current_idx + 2]
+                            price['체결시간'] = data[current_idx + 2]
                             
                             current_idx -= 7
                             ''' 오늘 데이터만 받아오는 코드

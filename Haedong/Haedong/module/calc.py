@@ -32,7 +32,8 @@ def create_data(subject_code):
     data[subject_code]['현재가'] = []
     data[subject_code]['고가'] = []
     data[subject_code]['저가'] = []
-    data[subject_code]['시간'] = []
+    data[subject_code]['체결시간'] = []
+    data[subject_code]['SAR반전시간'] = []
 
     data[subject_code]['정배열연속틱'] = 0
     data[subject_code]['추세'] = []
@@ -111,11 +112,11 @@ def push(subject_code, price):
     current_price = float(price['현재가'])
     highest_price = float(price['고가'])
     lowest_price = float(price['저가'])
-    current_time = int(price['시간'])
+    current_time = int(price['체결시간'])
     data[subject_code]['현재가'].append(current_price)
     data[subject_code]['고가'].append(highest_price)
     data[subject_code]['저가'].append(lowest_price)
-    data[subject_code]['시간'].append(current_time)
+    data[subject_code]['체결시간'].append(current_time)
     
 
     data[subject_code]['idx'] = data[subject_code]['idx'] + 1
@@ -126,10 +127,7 @@ def push(subject_code, price):
     if data[subject_code]['idx'] > 595:
         show(subject_code)
         
-        
-    
-        #print(data[subject_code]['현재가'])
-        #print(data[subject_code]['시간'])
+
      
 def show(subject_code):
     graph_width_tick_cnt = 200
@@ -223,6 +221,7 @@ def calc(subject_code):
     각종 그래프 계산
     '''
     if subject.info[subject_code]['전략'] == '파라':
+
         sar = subject.info[subject_code]['sar']
         
         if data[subject_code]['idx'] == 5:
@@ -422,16 +421,21 @@ def find_trend_start_index(subject_code):
 
 ###### parabolic SAR ######
 
-def init_sar(self, subject_code):
+def init_sar(subject_code):
+    
     ep = subject.info[subject_code]['ep']
     af = subject.info[subject_code]['af']
-    maxaf = subject.info[subject_code]['maxaf']
-    flow = subject.info[subject_code]['flow']
+    index = data[subject_code]['idx']
     
+    temp_high_price_list = []
+    temp_low_price_list = []
     
-            
-    temp_high_price_list = list_high_low_price[subject_code]['고가'][:6]
-    temp_low_price_list = list_high_low_price[subject_code]['저가'][:6]
+    if index != 5:
+        log.error("ERROR!, init_sar() index가 5가 아닙니다.")
+        
+    for i in range(index):
+        temp_high_price_list.append(data[subject_code]['고가'][i])
+        temp_low_price_list.append(data[subject_code]['저가'][i])
 
     score = 0
 
@@ -452,32 +456,25 @@ def init_sar(self, subject_code):
         ep = min(temp_low_price_list)
         temp_flow = "하향"
     
-    init_sar = ((ep - init_sar) * af) + init_sar
-    
-    list_high_low_price[subject_code]['고가'] = list_high_low_price[subject_code]['고가'][5:]
-    list_high_low_price[subject_code]['저가'] = list_high_low_price[subject_code]['저가'][5:]
-    list_high_low_price[subject_code]['시간'] = list_high_low_price[subject_code]['시간'][5:]
-    
-    #logger.info("init ep:"+str(ep))
-    #logger.info("init flow:"+str(flow))
-    #logger.info("init sar:"+str(sar))
-    #logger.info("!!!")
-    self.calculate_sar(subject_code,init_sar)
+    sar = ((ep - init_sar) * af) + init_sar
 
-def calculate_sar(self, subject_code, init_sar=0, current_price = 0):
-   
-    #logger.info("here is calculate_sar()")
-    global list_high_low_price
-    global sar, ep, af, maxaf, flow, init_af, sar_reverse_time, temp_sar
-    global subject_info, contract_set, temp_flow
-
-    #logger.info("ep:%s" % ep)
-    #logger.info(list_high_low_price[subject_code]['고가'])
-    #logger.info(list_high_low_price[subject_code]['저가'])
-    if init_sar != 0:
-        #sar.append(init_sar)
-        temp_sar = init_sar
+    subject.info[subject_code]['sar'] = sar
+    subject.info[subject_code]['ep'] = ep
+    subject.info[subject_code]['af'] = af
+    flow = subject.info[subject_code]['flow'] = temp_flow
     
+    calculate_sar(subject_code, index)
+
+def calculate_sar(subject_code, index):
+
+    sar = subject.info[subject_code]['sar']
+    af = subject.info[subject_code]['af']
+    init_af = subject.info[subject_code]['init_af']
+    maxaf = subject.info[subject_code]['maxaf']
+    ep = subject.info[subject_code]['ep']
+    temp_flow = subject.info[subject_code]['flow']
+    index = data[subject_code]['idx']   
+    temp_sar = subject.info[subject_code]['sar']
     
     
     the_highest_price = 0
@@ -488,87 +485,63 @@ def calculate_sar(self, subject_code, init_sar=0, current_price = 0):
     if temp_flow == "하향":
         the_lowest_price = ep 
 
+    next_sar = temp_sar
     
-    lenth = len(list_high_low_price[subject_code]['저가'])
-    
-    #logger.info("이전 SAR:"+str(sar[-1]))
-   
-    for i in range(lenth): 
-        next_sar = temp_sar
-        
-        if temp_flow == "상향":
-            if list_high_low_price[subject_code]['저가'][0] >= next_sar: # 상승추세에서 저가가 내일의 SAR보다 높으면 하락이 유효
-                today_sar = next_sar
-                temp_flow = "상향"
-                the_lowest_price = 0
-                if list_high_low_price[subject_code]['고가'][0] > ep: # 신고가 발생
-                    the_highest_price = list_high_low_price[subject_code]['고가'][0] 
-                    ep = list_high_low_price[subject_code]['고가'][0]
-                    af = af + init_af
-                    if af > maxaf:
-                        af = maxaf
-                        
-            elif list_high_low_price[subject_code]['저가'][0] < next_sar: # 상승추세에서 저가가 내일의 SAR보다 낮으면 하향 반전
-                temp_flow = "하향"
-                af = init_af
-                today_sar = ep
-                the_highest_price = 0
-                the_lowest_price = list_high_low_price[subject_code]['저가'][0]
-                temp = str(list_high_low_price[subject_code]['시간'][0])
-                sar_reverse_time = temp[8:]
-                #print("반전 시간: %s" % sar_reverse_time)
+    if temp_flow == "상향":
+        if data[subject_code]['저가'][index] >= next_sar: # 상승추세에서 저가가 내일의 SAR보다 높으면 하락이 유효
+            today_sar = next_sar
+            temp_flow = "상향"
+            the_lowest_price = 0
+            if data[subject_code]['고가'][index] > ep: # 신고가 발생
+                the_highest_price = data[subject_code]['고가'][index] 
+                ep = data[subject_code]['고가'][index]
+                af = af + init_af
+                if af > maxaf:
+                    af = maxaf
+                    
+        elif data[subject_code]['저가'][index] < next_sar: # 상승추세에서 저가가 내일의 SAR보다 낮으면 하향 반전
+            temp_flow = "하향"
+            af = init_af
+            today_sar = ep
+            the_highest_price = 0
+            the_lowest_price = data[subject_code]['저가'][index]
+            data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+       
 
-        elif temp_flow == "하향":
-            if list_high_low_price[subject_code]['고가'][0] <= next_sar: # 하락추세에서 고가가 내일의 SAR보다 낮으면 하락이 유효
-                today_sar = next_sar
-                temp_flow = "하향"
-                the_highest_price = 0
-                if list_high_low_price[subject_code]['저가'][0] < ep: # 신저가 발생
-                    the_lowest_price = list_high_low_price[subject_code]['저가'][0]
-                    ep = list_high_low_price[subject_code]['저가'][0]
-                    af = af + init_af
-                    if af > maxaf:
-                        af = maxaf                                     
-                
-            elif list_high_low_price[subject_code]['고가'][0] > next_sar: # 하락추세에서 고가가 내일의 SAR보다 높으면 상향 반전
-                temp_flow = "상향"
-                af = init_af
-                today_sar = ep
-                the_lowest_price = 0
-                the_highest_price = list_high_low_price[subject_code]['고가'][0]
-                temp = str(list_high_low_price[subject_code]['시간'][0])
-                sar_reverse_time = temp[8:]
-                #print("반전 시간: %s" % sar_reverse_time)
-
-
+    elif temp_flow == "하향":
+        if data[subject_code]['고가'][index]<= next_sar: # 하락추세에서 고가가 내일의 SAR보다 낮으면 하락이 유효
+            today_sar = next_sar
+            temp_flow = "하향"
+            the_highest_price = 0
+            if data[subject_code]['저가'][index] < ep: # 신저가 발생
+                the_lowest_price = data[subject_code]['저가'][index]
+                ep = data[subject_code]['저가'][index]
+                af = af + init_af
+                if af > maxaf:
+                    af = maxaf                                     
             
-        #logger.info("고가:%s, 저가:%s, 시간:%s" % (list_high_low_price[subject_code]['고가'][0],list_high_low_price[subject_code]['저가'][0],list_high_low_price[subject_code]['시간'][0]))
-        #logger.info("the_highest_price:%s, the_lowest_price:%s" % (the_highest_price,the_lowest_price))
+        elif data[subject_code]['고가'][index] > next_sar: # 하락추세에서 고가가 내일의 SAR보다 높으면 상향 반전
+            temp_flow = "상향"
+            af = init_af
+            today_sar = ep
+            the_lowest_price = 0
+            the_highest_price = data[subject_code]['고가'][index]
+            data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+       
 
-        
-        
-        next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
-        
-        temp_sar = next_sar
-        
-        
-        #logger.info("af:"+str(af))
-        #logger.info("ep:"+str(ep))
-        #if len(list_high_low_price[subject_code]['시간'][0]) == 1:
-        #logger.info("flow:"+str(flow))
-        #logger.info("sar:%s" % str(sar[-1]))
-        #logger.info("---------------")
-        
-        del list_high_low_price[subject_code]['고가'][0]
-        del list_high_low_price[subject_code]['저가'][0]
-        del list_high_low_price[subject_code]['시간'][0]
-        #logger.info("!!!!!!!!")
+    next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
+
+
+    #log.info("af:"+str(af))
+    #log.info("ep:"+str(ep))
+    #log.info("flow:"+str(temp_flow))
+    #log.info("sar:%s" % str(next_sar))
+    log.info("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
+    #log.info("---------------")
     
-    flow = temp_flow    
-    sar = temp_sar
-    logger.info("반전 시간: %s" % sar_reverse_time)
-    #logger.info("af:"+str(af))
-    #logger.info("ep:"+str(ep))
-    logger.info("flow:"+str(flow))
-    #logger.info("sar:%s" % str(sar))
-    logger.info("---------------")
+    subject.info[subject_code]['sar'] = next_sar
+    subject.info[subject_code]['ep'] = ep
+    subject.info[subject_code]['af'] = af
+    flow = subject.info[subject_code]['flow'] = temp_flow
+    
+    

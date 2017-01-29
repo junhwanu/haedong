@@ -13,13 +13,15 @@ if __name__ == "__main__":
     
     #cmd.init()
     
-    print('실제투자(1), 테스트(2)')
-    input = input()
-
+    #print('실제투자(1), 테스트(2)')
+    #input = input()
+    kw = kiwoom.api()
+    
+    '''
     if input == '1':
         kw = kiwoom.api()
     elif input == '2':
         tester.init() 
 
-    
+    '''
     
