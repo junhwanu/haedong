@@ -39,6 +39,7 @@
     <Compile Include="module\kiwoom.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\log_result.py" />
     <Compile Include="module\log.py">
       <SubType>Code</SubType>
     </Compile>
