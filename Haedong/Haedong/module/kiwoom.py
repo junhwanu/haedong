@@ -16,19 +16,25 @@ class api():
     price_changed_cnt = 0
     account = ""
     cnt = 0
+    mode = 1 # 1 : 실제투자, 2 : 테스트
 
-    def __init__(self):
+    def __init__(self, mode = 1):
         super(api, self).__init__()
-        self.app = QApplication(sys.argv)
 
-        self.ocx = QAxWidget("KFOPENAPI.KFOpenAPICtrl.1")
-        self.ocx.OnEventConnect[int].connect(self.OnEventConnect)
-        self.ocx.OnReceiveTrData[str, str, str, str, str].connect(self.OnReceiveTrData)
-        self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
-        self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
+        if mode == 1:
+            self.app = QApplication(sys.argv)
+
+            self.ocx = QAxWidget("KFOPENAPI.KFOpenAPICtrl.1")
+            self.ocx.OnEventConnect[int].connect(self.OnEventConnect)
+            self.ocx.OnReceiveTrData[str, str, str, str, str].connect(self.OnReceiveTrData)
+            self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
+            self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
         
-        if self.connect() == 0:
-            self.app.exec_()
+            if self.connect() == 0:
+                self.app.exec_()
+
+        elif mode == 2:
+            pass
 
 
     ####################################################
