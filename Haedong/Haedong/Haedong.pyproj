@@ -48,6 +48,7 @@
     <Compile Include="module\calc.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\tester.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="module\" />
