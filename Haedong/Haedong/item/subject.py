@@ -2,7 +2,7 @@
 import screen
 
 info = {
-                "CLH17":{
+                "CL":{
                     "종목명":"CRUDEOIL",
                     "시간단위":120,
                     "단위":0.01,
