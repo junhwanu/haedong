@@ -6,7 +6,7 @@ curs = None
 
 def insert(data, start_date, subject_code):
     init()
-    
+    #입력한 시작값보다 600개의 데이터의 값 중 제일 앞의 값의 영업일이 입력한 시작값보다 작을경우 데이터를 del
     for idx in data:
         if int(data[0]) != int(start_date):
             del data[:7]
@@ -21,6 +21,8 @@ def insert(data, start_date, subject_code):
 #        if date != int(data[0]) :
 #            log.info('휴장일 : ' + str(date))
 #            continue
+        if len(data) ==0:
+            break
         if int(date) == int (data[0]) or int(date) == int(start_date) :
             # table_name으로 테이블이 있는지 확인한다.
             if exist_table(table_name) == False:
@@ -33,14 +35,19 @@ def insert(data, start_date, subject_code):
                 create_table(table_name, True)
         
         for idx in range(0, len(data), 7):
+            #휴장일일때 data가 마지막일때 삭제
+            if int(data[0]) != date:
+                if len(data)==7:
+                    del data
+                else : 
+                    del data[:idx-7]
+                    break
+
             _data = data[idx:idx+7]
             insert_data.append(tuple(_data))
 
-            if int(_data[0]) != date:
-                if len(data)==7:
-                    del data
-                else : del data[:idx-7]
-                break
+            
+
             
 
         _query = "insert into " + table_name + "(working_day,min_price,max_price,market_price,date,volume,now_price) values (%s, %s, %s, %s, %s, %s, %s)" 
