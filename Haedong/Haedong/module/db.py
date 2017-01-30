@@ -35,6 +35,8 @@ def insert(data, start_date, subject_code):
                 create_table(table_name, True)
         
         for idx in range(0, len(data), 7):
+            _data = data[idx:idx+7]
+            insert_data.append(tuple(_data))
             #휴장일일때 data가 마지막일때 삭제
             if int(data[0]) != date:
                 if len(data)==7:
@@ -43,8 +45,6 @@ def insert(data, start_date, subject_code):
                     del data[:idx-7]
                     break
 
-            _data = data[idx:idx+7]
-            insert_data.append(tuple(_data))
 
             
 
