@@ -384,7 +384,7 @@ class api():
                     if sell_contents['신규주문'] == True:
                         res.info('주문 체결시간 : ' + str(current_time))
                         order_result = self.send_order(sell_contents['매도수구분'], sSubjectCode, sell_contents['수량'])
-                        if self.mode == '1': #실제투자
+                        if self.mode == 1: #실제투자
                             if order_result != 0:
                                 log.info(self.parse_error_code(order_result))
                             else:
@@ -406,7 +406,7 @@ class api():
                         res.info('주문 체결시간 : ' + str(current_time))
                         # return value를 리스트로 받아와서 어떻게 사야하는지 확인
                         order_result = self.send_order(order_contents['매도수구분'], sSubjectCode, order_contents['수량'])
-                        if self.mode == '1' : #실제투자
+                        if self.mode == 1 : #실제투자
                             if order_result != 0:
                                 log.info(self.parse_error_code(order_result))
                             else:
