@@ -34,6 +34,7 @@ def create_data(subject_code):
     data[subject_code]['저가'] = []
     data[subject_code]['체결시간'] = []
     data[subject_code]['SAR반전시간'] = []
+    data[subject_code]['매매가능가'] = 0
 
     data[subject_code]['정배열연속틱'] = 0
     data[subject_code]['추세'] = []
@@ -509,8 +510,8 @@ def calculate_sar(subject_code):
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
             res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]))
             if subject.info[subject_code]['상태'] == '매매완료':
-                log.info('상태 변경, 매매완료 -> 중립대기')
-                subject.info[subject_code]['상태'] = '중립대기'
+                log.info('상태 변경, 매매완료 -> 매도가능')
+                subject.info[subject_code]['상태'] = '매도가능'
        
 
     elif temp_flow == "하향":
@@ -534,8 +535,8 @@ def calculate_sar(subject_code):
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
             res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]))
             if subject.info[subject_code]['상태'] == '매매완료':
-                log.info('상태 변경, 매매완료 -> 중립대기')
-                subject.info[subject_code]['상태'] = '중립대기'
+                log.info('상태 변경, 매매완료 -> 매수가능')
+                subject.info[subject_code]['상태'] = '매수가능'
        
 
     next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
