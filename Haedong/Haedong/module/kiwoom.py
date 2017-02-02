@@ -454,6 +454,11 @@ class api():
 
         elif sGubun == '1':
             
+            if subject.info[subject_code]['이상신호'] == True:
+                log.info(str(subject_code)+"종목 이상신호에 대한 체결로 무시")
+                return
+            #log.info(order_info)
+
             log.info(order_info)
             order_info['체결표시가격'] = round( float(order_info['체결표시가격']), subject.info[order_info['종목코드']]['자릿수'])
             log.info('체결잔고')
@@ -519,7 +524,11 @@ class api():
 
             # 신규매매
             if add_cnt > 0:
-                contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
+                rtn = contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
+                if rtn == False:
+                    self.clear_all_subject(subject_code)
+                    return
+
                 if order_info['매도수구분'] == 2:
                     log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수중.')
                     subject.info[subject_code]['상태'] = '매수중'
@@ -631,3 +640,22 @@ class api():
             return_time = str(today.tm_year) + str(mon) + str(day) + subject.info[subject_code]['시작시간'] + '00'
 
         return return_time
+    
+    def clear_all_subject(self,subject_code):
+        #차후 키움 API를 통해 현재 보유 중인 정확한 계약 수량을 가지고 와서 처리하는 것이 바람직 
+        count = contract.get_contract_count(subject_code)
+        if count > 0:
+            if list[subject_code]['매도수구분'] == '1':
+                self.send_order("신규매수", subject_code, count)
+            
+            elif list[subject_code]['매도수구분'] == '2':
+                self.send_order("신규매도", subject_code, count)
+            
+            contract.delete_contract(subject_code)
+            subject.info[subject_code]['상태'] = '중립대기'
+            subject.info[subject_code]['이상신호'] = False
+                
+        
+        
+
+            

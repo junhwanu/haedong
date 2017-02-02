@@ -3,6 +3,10 @@ import contract, subject, log, calc, time
 import log_result as res
 
 def is_it_OK(subject_code, current_price):
+    
+    profit_tick = 10
+    sonjal_tick = 10
+    
     # 마감시간 임박 구매 불가
     if get_time(30) >= int(subject.info[subject_code]['마감시간']) and get_time(0) < int(subject.info[subject_code]['마감시간']):
         log.debug('마감시간 임박으로 구매 불가')
@@ -23,7 +27,7 @@ def is_it_OK(subject_code, current_price):
 
     #log.info('현재 flow : ' + subject.info[subject_code]['flow'])
     #log.info('현재 sar : ' + str(subject.info[subject_code]['sar']))
-    log.info('현재 flow : ' + subject.info[subject_code]['flow'])
+    #log.info('현재 flow : ' + subject.info[subject_code]['flow'])
     if subject.info[subject_code]['flow'] == '상향' and subject.info[subject_code]['상태'] != '매도가능': 
         #res.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
         if current_price < subject.info[subject_code]['sar']:
@@ -61,9 +65,7 @@ def is_it_OK(subject_code, current_price):
     elif subject.info[subject_code]['상태'] == '매도가능':
         mesu_medo_type = '신규매도'
 
-    profit_tick = 10
-
-    order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':profit_tick, '수량':contract_cnt}
+    order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':sonjal_tick, '수량':contract_cnt}
     subject.info[subject_code]['주문내용'] = order_contents
     log.debug('para.is_it_OK() : 모든 구매조건 통과.')
     log.debug(order_contents)

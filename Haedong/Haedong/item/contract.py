@@ -31,20 +31,33 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
     
     subject_code = order_info['종목코드']
     if subject_code in list:
-        log.error("%s 종목은 이미 %s계약 보유 중 입니다" % (subject_code, list[subject_code]['계약타입'][SAFE] + list[subject_code]['계약타입'][DRIBBLE]))
+        log.info("%s 종목은 이미 %s계약 보유 중 입니다" % (subject_code, list[subject_code]['계약타입'][SAFE] + list[subject_code]['계약타입'][DRIBBLE]))
         
         safe_num = 0
         dribble_num = 0
-        if list[subject_code]['계약타입'][SAFE] > list[subject_code]['계약타입'][DRIBBLE]:
-            safe_num = int(int(order_info['신규수량'])/2)
-            dribble_num = int(order_info['신규수량']) - safe_num
-        else:
-            dribble_num = int(int(order_info['신규수량'])/2)
-            safe_num = int(order_info['신규수량']) - dribble_num
         
-        list[subject_code]['계약타입'][SAFE] += safe_num
-        list[subject_code]['계약타입'][DRIBBLE] += dribble_num
-        log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
+        if subject.info[subject_code]['상태'] == '매매시도중' or subject.info[subject_code]['상태'] == '매수중' or subject.info[subject_code]['상태'] == '매도중':
+            if list[subject_code]['계약타입'][SAFE] > list[subject_code]['계약타입'][DRIBBLE]:
+                safe_num = int(int(order_info['신규수량'])/2)
+                dribble_num = int(order_info['신규수량']) - safe_num
+            else:
+                dribble_num = int(int(order_info['신규수량'])/2)
+                safe_num = int(order_info['신규수량']) - dribble_num
+
+            list[subject_code]['계약타입'][SAFE] += safe_num
+            list[subject_code]['계약타입'][DRIBBLE] += dribble_num
+            log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
+            log.info('현재 보유 계약 수량, 종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(list[subject_code]['계약타입'][SAFE]) + '개, 드리블수량 ' + str(list[subject_code]['계약타입'][DRIBBLE]) + '개 보유')
+        
+        else:
+            log.error("%s 종목 매매가 꼬였습니다. 무엇인가 잘못되었습니다. 방금 매수한 종목 바로 청산합니다.")
+            list[subject_code]['계약타입'][DRIBBLE] += int(order_info['신규수량'])
+            subject.info[subject_code]['이상신호'] = True
+            return False
+        
+        return True
+
+
     else:
         list[subject_code] = {}
         
@@ -65,6 +78,8 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
             list[subject_code]['손절가'] = list[subject_code]['체결가'] - order_contents['익절틱'] * subject.info[subject_code]['단위']
         list[subject_code]['보유수량'] = int(order_info['신규수량'])
         log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
+        log.info('현재 보유 계약 수량, 종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(list[subject_code]['계약타입'][SAFE]) + '개, 드리블수량 ' + str(list[subject_code]['계약타입'][DRIBBLE]) + '개 보유')
+        
     return True
     
 def remove_contract(order_info):
@@ -98,3 +113,10 @@ def get_contract_count(subject_code):
         return count
     else:
         return 0
+    
+def delete_contract(subject_code):
+    if subject_code in list:
+        del list[subject_code]
+        
+        
+        
