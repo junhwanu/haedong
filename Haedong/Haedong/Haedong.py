@@ -3,6 +3,7 @@ import sys, os, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)).replace('\\','/') + '/module')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)).replace('\\','/') + '/item')
 import kiwoom, cmd, log, contract, subject, calc, tester
+import define as d
 import log_result as res
 import matplotlib.pyplot as plt
 
@@ -16,12 +17,14 @@ if __name__ == "__main__":
     #cmd.init()
     
     print('실제투자(1), 테스트(2)')
-    input = input()
+    d.mode = int(input())
     #kw = kiwoom.api()
-    
-    if input == '1':
+
+    if d.get_mode() == 1:
         kw = kiwoom.api()
-    elif input == '2':
+    elif d.get_mode() == 2:
         tester.init() 
+    else:
+        print('잘못된 입력입니다.')
 
     

@@ -11,7 +11,7 @@ def init(path):
     now = time.localtime()
     today = "%04d%02d%02d" % (now.tm_year, now.tm_mon, now.tm_mday)
 
-    log_file = path + "/" +today+"_result.txt"
+    log_file = path + "/" +today+"_result2.txt"
 
     if not os.path.exists(path):
         os.makedirs(path)

@@ -126,7 +126,7 @@ def push(subject_code, price):
 
     #draw(subject_code)
     if data[subject_code]['idx'] > 595:
-        #show(subject_code)
+        show(subject_code)
         pass
         
 
@@ -233,7 +233,10 @@ def calc(subject_code):
             calculate_sar(subject_code)
         
         calc_ma_line(subject_code)
-        
+        trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
+        data[subject_code]['추세'].append(trend)
+        calc_ilmok_chart(subject_code)
+        calc_linear_regression(subject_code)
         
     elif subject.info[subject_code]['전략'] == '해동이':
         calc_ma_line(subject_code)
@@ -306,7 +309,7 @@ def calc_linear_regression(subject_code):
     if data[subject_code]['idx'] > 50 and get_past_trend_count(subject_code) <= 50:
         # 잠깐 움직였다고 가정
         reverse_past_trend(subject_code)
-        data[subject_code]['추세선'].pop()
+        data[subject_code]['추세선'].pop() 
         data[subject_code]['매매선'].pop()
         
         calc_linear_regression(subject_code)

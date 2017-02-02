@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 import screen
 
+
 info = {        
             "GCJ17":{
                 "종목명":"GOLD",
@@ -104,11 +105,6 @@ info = {
                 "sar매매틱간격":3
                 } 
         }
-
-
-'''
-
-'''
 
 
 

@@ -13,7 +13,7 @@ def init():
 
     start_date = input()
     #end_date = get_yesterday()
-    end_date = '20170128'
+    end_date = '20170121'
     print('종목코드를 입력하세요. (ex. CL)')
     subject_code = input()
 
@@ -81,31 +81,31 @@ def send_order(contract_type, subject_code, contract_cnt, order_type):
         order_info['원주문번호'] = 0       # 원주문번호
         order_info['주문유형'] = 1         # 주문유형(1 : 시장가, 2 : 지정가, 3 : STOP)
         order_info['종목코드'] = subject_code             # 종목코드
-        order_info['매도수구분'] = '2'      # 매도수구분(1 : 매도, 2 : 매수)
-        order_info['체결표시가격'] = str(recent_price[subject_code] + subject.info[subject_code]['단위'])        # 체결표시가격
+        order_info['매도수구분'] = 2      # 매도수구분(1 : 매도, 2 : 매수)
+        order_info['체결표시가격'] = recent_price[subject_code] + subject.info[subject_code]['단위']        # 체결표시가격
         if contract.get_contract_count(subject_code) > 0:
-            order_info['신규수량'] = '0'       # 신규수량
-            order_info['청산수량'] = str(contract_cnt)
-            order_info['체결수량'] = str(contract_cnt)
+            order_info['신규수량'] = 0       # 신규수량
+            order_info['청산수량'] = contract_cnt
+            order_info['체결수량'] = contract_cnt
         else:
-            order_info['신규수량'] = str(contract_cnt)       # 신규수량
-            order_info['청산수량'] = '0'
-            order_info['체결수량'] = str(contract_cnt)
+            order_info['신규수량'] = contract_cnt       # 신규수량
+            order_info['청산수량'] = 0
+            order_info['체결수량'] = contract_cnt
     elif contract_type == '신규매도':
         order_info['주문번호'] = 0        # 주문번호 
         order_info['원주문번호'] = 0       # 원주문번호
         order_info['주문유형'] = 1         # 주문유형(1 : 시장가, 2 : 지정가, 3 : STOP)
         order_info['종목코드'] = subject_code             # 종목코드
-        order_info['매도수구분'] = '1'       # 매도수구분(1 : 매도, 2 : 매수)
+        order_info['매도수구분'] = 1       # 매도수구분(1 : 매도, 2 : 매수)
         order_info['체결표시가격'] = str(recent_price[subject_code] - subject.info[subject_code]['단위'])        # 체결표시가격
         if contract.get_contract_count(subject_code) > 0:
-            order_info['신규수량'] = '0'       # 신규수량
-            order_info['청산수량'] = str(contract_cnt)
-            order_info['체결수량'] = str(contract_cnt)
+            order_info['신규수량'] = 0       # 신규수량
+            order_info['청산수량'] = contract_cnt
+            order_info['체결수량'] = contract_cnt
         else:
-            order_info['신규수량'] = str(contract_cnt)       # 신규수량
-            order_info['청산수량'] = '0'
-            order_info['체결수량'] = str(contract_cnt)
+            order_info['신규수량'] = contract_cnt       # 신규수량
+            order_info['청산수량'] = 0
+            order_info['체결수량'] = contract_cnt
 
     kw.OnReceiveChejanData('1', None, None, order_info)
         
