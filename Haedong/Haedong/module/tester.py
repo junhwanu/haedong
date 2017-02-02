@@ -117,7 +117,7 @@ def get_yesterday():
 def connect():
     global curs
     global conn
-    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='test_db2', charset='utf8')
+    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong', charset='utf8')
     curs = conn.cursor()
 
 def disconnect():
@@ -144,7 +144,7 @@ def exist_table(table_name):
     temp = []
     #conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='test_db1', charset='utf8')
     #curs = conn.cursor()
-    query = "show tables in test_db2 like '%s'"%table_name
+    query = "show tables in haedong like '%s'"%table_name
     curs.execute(query)
     conn.commit()
     
