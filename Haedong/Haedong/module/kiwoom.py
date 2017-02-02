@@ -575,7 +575,7 @@ class api():
             
             # 다이나믹 종목 정보 요청
             #self.get_dynamic_subject_info()
-            self.get_dynamic_subject_code()
+
 
             # 초기 데이터 요청
             #self.request_tick_info('CLH17', subject.info['CLH17']['시간단위'], "")
