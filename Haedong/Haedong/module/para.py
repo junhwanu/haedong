@@ -97,9 +97,9 @@ def is_it_sell(subject_code, current_price):
                     else:
                         log.info("드리블 목표 달성으로 익절가 수정.")
                         #contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['주문내용']['익절틱'] * subject.info[subject_code]['단위'] )
-                        #contract.list[subject_code]['손절가'] = current_price - ( (subject.info[subject_code]['주문내용']['손절틱'] - 1) * subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
                         contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['단위'] )
-                        contract.list[subject_code]['손절가'] = current_price - ( subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
+                        contract.list[subject_code]['손절가'] = current_price - ( (subject.info[subject_code]['주문내용']['손절틱'] - 1) * subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
+                        #contract.list[subject_code]['손절가'] = current_price - ( subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
 
                 # 목표달성 청산
                 if contract.list[subject_code]['계약타입'][contract.SAFE] > 0:
@@ -122,9 +122,9 @@ def is_it_sell(subject_code, current_price):
                     else:
                         log.info("드리블 목표 달성으로 익절가 수정.")
                         #contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['주문내용']['익절틱'] * subject.info[subject_code]['단위'] )
-                        #contract.list[subject_code]['손절가'] = current_price + ( (subject.info[subject_code]['주문내용']['손절틱'] - 1) * subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
                         contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['단위'] )
-                        contract.list[subject_code]['손절가'] = current_price + ( subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
+                        contract.list[subject_code]['손절가'] = current_price + ( (subject.info[subject_code]['주문내용']['손절틱'] - 1) * subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
+                        #contract.list[subject_code]['손절가'] = current_price + ( subject.info[subject_code]['단위'] ) # 수수료 때문에 1틱 뺌
 
                 # 목표달성 청산
                 if contract.list[subject_code]['계약타입'][contract.SAFE] > 0:
