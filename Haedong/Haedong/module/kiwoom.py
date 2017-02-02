@@ -294,7 +294,7 @@ class api():
         if sRQName == '상품별현재가조회':
             
             for i in range(20):
-                
+                d.RECEIVED_PRODUCT_COUNT += 1
                 subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '종목코드n').strip() #현재가 = 틱의 종가
                 subject_symbol = subject_code[:2] 
                 if subject_symbol in subject.info.keys():
@@ -305,6 +305,10 @@ class api():
                     # 초기 데이터 요청
                     self.request_tick_info(subject_code,subject.info[subject_code]["시간단위"], "")
         
+            if d.RECEIVED_PRODUCT_COUNT == d.PRODUCT_CNT:
+                self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
+                self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
+
         if sRQName == "장운영정보조회":
             
             log.info("장운영정보조회")
@@ -334,8 +338,11 @@ class api():
         
         #log.debug("OnReceiveRealData entered.")
         if subject_code not in subject.info.keys() and d.get_mode() == d.REAL: #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
-            self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
-            self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
+            #self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
+            #self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
+            return
+
+        if subject_code not in calc.data.keys():
             return
 
         if sRealType == '해외선물시세':
@@ -494,7 +501,12 @@ class api():
                                         subject.info[subject_code]['상태'] = '중립대기'
                         elif subject.info[subject_code]['전략'] == '파라':
                             if contract.get_contract_count(subject_code) > 0:
-                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> ' + subject.info[subject_code]['상태'])
+                                if order_info['매도수구분'] == 1:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수중.')
+                                    subject.info[subject_code]['상태'] = '매수중'
+                                elif order_info['매도수구분'] == 2:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매도중.')
+                                    subject.info[subject_code]['상태'] = '매도중'
                                 pass
                             else:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
