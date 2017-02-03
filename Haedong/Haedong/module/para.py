@@ -40,6 +40,7 @@ def is_it_OK(subject_code, current_price):
                 log.info('상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 매도가능, 현재가:'+str(current_price))
                 subject.info[subject_code]['상태'] = '매도가능' # flow가 상향일 때, 현재가가 SAR을 하향 돌파하여, 매도 가능 상태로 변경
                 calc.data[subject_code]['매매가능가'] = current_price + subject.info[subject_code]['sar매매틱간격'] * subject.info[subject_code]['단위']
+                calc.data[subject_code]['매매가능가'] = round(calc.data[subject_code]['매매가능가'],subject.info[subject_code]['자릿수'])
                 log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
             else:
                 log.info("현재가가 일목균형표 아래 위치 하지 않아 매도 시도 하지 않습니다. flow는 skip 합니다.")
@@ -51,6 +52,7 @@ def is_it_OK(subject_code, current_price):
                 log.info('상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 매수가능, 현재가:'+str(current_price))
                 subject.info[subject_code]['상태'] = '매수가능' # flow가 하향일 때, 현재가가 SAR을 상향 돌파하여, 매수 가능 상태로 변경
                 calc.data[subject_code]['매매가능가'] = current_price - subject.info[subject_code]['sar매매틱간격'] * subject.info[subject_code]['단위']
+                calc.data[subject_code]['매매가능가'] = round(calc.data[subject_code]['매매가능가'],subject.info[subject_code]['자릿수'])
                 log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
             else:
                 log.info("현재가가 일목균형표 위에 위치 하지 않아 매도 시도 하지 않습니다. 해동 flow는 skip 합니다.")
@@ -119,7 +121,13 @@ def is_it_sell(subject_code, current_price):
                 if contract.list[subject_code]['계약타입'][contract.SAFE] > 0:
                     log.info("목표달성 청산으로 드리블 수량 제외하고 " + str(contract.list[subject_code]['계약타입'][contract.SAFE]) + "개 청산 요청.")
                     return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE]}
-                
+            
+            ### 예를 들어 10틱 목표가인데 8틱까지 올라가면 손절가를 체결가 + 1 로 설정하여 -10틱 까지 가서 손절되는것을 막는다
+            elif current_price >= contract.list[subject_code]['익절가'] - (int(subject.info[subject_code]['주문내용']['익절틱']*0.2)*subject.info[subject_code]['단위']):
+                if contract.list[subject_code]['체결가'] > contract.list[subject_code]['손절가']:
+                    contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] + ( 1*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+            ########
+               
             elif current_price <= contract.list[subject_code]['손절가']: 
                 # 손절 청산
                 log.info("손절가가 되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
@@ -144,7 +152,13 @@ def is_it_sell(subject_code, current_price):
                 if contract.list[subject_code]['계약타입'][contract.SAFE] > 0:
                     log.info("목표달성 청산으로 드리블 수량 제외하고 " + str(contract.list[subject_code]['계약타입'][contract.SAFE]) + "개 청산 요청.")
                     return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE]}
-                
+
+            ### 예를 들어 10틱 목표가인데 8틱까지 올라가면 손절가를 체결가 + 1 로 설정하여 -10틱 까지 가서 손절되는것을 막는다
+            elif current_price <= contract.list[subject_code]['익절가'] + (int(subject.info[subject_code]['주문내용']['익절틱']*0.2)*subject.info[subject_code]['단위']):
+                if contract.list[subject_code]['체결가'] < contract.list[subject_code]['손절가']:
+                    contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] - ( 1*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+            ########
+
             elif current_price >= contract.list[subject_code]['손절가']: 
                 # 손절청산
                 log.info("손절가가 되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
