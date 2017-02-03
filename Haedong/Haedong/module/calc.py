@@ -341,6 +341,10 @@ def calc_linear_regression(subject_code):
     # 달마식으로 매매선 구해보자...
 
     
+##### 볼린저 밴드 계산 #####
+def calc_bollinger_bands(subject_code):
+    pass
+
 def get_trade_line_by_dalma(subject_code):
     max1 = 0
     idx1 = 0
