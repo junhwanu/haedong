@@ -145,7 +145,15 @@ def update_state_by_current_price(subject_code, current_price):
                 if calc.data[subject_code]['매매선'][ calc.data[subject_code]['idx'] ] <= current_price:
                     subject.info[subject_code]['상태'] = '매매선터치'
                     log.info('상태변경 : 중립대기 -> 매매선터치')
-                
+    elif subject.info[subject_code]['상태'] == '매매선터치' or subject.info[subject_code]['상태'] == '매매구간진입':
+        if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '상승세':
+            if current_price - calc.data[subject_code]['매매선'][-1] > 2:
+                log.info('상태변경 : ' + subject.info[subject_code]['상태'] + ' -> 중립대기')
+                subject.info[subject_code]['상태'] = '중립대기'
+        elif calc.data[subject_code]['추세'][ calc.data[subject_code]['idx'] ] == '하락세':
+            if calc.data[subject_code]['매매선'][-1] - current_price  > 2:
+                log.info('상태변경 : ' + subject.info[subject_code]['상태'] + ' -> 중립대기')
+                subject.info[subject_code]['상태'] = '중립대기'
 
 def update_state_by_current_candle(subject_code, price):
     current_price = float(price['현재가'])

@@ -13,7 +13,8 @@ def init():
 
     start_date = input()
     #end_date = get_yesterday()
-    end_date = '20170121'
+    #end_date = '20170121'
+    end_date = str(int(start_date) + 1)
     print('종목코드를 입력하세요. (ex. CL)')
     subject_code = input()
 

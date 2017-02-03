@@ -59,13 +59,13 @@ def is_it_OK(subject_code, current_price):
     if subject.info[subject_code]['상태'] == '매수가능' :
         #if max(calc.data[subject_code]['매매가능가'], calc.data[subject_code]['이동평균선'][30][-1]) >= current_price:
         if calc.data[subject_code]['매매가능가'] >= current_price:
-            log.info('매수 시점. 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
-
+            log.info('매수 시점. 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']) + ', 30이평선 : ' + str(calc.data[subject_code]['이동평균선'][30][-1]))
             pass
         else: return {'신규주문':False}
     elif subject.info[subject_code]['상태'] == '매도가능':
+        #if min(calc.data[subject_code]['매매가능가'], calc.data[subject_code]['이동평균선'][30][-1]) <= current_price:
         if calc.data[subject_code]['매매가능가'] <= current_price:
-            log.info('매도 시점. 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
+            log.info('매도 시점. 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']) + ', 30이평선 : ' + str(calc.data[subject_code]['이동평균선'][30][-1]))
             pass
         else: return {'신규주문':False}
     else : return {'신규주문':False}

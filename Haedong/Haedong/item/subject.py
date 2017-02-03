@@ -81,6 +81,7 @@ info = {
                 "전략":"해동이",
                 "누적수익": 0,
                 "신규매매수량":2,
+<<<<<<< HEAD
                 "sar매매틱간격":3,
                 "이상신호":False
                 },
@@ -136,7 +137,13 @@ info = {
                 "sar매매틱간격":3,
                 "이상신호":False
                 } 
+=======
+                "sar매매틱간격":3
+                }
+>>>>>>> branch 'master' of https://github.com/junhwanu/haedong
         }
+        
+        
 
 
 '''

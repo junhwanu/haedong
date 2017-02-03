@@ -349,6 +349,7 @@ class api():
             if d.get_mode() == d.REAL: #실제투자
                 current_price = self.ocx.dynamicCall("GetCommRealData(QString, int)", "현재가", 140)    # 140이 뭔지 확인
                 current_time = self.ocx.dynamicCall("GetCommRealData(QString, int)", "체결시간", 20)    # 체결시간이 뭔지 확인
+                subject.info[subject_code]['현재가변동횟수'] += 1 # 시세 조회 횟수 누적
             elif d.get_mode() == d.TEST: #테스트
                 current_price = sRealData['현재가']    
                 current_time = sRealData['체결시간']
@@ -363,8 +364,6 @@ class api():
                         self.send_order('신규매수', subject_code, contract.get_contract_count(subject_code))
                     elif contract.list[subject_code]['매도수구분'] == '신규매수':
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
-
-            subject.info[subject_code]['현재가변동횟수'] += 1 # 시세 조회 횟수 누적
 
             if self.recent_price[subject_code] != current_price:
                 # 청산
