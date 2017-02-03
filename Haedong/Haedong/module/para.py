@@ -21,9 +21,14 @@ def is_it_OK(subject_code, current_price):
         log.info('신규 주문 가능상태가 아니므로 매매 불가. 상태 : ' + subject.info[subject_code]['상태'])
         return {'신규주문':False}
 
-    if calc.data[subject_code]['이동평균선'][30][-1] == None:
+    if calc.data[subject_code]['이동평균선'][30][-1] == None :
         log.info('이동평균선 미생성으로 매매 불가. 현재 이동평균선30 : ' + str(calc.data[subject_code]['이동평균선'][30][-1]))
         return {'신규주문':False}
+
+    if calc.data[subject_code]['일목균형표']['선행스팬1'][-1] == None :
+        log.info('선행스팬 미생성으로 매매 불가.')
+        return {'신규주문':False}    
+    
 
     #log.info('현재 flow : ' + subject.info[subject_code]['flow'])
     #log.info('현재 sar : ' + str(subject.info[subject_code]['sar']))
@@ -31,23 +36,30 @@ def is_it_OK(subject_code, current_price):
     if subject.info[subject_code]['flow'] == '상향' and subject.info[subject_code]['상태'] != '매도가능': 
         #res.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
         if current_price < subject.info[subject_code]['sar']:
-            log.info('상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 매도가능')
-            subject.info[subject_code]['상태'] = '매도가능' # flow가 상향일 때, 현재가가 SAR을 하향 돌파하여, 매도 가능 상태로 변경
-            calc.data[subject_code]['매매가능가'] = current_price + subject.info[subject_code]['sar매매틱간격'] * subject.info[subject_code]['단위']
-            log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
+            if current_price < min(calc.data[subject_code]['일목균형표']['선행스팬1'][-1],calc.data[subject_code]['일목균형표']['선행스팬2'][-1]):
+                log.info('상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 매도가능, 현재가:'+str(current_price))
+                subject.info[subject_code]['상태'] = '매도가능' # flow가 상향일 때, 현재가가 SAR을 하향 돌파하여, 매도 가능 상태로 변경
+                calc.data[subject_code]['매매가능가'] = current_price + subject.info[subject_code]['sar매매틱간격'] * subject.info[subject_code]['단위']
+                log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
+            else:
+                log.info("현재가가 일목균형표 아래 위치 하지 않아 매도 시도 하지 않습니다. flow는 skip 합니다.")
+                subject.info[subject_code]['상태'] = '매매완료'
     elif subject.info[subject_code]['flow'] == '하향' and subject.info[subject_code]['상태'] != '매수가능':
         #res.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
         if current_price > subject.info[subject_code]['sar']:
-            log.info('상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 매수가능')
-            subject.info[subject_code]['상태'] = '매수가능' # flow가 하향일 때, 현재가가 SAR을 상향 돌파하여, 매수 가능 상태로 변경
-            calc.data[subject_code]['매매가능가'] = current_price - subject.info[subject_code]['sar매매틱간격'] * subject.info[subject_code]['단위']
-            log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
-
+            if current_price > max(calc.data[subject_code]['일목균형표']['선행스팬1'][-1],calc.data[subject_code]['일목균형표']['선행스팬2'][-1]):
+                log.info('상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 매수가능, 현재가:'+str(current_price))
+                subject.info[subject_code]['상태'] = '매수가능' # flow가 하향일 때, 현재가가 SAR을 상향 돌파하여, 매수 가능 상태로 변경
+                calc.data[subject_code]['매매가능가'] = current_price - subject.info[subject_code]['sar매매틱간격'] * subject.info[subject_code]['단위']
+                log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']))
+            else:
+                log.info("현재가가 일목균형표 위에 위치 하지 않아 매도 시도 하지 않습니다. 해동 flow는 skip 합니다.")
+                subject.info[subject_code]['상태'] = '매매완료'
+                
     if subject.info[subject_code]['상태'] == '매수가능' :
         #if max(calc.data[subject_code]['매매가능가'], calc.data[subject_code]['이동평균선'][30][-1]) >= current_price:
         if calc.data[subject_code]['매매가능가'] >= current_price:
             log.info('매수 시점. 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']) + ', 30이평선 : ' + str(calc.data[subject_code]['이동평균선'][30][-1]))
-
             pass
         else: return {'신규주문':False}
     elif subject.info[subject_code]['상태'] == '매도가능':

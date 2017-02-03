@@ -294,6 +294,10 @@ def calc_ilmok_chart(subject_code):
         data[subject_code]['일목균형표']['선행스팬2'].append( (max( data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] ) + min(  data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] )) / 2)
     else:
         data[subject_code]['일목균형표']['선행스팬2'].append(None)
+    
+    #log.info("선행스팬1:%s" % data[subject_code]['일목균형표']['선행스팬1'][-1])
+    #log.info("선행스팬2:%s" % data[subject_code]['일목균형표']['선행스팬2'][-1])
+    
 
 def calc_linear_regression(subject_code):
     '''
