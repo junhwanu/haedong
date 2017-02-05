@@ -431,7 +431,6 @@ class api():
         :param nItemCnt: 아이템갯수
         :param sFidList: 데이터리스트 - 데이터 구분은 ‘;’ 이다.
         """
-
         order_info = {}
 
         if d.get_mode() == d.REAL: #실제투자
@@ -444,6 +443,7 @@ class api():
             order_info['신규수량'] = self.ocx.dynamicCall("GetChejanData(int)", 13327)     # 신규수량
             order_info['청산수량'] = self.ocx.dynamicCall("GetChejanData(int)", 13328)     # 청산수량
             order_info['체결수량'] = self.ocx.dynamicCall("GetChejanData(int)", 911)         # 체결수량
+            
         elif d.get_mode() == d.TEST: # 테스트
             order_info = o_info
 
@@ -452,19 +452,18 @@ class api():
             pass
 
         elif sGubun == '1':
-            '''
-            if subject.info[subject_code]['이상신호'] == True:
-                log.info(str(subject_code)+"종목 이상신호에 대한 체결로 무시")
+            
+            log.info('체결잔고')
+            
+            if subject.info[order_info['종목코드']]['이상신호'] == True:
+                log.info(str(order_info['종목코드'])+"종목 이상신호에 대한 체결로 무시")
                 return
-            '''
-            #log.info(order_info)
-
+            
             log.info(order_info)
             order_info['체결표시가격'] = round( float(order_info['체결표시가격']), subject.info[order_info['종목코드']]['자릿수'])
-            log.info('체결잔고')
+
             #res.info(order_info)
             # 잔고통보
-
             subject_code = order_info['종목코드']
             add_cnt = int(order_info['신규수량'])
             remove_cnt = int(order_info['청산수량'])

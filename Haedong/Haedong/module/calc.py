@@ -126,7 +126,7 @@ def push(subject_code, price):
 
     #draw(subject_code)
     if data[subject_code]['idx'] > 595:
-        show(subject_code)
+        #show(subject_code)
         pass
         
 
@@ -294,6 +294,10 @@ def calc_ilmok_chart(subject_code):
         data[subject_code]['일목균형표']['선행스팬2'].append( (max( data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] ) + min(  data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] )) / 2)
     else:
         data[subject_code]['일목균형표']['선행스팬2'].append(None)
+    
+    #log.info("선행스팬1:%s" % data[subject_code]['일목균형표']['선행스팬1'][-1])
+    #log.info("선행스팬2:%s" % data[subject_code]['일목균형표']['선행스팬2'][-1])
+    
 
 def calc_linear_regression(subject_code):
     '''
@@ -341,6 +345,10 @@ def calc_linear_regression(subject_code):
     # 달마식으로 매매선 구해보자...
 
     
+##### 볼린저 밴드 계산 #####
+def calc_bollinger_bands(subject_code):
+    pass
+
 def get_trade_line_by_dalma(subject_code):
     max1 = 0
     idx1 = 0
@@ -437,6 +445,7 @@ def init_sar(subject_code):
     
     if index != 5:
         log.error("ERROR!, init_sar() index가 5가 아닙니다.")
+        return
         
     for i in range(index):
         temp_high_price_list.append(data[subject_code]['고가'][i])
@@ -481,7 +490,6 @@ def calculate_sar(subject_code):
     index = data[subject_code]['idx']   
     temp_sar = subject.info[subject_code]['sar']
     
-    
     the_highest_price = 0
     the_lowest_price = 0
     
@@ -510,6 +518,9 @@ def calculate_sar(subject_code):
             today_sar = ep
             the_highest_price = 0
             the_lowest_price = data[subject_code]['저가'][index]
+            
+            ep = the_lowest_price
+            
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
             res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]))
             if subject.info[subject_code]['상태'] == '매매완료':
@@ -535,6 +546,9 @@ def calculate_sar(subject_code):
             today_sar = ep
             the_lowest_price = 0
             the_highest_price = data[subject_code]['고가'][index]
+            
+            ep = the_highest_price
+            
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
             res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]))
             if subject.info[subject_code]['상태'] == '매매완료':
@@ -544,13 +558,13 @@ def calculate_sar(subject_code):
 
     next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
 
-
-    #log.info("af:"+str(af))
-    #log.info("ep:"+str(ep))
-    #log.info("flow:"+str(temp_flow))
-    #log.info("sar:%s" % str(next_sar))
-    #log.debug("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
-    #log.info("---------------")
+    #res.info("고가:"+str(data[subject_code]['고가'][index])+" ,저가" + str(data[subject_code]['저가'][index]))
+    #res.info("af:"+str(af))
+    #res.info("ep:"+str(ep))
+    #res.info("flow:"+str(temp_flow))
+    #res.info("sar:%s" % str(next_sar))
+    #res.debug("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
+    #res.info("---------------")
     
     subject.info[subject_code]['sar'] = next_sar
     subject.info[subject_code]['ep'] = ep
