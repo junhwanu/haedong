@@ -49,7 +49,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="module\log_result.py" />
+    <Compile Include="module\bol.py" />
     <Compile Include="module\para.py" />
+    <Compile Include="module\parabolic_sar.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="module\santa.py">
       <SubType>Code</SubType>
     </Compile>

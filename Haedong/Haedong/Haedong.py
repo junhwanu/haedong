@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 kw = None
 
 if __name__ == "__main__":
-   
     log.init(os.path.dirname(os.path.abspath(__file__).replace('\\','/')))
     res.init(os.path.dirname(os.path.abspath(__file__).replace('\\','/')))
     
