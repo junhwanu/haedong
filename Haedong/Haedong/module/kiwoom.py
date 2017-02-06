@@ -288,7 +288,8 @@ class api():
                         calc.push(subject_code, price)
                         self.recent_candle_time[subject_code] = price['체결시간']
                         log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
-                        
+                        self.recent_price[subject_code] = 0
+
                     break
                 
         if sRQName == '상품별현재가조회':
@@ -478,7 +479,6 @@ class api():
                             profit = ((float(order_info['체결표시가격']) - float(contract.list[subject_code]['체결가'])) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
                         elif order_info['매도수구분'] == 2:
                             profit = ((float(contract.list[subject_code]['체결가'] - float(order_info['체결표시가격']))) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
-                            
                         contract.remove_contract(order_info)
                         
                         subject.info[subject_code]['누적수익'] += round(profit, 1)

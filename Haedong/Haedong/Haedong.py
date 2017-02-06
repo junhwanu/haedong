@@ -22,6 +22,7 @@ if __name__ == "__main__":
 
     if d.get_mode() == 1:
         kw = kiwoom.api()
+        
     elif d.get_mode() == 2:
         tester.init() 
     else:
