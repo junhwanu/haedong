@@ -190,7 +190,7 @@ def is_it_OK(subject_code, current_price):
         if calc.data[subject_code]['매매가능가'] + minimum_reverse_dribble_tic*subject.info[subject_code]['단위'] <= current_price:
             #if current_price > max(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]) + 2*subject.info[subject_code]['단위']:
             if calc.data[subject_code]['이동평균선'][100][-30] < calc.data[subject_code]['이동평균선'][100][-15] < calc.data[subject_code]['이동평균선'][100][-7] < calc.data[subject_code]['이동평균선'][100][-1]:
-                if calc.data[subject_code]['이동평균선'][200][-1] < calc.data[subject_code]['이동평균선'][100][-1]:
+                if calc.data[subject_code]['이동평균선'][200][-1] < calc.data[subject_code]['이동평균선'][60][-1]:
                     #if current_price >= max(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]):
                     if current_price > max(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]):
                         log.info('매수 시점. 매매가능가 : ' + str(calc.data[subject_code]['매매가능가']) + ', 현재가 : ' + str(current_price))
@@ -217,7 +217,7 @@ def is_it_OK(subject_code, current_price):
         if calc.data[subject_code]['매매가능가'] - minimum_reverse_dribble_tic*subject.info[subject_code]['단위'] >= current_price:
             #if current_price < min(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]) - 2*subject.info[subject_code]['단위']:
             if calc.data[subject_code]['이동평균선'][100][-30] > calc.data[subject_code]['이동평균선'][100][-15] > calc.data[subject_code]['이동평균선'][100][-7] > calc.data[subject_code]['이동평균선'][100][-1]:
-                if calc.data[subject_code]['이동평균선'][200][-1] > calc.data[subject_code]['이동평균선'][100][-1]:
+                if calc.data[subject_code]['이동평균선'][200][-1] > calc.data[subject_code]['이동평균선'][60][-1]:
                     #if current_price <= min(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]):
                     if current_price < min(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]):
                         log.info("현재가:%s, 일목 min:%s, 시간:%s" % (current_price,min(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]),calc.data[subject_code]['체결시간'][-1]))
