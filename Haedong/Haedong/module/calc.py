@@ -70,7 +70,7 @@ def create_data(subject_code):
             subplot.axvline(x=i, color='silver', linestyle='-')
         else:
             subplot.axvline(x=i, color='dimgrey', linestyle='-')
-    plt.show()
+    #plt.show()
 
 
 
@@ -233,10 +233,10 @@ def calc(subject_code):
             calculate_sar(subject_code)
         
         calc_ma_line(subject_code)
-        trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
-        data[subject_code]['추세'].append(trend)
+        #trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
+        #data[subject_code]['추세'].append(trend)
         calc_ilmok_chart(subject_code)
-        calc_linear_regression(subject_code)
+        #calc_linear_regression(subject_code)
         
     elif subject.info[subject_code]['전략'] == '해동이':
         calc_ma_line(subject_code)
@@ -490,6 +490,7 @@ def calculate_sar(subject_code):
     index = data[subject_code]['idx']   
     temp_sar = subject.info[subject_code]['sar']
     
+    
     the_highest_price = 0
     the_lowest_price = 0
     
@@ -509,8 +510,11 @@ def calculate_sar(subject_code):
                 the_highest_price = data[subject_code]['고가'][index] 
                 ep = data[subject_code]['고가'][index]
                 af = af + init_af
+                
                 if af > maxaf:
                     af = maxaf
+                
+                #today_sar = today_sar + af * (ep - today_sar)
                     
         elif data[subject_code]['저가'][index] < next_sar: # 상승추세에서 저가가 내일의 SAR보다 낮으면 하향 반전
             temp_flow = "하향"
@@ -526,10 +530,12 @@ def calculate_sar(subject_code):
             if subject.info[subject_code]['상태'] == '매매완료':
                 log.info('상태 변경, 매매완료 -> 매도가능')
                 subject.info[subject_code]['상태'] = '매도가능'
+            
+            #today_sar = today_sar + af * (ep - today_sar)
        
 
     elif temp_flow == "하향":
-        if data[subject_code]['고가'][index]<= next_sar: # 하락추세에서 고가가 내일의 SAR보다 낮으면 하락이 유효
+        if data[subject_code]['고가'][index] <= next_sar: # 하락추세에서 고가가 내일의 SAR보다 낮으면 하락이 유효
             today_sar = next_sar
             temp_flow = "하향"
             the_highest_price = 0
@@ -537,8 +543,11 @@ def calculate_sar(subject_code):
                 the_lowest_price = data[subject_code]['저가'][index]
                 ep = data[subject_code]['저가'][index]
                 af = af + init_af
+          
                 if af > maxaf:
-                    af = maxaf                                     
+                    af = maxaf
+                    
+                #today_sar = today_sar + af * (ep - today_sar)                                     
             
         elif data[subject_code]['고가'][index] > next_sar: # 하락추세에서 고가가 내일의 SAR보다 높으면 상향 반전
             temp_flow = "상향"
@@ -554,15 +563,17 @@ def calculate_sar(subject_code):
             if subject.info[subject_code]['상태'] == '매매완료':
                 log.info('상태 변경, 매매완료 -> 매수가능')
                 subject.info[subject_code]['상태'] = '매수가능'
-       
 
-    next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
+            #today_sar = today_sar + af * (ep - today_sar)
+
+    #next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
+    next_sar = today_sar + af * (ep - today_sar)
 
     #res.info("고가:"+str(data[subject_code]['고가'][index])+" ,저가" + str(data[subject_code]['저가'][index]))
     #res.info("af:"+str(af))
-    #res.info("ep:"+str(ep))
+    #res.info("ep:"+str(ep)+", 고가:"+str(data[subject_code]['고가'][index]))
     #res.info("flow:"+str(temp_flow))
-    #res.info("sar:%s" % str(next_sar))
+    #res.info("sar:%s, 체결시간:%s" % (str(next_sar),data[subject_code]['체결시간'][index]))
     #res.debug("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
     #res.info("---------------")
     
