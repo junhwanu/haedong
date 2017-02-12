@@ -8,7 +8,7 @@ import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 180, 240]
+data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 200, 240]
 
 def create_data(subject_code):
     data[subject_code] = {}
@@ -546,7 +546,7 @@ def calculate_sar(subject_code):
             ep = the_lowest_price
             
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
-            res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 저가: ' + str(data[subject_code]['저가'][index]) + ' / sar: ' + str(next_sar))
+            #res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 저가: ' + str(data[subject_code]['저가'][index]) + ' / sar: ' + str(next_sar))
             if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
                 log.info('상태 변경, 매매완료 -> 매도가능')
                 subject.info[subject_code]['상태'] = '매도가능'
@@ -574,7 +574,7 @@ def calculate_sar(subject_code):
             ep = the_highest_price
             
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
-            res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 고가: ' + str(data[subject_code]['고가'][index]) + ' / sar: ' + str(next_sar))
+            #res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 고가: ' + str(data[subject_code]['고가'][index]) + ' / sar: ' + str(next_sar))
             if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
                 log.info('상태 변경, 매매완료 -> 매수가능')
                 subject.info[subject_code]['상태'] = '매수가능'

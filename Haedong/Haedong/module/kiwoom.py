@@ -25,6 +25,7 @@ class api():
     recent_candle_time = {}
     recent_price_list = {}
     current_candle = {}
+    last_price = {}
     account = ""
     cnt = 0
     
@@ -297,7 +298,7 @@ class api():
 
 
                     # 캔들이 갱신되었는지 확인
-                    if self.recent_candle_time[subject_code] != price['체결시간']:
+                    if self.recent_candle_time[subject_code] != price['체결시간'] or subject_code not in self.last_price or self.last_price[subject_code] != price:
                         # 캔들 갱신
                         if subject.info[subject_code]['전략'] == '해동이':
                             santa.update_state_by_current_candle(subject_code, price)
@@ -305,7 +306,8 @@ class api():
                         self.recent_candle_time[subject_code] = price['체결시간']
                         self.current_candle[subject_code] = []
                         log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
-                        
+                    
+                    self.last_price[subject_code] = price
                     break
                 
         if sRQName == '상품별현재가조회':
@@ -458,12 +460,12 @@ class api():
                                 subject.info[subject_code]['상태'] = '매매시도중'
                                 log.info("%s 종목 %s %s개 요청." % (subject_code, order_contents['매도수구분'], order_contents['수량']))
 
-                        
+                        '''
                         if d.get_mode() == d.TEST:
                             chart.create_figure(subject_code)
                             chart.draw(subject_code)
                             input() 
-                        
+                        '''
                 if subject.info[subject_code]['전략'] == '해동이':
                     santa.update_state_by_current_price(subject_code, current_price)
 
