@@ -39,6 +39,9 @@
     <Compile Include="module\db.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\dbinsert.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="module\gmail.py">
       <SubType>Code</SubType>
     </Compile>
