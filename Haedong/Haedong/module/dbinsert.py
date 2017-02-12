@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, time, os, shutil
-import gmail, log, calc, santa, screen, db, kiwoom
+import gmail, log, calc, santa, screen, db
 import json
 import subject, contract
 import pymysql
@@ -31,7 +31,7 @@ class api():
         self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
         self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
         
-        print("µ¥ÀÌÅÍ¸¦ ÀĞ¾î¿Ã ½ÃÀÛÀÏÀ» ÀÔ·ÂÇÏ¼¼¿ä. ex)20170125")
+        print("ë°ì´í„°ë¥¼ ì½ì–´ì˜¬ ì‹œì‘ì¼ì„ ì…ë ¥í•˜ì„¸ìš”. ex)20170125")
         self.start_date = input()
         print(self.start_date)
         if self.connect() == 0:
@@ -44,34 +44,34 @@ class api():
 
     def connect(self):
         """
-        ·Î±×ÀÎ À©µµ¿ì¸¦ ½ÇÇàÇÑ´Ù.
-        ·Î±×ÀÎÀÌ ¼º°øÇÏ°Å³ª ½ÇÆĞÇÏ´Â °æ¿ì OnEventConnect ÀÌº¥Æ®°¡ ¹ß»ıÇÏ°í ÀÌº¥Æ®ÀÇ ÀÎÀÚ °ªÀ¸·Î ·Î±×ÀÎ ¼º°ø ¿©ºÎ¸¦ ¾Ë ¼ö ÀÖ´Ù.
+        ë¡œê·¸ì¸ ìœˆë„ìš°ë¥¼ ì‹¤í–‰í•œë‹¤.
+        ë¡œê·¸ì¸ì´ ì„±ê³µí•˜ê±°ë‚˜ ì‹¤íŒ¨í•˜ëŠ” ê²½ìš° OnEventConnect ì´ë²¤íŠ¸ê°€ ë°œìƒí•˜ê³  ì´ë²¤íŠ¸ì˜ ì¸ì ê°’ìœ¼ë¡œ ë¡œê·¸ì¸ ì„±ê³µ ì—¬ë¶€ë¥¼ ì•Œ ìˆ˜ ìˆë‹¤.
 
-        :return: 0 - ¼º°ø, À½¼ö°ªÀº ½ÇÆĞ
+        :return: 0 - ì„±ê³µ, ìŒìˆ˜ê°’ì€ ì‹¤íŒ¨
         """
 
         if self.ocx.dynamicCall("GetConnectState()") == 0:
             rtn = self.ocx.dynamicCall("CommConnect(1)")
             if rtn == 0:
-                print("¿¬°á ¼º°ø")
+                print("ì—°ê²° ì„±ê³µ")
             else:
-                print("¿¬°á ½ÇÆĞ")
+                print("ì—°ê²° ì‹¤íŒ¨")
 
             return rtn
 
     def get_login_info(self, sTag):
         """
-        ·Î±×ÀÎÇÑ »ç¿ëÀÚ Á¤º¸¸¦ ¹İÈ¯ÇÑ´Ù.
+        ë¡œê·¸ì¸í•œ ì‚¬ìš©ì ì •ë³´ë¥¼ ë°˜í™˜í•œë‹¤.
 
-        :param sTag: »ç¿ëÀÚ Á¤º¸ ±¸ºĞ TAG°ª
-            ¡°ACCOUNT_CNT¡± ? ÀüÃ¼ °èÁÂ °³¼ö¸¦ ¹İÈ¯ÇÑ´Ù.
-            "ACCNO" ? ÀüÃ¼ °èÁÂ¸¦ ¹İÈ¯ÇÑ´Ù. °èÁÂº° ±¸ºĞÀº ¡®;¡¯ÀÌ´Ù.
-            ¡°USER_ID¡± - »ç¿ëÀÚ ID¸¦ ¹İÈ¯ÇÑ´Ù.
-            ¡°USER_NAME¡± ? »ç¿ëÀÚ¸íÀ» ¹İÈ¯ÇÑ´Ù.
-            ¡°KEY_BSECGB¡± ? Å°º¸µåº¸¾È ÇØÁö¿©ºÎ. 0:Á¤»ó, 1:ÇØÁö
-            ¡°FIREW_SECGB¡± ? ¹æÈ­º® ¼³Á¤ ¿©ºÎ. 0:¹Ì¼³Á¤, 1:¼³Á¤, 2:ÇØÁö
-            Ex) openApi.GetLoginInfo(¡°ACCOUNT_CNT¡±);
-        :return: TAG°ª¿¡ µû¸¥ µ¥ÀÌÅÍ ¹İÈ¯
+        :param sTag: ì‚¬ìš©ì ì •ë³´ êµ¬ë¶„ TAGê°’
+            â€œACCOUNT_CNTâ€ ? ì „ì²´ ê³„ì¢Œ ê°œìˆ˜ë¥¼ ë°˜í™˜í•œë‹¤.
+            "ACCNO" ? ì „ì²´ ê³„ì¢Œë¥¼ ë°˜í™˜í•œë‹¤. ê³„ì¢Œë³„ êµ¬ë¶„ì€ â€˜;â€™ì´ë‹¤.
+            â€œUSER_IDâ€ - ì‚¬ìš©ì IDë¥¼ ë°˜í™˜í•œë‹¤.
+            â€œUSER_NAMEâ€ ? ì‚¬ìš©ìëª…ì„ ë°˜í™˜í•œë‹¤.
+            â€œKEY_BSECGBâ€ ? í‚¤ë³´ë“œë³´ì•ˆ í•´ì§€ì—¬ë¶€. 0:ì •ìƒ, 1:í•´ì§€
+            â€œFIREW_SECGBâ€ ? ë°©í™”ë²½ ì„¤ì • ì—¬ë¶€. 0:ë¯¸ì„¤ì •, 1:ì„¤ì •, 2:í•´ì§€
+            Ex) openApi.GetLoginInfo(â€œACCOUNT_CNTâ€);
+        :return: TAGê°’ì— ë”°ë¥¸ ë°ì´í„° ë°˜í™˜
         """
         return self.ocx.dynamicCall("GetLoginInfo(QString)", [sTag]).rstrip(';')
     
@@ -82,60 +82,60 @@ class api():
     def get_dynamic_subject_code(self):
         lists = ['MTL','ENG','CUR','IDX','CMD']
         for list in lists:
-            self.set_input_value("»óÇ°ÄÚµå", list)
-            self.comm_rq_data("»óÇ°º°ÇöÀç°¡Á¶È¸", "opt10006", "", screen.S0010)
+            self.set_input_value("ìƒí’ˆì½”ë“œ", list)
+            self.comm_rq_data("ìƒí’ˆë³„í˜„ì¬ê°€ì¡°íšŒ", "opt10006", "", screen.S0010)
             time.sleep(0.5)
         
     def get_dynamic_subject_market_time(self):
         lists = ['MTL','ENG','CUR','IDX','CMD']
         for list in lists:
-            self.set_input_value("Ç°¸ñ±¸ºĞ", list)
-            self.comm_rq_data("Àå¿î¿µÁ¤º¸Á¶È¸", "opw50001", "", screen.S0011)
+            self.set_input_value("í’ˆëª©êµ¬ë¶„", list)
+            self.comm_rq_data("ì¥ìš´ì˜ì •ë³´ì¡°íšŒ", "opw50001", "", screen.S0011)
             time.sleep(0.5)
         
 
     def send_order(self, contract_type, subject_code, contract_cnt):
         
         """
-        ÁÖ½Ä ÁÖ¹®À» ¼­¹ö·Î Àü¼ÛÇÑ´Ù.
-        ½Å±Ô¸Å¼ö:self.send_order("½Å±Ô¸Å¼ö","0101",my_account_number,1,subject_code,1,now_current_price,"","2","")
+        ì£¼ì‹ ì£¼ë¬¸ì„ ì„œë²„ë¡œ ì „ì†¡í•œë‹¤.
+        ì‹ ê·œë§¤ìˆ˜:self.send_order("ì‹ ê·œë§¤ìˆ˜","0101",my_account_number,1,subject_code,1,now_current_price,"","2","")
            
 
-        ½Å±Ô¸Åµµ:
-        ¸Å¼öÃ»»ê:
-       ¸ÅµµÃ»»ê:self.send_order("½Å±Ô¸Å¼ö","0101",my_account_number,2,subject_code,subject_info[subject_code]['º¸À¯¼ö·®'],now_current_price,"2","")
+        ì‹ ê·œë§¤ë„:
+        ë§¤ìˆ˜ì²­ì‚°:
+       ë§¤ë„ì²­ì‚°:self.send_order("ì‹ ê·œë§¤ìˆ˜","0101",my_account_number,2,subject_code,subject_info[subject_code]['ë³´ìœ ìˆ˜ëŸ‰'],now_current_price,"2","")
        
  
-        :param sRQName: »ç¿ëÀÚ ±¸ºĞ ¿äÃ» ¸í
-        :param sScreenNo: È­¸é¹øÈ£[4]
-        :param sAccNo: °èÁÂ¹øÈ£[10]
-        :param nOrderType: ÁÖ¹®À¯Çü (1:½Å±Ô¸Å¼ö, 2:½Å±Ô¸Åµµ, 3:¸Å¼öÃë¼Ò, 4:¸ÅµµÃë¼Ò, 5:¸Å¼öÁ¤Á¤, 6:¸Å µµÁ¤Á¤)
-        :param sCode: ÁÖ½ÄÁ¾¸ñÄÚµå
-        :param nQty: ÁÖ¹®¼ö·®
-        :param sPrice: ÁÖ¹®´Ü°¡
-        :param sStop: ½ºÅ¾´Ü°¡
-        :param sHogaGb: °Å·¡±¸ºĞ 1:½ÃÀå°¡, 2:ÁöÁ¤°¡, 3:STOP, 4:STOP LIMIT
+        :param sRQName: ì‚¬ìš©ì êµ¬ë¶„ ìš”ì²­ ëª…
+        :param sScreenNo: í™”ë©´ë²ˆí˜¸[4]
+        :param sAccNo: ê³„ì¢Œë²ˆí˜¸[10]
+        :param nOrderType: ì£¼ë¬¸ìœ í˜• (1:ì‹ ê·œë§¤ìˆ˜, 2:ì‹ ê·œë§¤ë„, 3:ë§¤ìˆ˜ì·¨ì†Œ, 4:ë§¤ë„ì·¨ì†Œ, 5:ë§¤ìˆ˜ì •ì •, 6:ë§¤ ë„ì •ì •)
+        :param sCode: ì£¼ì‹ì¢…ëª©ì½”ë“œ
+        :param nQty: ì£¼ë¬¸ìˆ˜ëŸ‰
+        :param sPrice: ì£¼ë¬¸ë‹¨ê°€
+        :param sStop: ìŠ¤íƒ‘ë‹¨ê°€
+        :param sHogaGb: ê±°ë˜êµ¬ë¶„ 1:ì‹œì¥ê°€, 2:ì§€ì •ê°€, 3:STOP, 4:STOP LIMIT
             
-            ¡Ø ½ÃÀå°¡, ÃÖÀ¯¸®ÁöÁ¤°¡, ÃÖ¿ì¼±ÁöÁ¤°¡, ½ÃÀå°¡IOC, ÃÖÀ¯¸®IOC, ½ÃÀå°¡FOK, ÃÖÀ¯¸®FOK, ÀåÀü½Ã°£¿Ü, ÀåÈÄ½Ã°£¿Ü ÁÖ¹®½Ã ÁÖ¹®°¡°İÀ» ÀÔ·ÂÇÏÁö ¾Ê½À´Ï´Ù.
+            â€» ì‹œì¥ê°€, ìµœìœ ë¦¬ì§€ì •ê°€, ìµœìš°ì„ ì§€ì •ê°€, ì‹œì¥ê°€IOC, ìµœìœ ë¦¬IOC, ì‹œì¥ê°€FOK, ìµœìœ ë¦¬FOK, ì¥ì „ì‹œê°„ì™¸, ì¥í›„ì‹œê°„ì™¸ ì£¼ë¬¸ì‹œ ì£¼ë¬¸ê°€ê²©ì„ ì…ë ¥í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.
             ex)
-            ÁöÁ¤°¡ ¸Å¼ö - openApi.SendOrder(¡°RQ_1¡±, ¡°0101¡±, ¡°5015123410¡±, 1, ¡°000660¡±, 10, 48500, ¡°00¡±, ¡°¡±);
-            ½ÃÀå°¡ ¸Å¼ö - openApi.SendOrder(¡°RQ_1¡±, ¡°0101¡±, ¡°5015123410¡±, 1, ¡°000660¡±, 10, 0, ¡°03¡±, ¡°¡±);
-            ¸Å¼ö Á¤Á¤ - openApi.SendOrder(¡°RQ_1¡±,¡°0101¡±, ¡°5015123410¡±, 5, ¡°000660¡±, 10, 49500, ¡°00¡±, ¡°1¡±);
-            ¸Å¼ö Ãë¼Ò - openApi.SendOrder(¡°RQ_1¡±, ¡°0101¡±, ¡°5015123410¡±, 3, ¡°000660¡±, 10, 0, ¡°00¡±, ¡°2¡±);
-        :param sOrgOrderNo: ¿øÁÖ¹®¹øÈ£
-        :return: ¿¡·¯ÄÚµå - parse_error_code
-            -201     : ÁÖ¹®°úºÎÇÏ 
-            -300     : ÁÖ¹®ÀÔ·Â°ª ¿À·ù
-            -301     : °èÁÂºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇÏ½Ê½Ã¿À.
-            -302     : Å¸ÀÎ °èÁÂ¸¦ »ç¿ëÇÒ ¼ö ¾ø½À´Ï´Ù.
-            -303     : °æ°í-ÁÖ¹®¼ö·® 200°³ ÃÊ°ú
-            -304     : Á¦ÇÑ-ÁÖ¹®¼ö·® 400°³ ÃÊ°ú
+            ì§€ì •ê°€ ë§¤ìˆ˜ - openApi.SendOrder(â€œRQ_1â€, â€œ0101â€, â€œ5015123410â€, 1, â€œ000660â€, 10, 48500, â€œ00â€, â€œâ€);
+            ì‹œì¥ê°€ ë§¤ìˆ˜ - openApi.SendOrder(â€œRQ_1â€, â€œ0101â€, â€œ5015123410â€, 1, â€œ000660â€, 10, 0, â€œ03â€, â€œâ€);
+            ë§¤ìˆ˜ ì •ì • - openApi.SendOrder(â€œRQ_1â€,â€œ0101â€, â€œ5015123410â€, 5, â€œ000660â€, 10, 49500, â€œ00â€, â€œ1â€);
+            ë§¤ìˆ˜ ì·¨ì†Œ - openApi.SendOrder(â€œRQ_1â€, â€œ0101â€, â€œ5015123410â€, 3, â€œ000660â€, 10, 0, â€œ00â€, â€œ2â€);
+        :param sOrgOrderNo: ì›ì£¼ë¬¸ë²ˆí˜¸
+        :return: ì—ëŸ¬ì½”ë“œ - parse_error_code
+            -201     : ì£¼ë¬¸ê³¼ë¶€í•˜ 
+            -300     : ì£¼ë¬¸ì…ë ¥ê°’ ì˜¤ë¥˜
+            -301     : ê³„ì¢Œë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì‹­ì‹œì˜¤.
+            -302     : íƒ€ì¸ ê³„ì¢Œë¥¼ ì‚¬ìš©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.
+            -303     : ê²½ê³ -ì£¼ë¬¸ìˆ˜ëŸ‰ 200ê°œ ì´ˆê³¼
+            -304     : ì œí•œ-ì£¼ë¬¸ìˆ˜ëŸ‰ 400ê°œ ì´ˆê³¼
 
         """
         _contract_type = 0
-        if contract_type == '½Å±Ô¸Å¼ö':
+        if contract_type == 'ì‹ ê·œë§¤ìˆ˜':
             _contract_type = 2
-        elif contract_type == '½Å±Ô¸Åµµ':
+        elif contract_type == 'ì‹ ê·œë§¤ë„':
             _contract_type = 1
         else: return -300
 
@@ -144,8 +144,8 @@ class api():
 
     def request_tick_info(self, subject_code, tick_unit, prevNext):
 
-        self.set_input_value("Á¾¸ñÄÚµå", subject_code)
-        self.set_input_value("½Ã°£´ÜÀ§", tick_unit)
+        self.set_input_value("ì¢…ëª©ì½”ë“œ", subject_code)
+        self.set_input_value("ì‹œê°„ë‹¨ìœ„", tick_unit)
         '''
         temp = prevNext
         if prevNext != "":
@@ -156,42 +156,42 @@ class api():
                 temp = temp.replace(' 09 ', ' 00 ')
                 temp = temp.replace('F0','EE')
             '''
-        rtn = self.comm_rq_data("ÇØ¿Ü¼±¹°¿É¼ÇÆ½±×·¡ÇÁÁ¶È¸","opc10001", prevNext, subject.info[subject_code]['È­¸é¹øÈ£'])
+        rtn = self.comm_rq_data("í•´ì™¸ì„ ë¬¼ì˜µì…˜í‹±ê·¸ë˜í”„ì¡°íšŒ","opc10001", prevNext, subject.info[subject_code]['í™”ë©´ë²ˆí˜¸'])
 
         if rtn != 0:
-            # ¿¡·¯ÄÚµåº° ·Î±×
+            # ì—ëŸ¬ì½”ë“œë³„ ë¡œê·¸
             log.error(self.parse_error_code(rtn))
             
         while rtn == -200:
             time.sleep(0.05)
-            rtn = self.comm_rq_data("ÇØ¿Ü¼±¹°¿É¼ÇÆ½±×·¡ÇÁÁ¶È¸","opc10001", prevNext, subject.info[subject_code]['È­¸é¹øÈ£'])
+            rtn = self.comm_rq_data("í•´ì™¸ì„ ë¬¼ì˜µì…˜í‹±ê·¸ë˜í”„ì¡°íšŒ","opc10001", prevNext, subject.info[subject_code]['í™”ë©´ë²ˆí˜¸'])
         
 
     def set_input_value(self, sID, sValue):
         """
-        Tran ÀÔ·Â °ªÀ» ¼­¹öÅë½Å Àü¿¡ ÀÔ·ÂÇÑ´Ù.
+        Tran ì…ë ¥ ê°’ì„ ì„œë²„í†µì‹  ì „ì— ì…ë ¥í•œë‹¤.
 
-        :param sID: ¾ÆÀÌÅÛ¸í
-        :param sValue: ÀÔ·Â °ª
-        Ex) openApi.SetInputValue(¡°Á¾¸ñÄÚµå¡±, ¡°000660¡±);
-            openApi.SetInputValue(¡°°èÁÂ¹øÈ£¡±, ¡°5015123401¡±);
+        :param sID: ì•„ì´í…œëª…
+        :param sValue: ì…ë ¥ ê°’
+        Ex) openApi.SetInputValue(â€œì¢…ëª©ì½”ë“œâ€, â€œ000660â€);
+            openApi.SetInputValue(â€œê³„ì¢Œë²ˆí˜¸â€, â€œ5015123401â€);
         """
         self.ocx.dynamicCall("SetInputValue(QString, QString)", sID, sValue)
 
     def comm_rq_data(self, sRQName, sTrCode, nPrevNext, sScreenNo):
         """
-        TranÀ» ¼­¹ö·Î ¼Û½ÅÇÑ´Ù.
+        Tranì„ ì„œë²„ë¡œ ì†¡ì‹ í•œë‹¤.
 
-        :param sRQName: »ç¿ëÀÚ±¸ºĞ ¸í
-        :param sTrCode: Tran¸í ÀÔ·Â
-        :param nPrevNext: 0:Á¶È¸, 2:¿¬¼Ó
-        :param sScreenNo: 4ÀÚ¸®ÀÇ È­¸é¹øÈ£
-        Ex) openApi.CommRqData( ¡°RQ_1¡±, ¡°OPT00001¡±, 0, ¡°0101¡±);
+        :param sRQName: ì‚¬ìš©ìêµ¬ë¶„ ëª…
+        :param sTrCode: Tranëª… ì…ë ¥
+        :param nPrevNext: 0:ì¡°íšŒ, 2:ì—°ì†
+        :param sScreenNo: 4ìë¦¬ì˜ í™”ë©´ë²ˆí˜¸
+        Ex) openApi.CommRqData( â€œRQ_1â€, â€œOPT00001â€, 0, â€œ0101â€);
         :return:
-        OP_ERR_SISE_OVERFLOW ? °úµµÇÑ ½Ã¼¼Á¶È¸·Î ÀÎÇÑ Åë½ÅºÒ°¡
-        OP_ERR_RQ_STRUCT_FAIL ? ÀÔ·Â ±¸Á¶Ã¼ »ı¼º ½ÇÆĞ
-        OP_ERR_RQ_STRING_FAIL ? ¿äÃ»Àü¹® ÀÛ¼º ½ÇÆĞ
-        OP_ERR_NONE(0) ? Á¤»óÃ³¸®
+        OP_ERR_SISE_OVERFLOW â€“ ê³¼ë„í•œ ì‹œì„¸ì¡°íšŒë¡œ ì¸í•œ í†µì‹ ë¶ˆê°€
+        OP_ERR_RQ_STRUCT_FAIL â€“ ì…ë ¥ êµ¬ì¡°ì²´ ìƒì„± ì‹¤íŒ¨
+        OP_ERR_RQ_STRING_FAIL â€“ ìš”ì²­ì „ë¬¸ ì‘ì„± ì‹¤íŒ¨
+        OP_ERR_NONE(0) â€“ ì •ìƒì²˜ë¦¬
         """
         return self.ocx.dynamicCall("CommRqData(QString, QString, QString, QString)", sRQName, sTrCode, nPrevNext, sScreenNo)
 
@@ -207,28 +207,28 @@ class api():
 
     def OnReceiveTrData(self, sScrNo, sRQName, sTrCode, sRecordName, sPreNext):
         """
-        Tran ¼ö½Å½Ã ÀÌº¥Æ®
-        ¼­¹öÅë½Å ÈÄ µ¥ÀÌÅÍ¸¦ ¹ŞÀº ½ÃÁ¡À» ¾Ë·ÁÁØ´Ù.
+        Tran ìˆ˜ì‹ ì‹œ ì´ë²¤íŠ¸
+        ì„œë²„í†µì‹  í›„ ë°ì´í„°ë¥¼ ë°›ì€ ì‹œì ì„ ì•Œë ¤ì¤€ë‹¤.
 
-        :param py: È­¸é¹øÈ£
-        :param sRQName: »ç¿ëÀÚ±¸ºĞ ¸í
-        :param sTrCode: Tran ¸í
-        :param sRecordName: Record ¸í
-        :param sPreNext: ¿¬¼ÓÁ¶È¸ À¯¹«
-        :param nDataLength: 1.0.0.1 ¹öÀü ÀÌÈÄ »ç¿ëÇÏÁö ¾ÊÀ½.
-        :param sErrorCode: 1.0.0.1 ¹öÀü ÀÌÈÄ »ç¿ëÇÏÁö ¾ÊÀ½.
-        :param sMessage: 1.0.0.1 ¹öÀü ÀÌÈÄ »ç¿ëÇÏÁö ¾ÊÀ½.
-        :param sSplmMsg: 1.0.0.1 ¹öÀü ÀÌÈÄ »ç¿ëÇÏÁö ¾ÊÀ½.
+        :param py: í™”ë©´ë²ˆí˜¸
+        :param sRQName: ì‚¬ìš©ìêµ¬ë¶„ ëª…
+        :param sTrCode: Tran ëª…
+        :param sRecordName: Record ëª…
+        :param sPreNext: ì—°ì†ì¡°íšŒ ìœ ë¬´
+        :param nDataLength: 1.0.0.1 ë²„ì „ ì´í›„ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ.
+        :param sErrorCode: 1.0.0.1 ë²„ì „ ì´í›„ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ.
+        :param sMessage: 1.0.0.1 ë²„ì „ ì´í›„ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ.
+        :param sSplmMsg: 1.0.0.1 ë²„ì „ ì´í›„ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ.
         """
         
         price = {}
         now_time = time.localtime()
         today_time = "%04d%02d%02d" % (now_time.tm_year, now_time.tm_mon, now_time.tm_mday)
         
-        if sRQName == "ÇØ¿Ü¼±¹°¿É¼ÇÆ½±×·¡ÇÁÁ¶È¸":
+        if sRQName == "í•´ì™¸ì„ ë¬¼ì˜µì…˜í‹±ê·¸ë˜í”„ì¡°íšŒ":
             for subject_code in subject.info.keys():
-                if sScrNo == subject.info[subject_code]['È­¸é¹øÈ£']:                    
-                    # ÃÊ±â µ¥ÀÌÅÍ ¼ö½Å
+                if sScrNo == subject.info[subject_code]['í™”ë©´ë²ˆí˜¸']:                    
+                    # ì´ˆê¸° ë°ì´í„° ìˆ˜ì‹ 
                     _data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
                     _data = _data.split()
                     
@@ -236,9 +236,9 @@ class api():
                         self.recent_date = _data[6]
 
                     if int(self.recent_date) < int(_data[6]):
-                        # ÀÔ·ÂÇÑ ³¯²¨±îÁö ´Ù µ¥ÀÌÅÍ¸¦ ¹Ş¾Æ¿À°í³ª¼­ ÇÏ´Â°Í!!(2ÁÖÄ¡ ¹ŞÀ»¶§¸¸ »ç¿ëµÇ¾îÁü)
+                        # ì…ë ¥í•œ ë‚ êº¼ê¹Œì§€ ë‹¤ ë°ì´í„°ë¥¼ ë°›ì•„ì˜¤ê³ ë‚˜ì„œ í•˜ëŠ”ê²ƒ!!(2ì£¼ì¹˜ ë°›ì„ë•Œë§Œ ì‚¬ìš©ë˜ì–´ì§)
                         log.info('self.recent_date' + self.recent_date)
-                        log.info('¿µ¾÷ÀÏÀÚ : ' + str(_data[6]))
+                        log.info('ì˜ì—…ì¼ì : ' + str(_data[6]))
                         self.data.reverse()
                         log.debug(self.start_date)
                         db.insert(self.data, self.start_date, subject_code)
@@ -250,13 +250,13 @@ class api():
                         #self.data.append(_data)
                     
                     log.info("recent date is " + _data[6])    
-                    log.info('Ã¼°á½Ã°£ : int(_data[2])   ' + _data[2])
-                    log.info('ÇöÀç°¡ : ' + _data[0])
+                    log.info('ì²´ê²°ì‹œê°„ : int(_data[2])   ' + _data[2])
+                    log.info('í˜„ì¬ê°€ : ' + _data[0])
                     log.info('self.data.__len__()' + str(len(self.data)))
                     
-                    if int(_data[2][:12]) < int(self.start_date + subject.info[subject_code]['½ÃÀÛ½Ã°£']):
-                        # ÀÔ·ÂÇÑ ³¯²¨±îÁö ´Ù µ¥ÀÌÅÍ¸¦ ¹Ş¾Æ¿À°í³ª¼­ ÇÏ´Â°Í!!
-                        log.info('¿±¾÷ÀÏÀÚÀÔ´Ï´ç : ' + str(_data[6]))
+                    if int(_data[2][:12]) < int(self.start_date + subject.info[subject_code]['ì‹œì‘ì‹œê°„']):
+                        # ì…ë ¥í•œ ë‚ êº¼ê¹Œì§€ ë‹¤ ë°ì´í„°ë¥¼ ë°›ì•„ì˜¤ê³ ë‚˜ì„œ í•˜ëŠ”ê²ƒ!!
+                        log.info('ì—½ì—…ì¼ìì…ë‹ˆë‹¹ : ' + str(_data[6]))
                         self.data.reverse()
                         log.debug(self.start_date)
                         db.insert(self.data, self.start_date, subject_code)
@@ -266,30 +266,30 @@ class api():
                           
                 break
                 
-        if sRQName == '»óÇ°º°ÇöÀç°¡Á¶È¸':
+        if sRQName == 'ìƒí’ˆë³„í˜„ì¬ê°€ì¡°íšŒ':
             
             for i in range(20):
                 
-                subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'Á¾¸ñÄÚµån').strip() #ÇöÀç°¡ = Æ½ÀÇ Á¾°¡
+                subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'ì¢…ëª©ì½”ë“œn').strip() #í˜„ì¬ê°€ = í‹±ì˜ ì¢…ê°€
                 subject_symbol = subject_code[:2] 
                 if subject_symbol in subject.info.keys():
-                    log.info("±İÀÏ %sÀÇ Á¾¸ñÄÚµå´Â %s ÀÔ´Ï´Ù." % (subject.info[subject_symbol]["Á¾¸ñ¸í"],subject_code))
+                    log.info("ê¸ˆì¼ %sì˜ ì¢…ëª©ì½”ë“œëŠ” %s ì…ë‹ˆë‹¤." % (subject.info[subject_symbol]["ì¢…ëª©ëª…"],subject_code))
                     subject.info[subject_code] = subject.info[subject_symbol]
                     del subject.info[subject_symbol]
                     
-                    # ÃÊ±â µ¥ÀÌÅÍ ¿äÃ»
+                    # ì´ˆê¸° ë°ì´í„° ìš”ì²­
                     self.request_tick_info(subject_code,1, "")
                     self.recent_request_candle_time = time.time()
         
-        if sRQName == "Àå¿î¿µÁ¤º¸Á¶È¸":
+        if sRQName == "ì¥ìš´ì˜ì •ë³´ì¡°íšŒ":
             
-            log.info("Àå¿î¿µÁ¤º¸Á¶È¸")
+            log.info("ì¥ìš´ì˜ì •ë³´ì¡°íšŒ")
             for i in range(20):
-                subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'ÆÄ»ıÇ°¸ñÄÚµå')
-                market_time1 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'Àå¿î¿µ½Ã°£1')
-                market_time2 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'Àå¿î¿µ½Ã°£2')
-                market_time3 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'Àå¿î¿µ½Ã°£3')
-                market_time4 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'Àå¿î¿µ½Ã°£4')
+                subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'íŒŒìƒí’ˆëª©ì½”ë“œ')
+                market_time1 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'ì¥ìš´ì˜ì‹œê°„1')
+                market_time2 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'ì¥ìš´ì˜ì‹œê°„2')
+                market_time3 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'ì¥ìš´ì˜ì‹œê°„3')
+                market_time4 = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, 'ì¥ìš´ì˜ì‹œê°„4')
                 
                 log.info(subject_code)
                 log.info(market_time1)
@@ -299,17 +299,17 @@ class api():
             
     def OnReceiveRealData(self, sSubjectCode, sRealType, sRealData):
         """
-        ½Ç½Ã°£ ½Ã¼¼ ÀÌº¥Æ®
-        ½Ç½Ã°£µ¥ÀÌÅÍ¸¦ ¹ŞÀº ½ÃÁ¡À» ¾Ë·ÁÁØ´Ù.
+        ì‹¤ì‹œê°„ ì‹œì„¸ ì´ë²¤íŠ¸
+        ì‹¤ì‹œê°„ë°ì´í„°ë¥¼ ë°›ì€ ì‹œì ì„ ì•Œë ¤ì¤€ë‹¤.
 
-        :param sSubjectCode: Á¾¸ñÄÚµå
-        :param sRealType: ¸®¾óÅ¸ÀÔ
-        :param sRealData: ½Ç½Ã°£ µ¥ÀÌÅÍÀü¹®
+        :param sSubjectCode: ì¢…ëª©ì½”ë“œ
+        :param sRealType: ë¦¬ì–¼íƒ€ì…
+        :param sRealData: ì‹¤ì‹œê°„ ë°ì´í„°ì „ë¬¸
         """
-        # Äµµé »ı±â´Â ½ÃÁ¡ È®ÀÎÇØ¼­ °¡°İÀÌ ¾È¹Ù²î¾îµµ ¿Á¼ö¼ö¿¡ 3Æ½À¸·Î ¼³Á¤ÇÒ °æ¿ì °¡°İº¯µ¿¾øÀÌ ÄµµéÀÌ »ı±â´Â °æ¿ì°¡ ÀÖÀ¸´Ï request_tick_info ½ÃÁ¡ È®ÀÎ
+        # ìº”ë“¤ ìƒê¸°ëŠ” ì‹œì  í™•ì¸í•´ì„œ ê°€ê²©ì´ ì•ˆë°”ë€Œì–´ë„ ì˜¥ìˆ˜ìˆ˜ì— 3í‹±ìœ¼ë¡œ ì„¤ì •í•  ê²½ìš° ê°€ê²©ë³€ë™ì—†ì´ ìº”ë“¤ì´ ìƒê¸°ëŠ” ê²½ìš°ê°€ ìˆìœ¼ë‹ˆ request_tick_info ì‹œì  í™•ì¸
         
         #log.debug("OnReceiveRealData entered.")
-        if sSubjectCode[:2] not in subject.info.keys(): #Á¤ÀÇ ÇÏÁö ¾ÊÀº Á¾¸ñÀÌ ½Ç½Ã°£ µ¥ÀÌÅÍ µé¾î¿À´Â °æ¿ì ½Ç½Ã°£ ÇØÁ¦
+        if sSubjectCode[:2] not in subject.info.keys(): #ì •ì˜ í•˜ì§€ ì•Šì€ ì¢…ëª©ì´ ì‹¤ì‹œê°„ ë°ì´í„° ë“¤ì–´ì˜¤ëŠ” ê²½ìš° ì‹¤ì‹œê°„ í•´ì œ
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
             
@@ -318,52 +318,52 @@ class api():
 
     def OnReceiveChejanData(self, sGubun, nItemCnt, sFidList):
         """
-        Ã¼°áµ¥ÀÌÅÍ¸¦ ¹ŞÀº ½ÃÁ¡À» ¾Ë·ÁÁØ´Ù.
+        ì²´ê²°ë°ì´í„°ë¥¼ ë°›ì€ ì‹œì ì„ ì•Œë ¤ì¤€ë‹¤.
 
-        :param sGubun: Ã¼°á±¸ºĞ - 0:ÁÖ¹®Ã¼°áÅëº¸, 1:ÀÜ°íÅëº¸, 3:Æ¯ÀÌ½ÅÈ£
-        :param nItemCnt: ¾ÆÀÌÅÛ°¹¼ö
-        :param sFidList: µ¥ÀÌÅÍ¸®½ºÆ® - µ¥ÀÌÅÍ ±¸ºĞÀº ¡®;¡¯ ÀÌ´Ù.
+        :param sGubun: ì²´ê²°êµ¬ë¶„ - 0:ì£¼ë¬¸ì²´ê²°í†µë³´, 1:ì”ê³ í†µë³´, 3:íŠ¹ì´ì‹ í˜¸
+        :param nItemCnt: ì•„ì´í…œê°¯ìˆ˜
+        :param sFidList: ë°ì´í„°ë¦¬ìŠ¤íŠ¸ - ë°ì´í„° êµ¬ë¶„ì€ â€˜;â€™ ì´ë‹¤.
         """
         pass
 
     def OnEventConnect(self, nErrCode):
         """
-        Åë½Å ¿¬°á »óÅÂ º¯°æ½Ã ÀÌº¥Æ®
+        í†µì‹  ì—°ê²° ìƒíƒœ ë³€ê²½ì‹œ ì´ë²¤íŠ¸
 
-        :param nErrCode: ¿¡·¯ ÄÚµå - 0ÀÌ¸é ·Î±×ÀÎ ¼º°ø, À½¼ö¸é ½ÇÆĞ, ¿¡·¯ÄÚµå ÂüÁ¶
+        :param nErrCode: ì—ëŸ¬ ì½”ë“œ - 0ì´ë©´ ë¡œê·¸ì¸ ì„±ê³µ, ìŒìˆ˜ë©´ ì‹¤íŒ¨, ì—ëŸ¬ì½”ë“œ ì°¸ì¡°
         """
         print("OnEventConnect received")
         
         if nErrCode == 0:
-            print("·Î±×ÀÎ ¼º°ø")
-            # °èÁÂ¹øÈ£ ÀúÀå
+            print("ë¡œê·¸ì¸ ì„±ê³µ")
+            # ê³„ì¢Œë²ˆí˜¸ ì €ì¥
             self.account = self.get_login_info("ACCNO")
-            log.info("°èÁÂ¹øÈ£ : " + self.account)
+            log.info("ê³„ì¢Œë²ˆí˜¸ : " + self.account)
             
-            # ´ÙÀÌ³ª¹Í Á¾¸ñ Á¤º¸ ¿äÃ»
+            # ë‹¤ì´ë‚˜ë¯¹ ì¢…ëª© ì •ë³´ ìš”ì²­
             #self.get_dynamic_subject_info()
             self.get_dynamic_subject_code()
 
-            # ÃÊ±â µ¥ÀÌÅÍ ¿äÃ»
-            #self.request_tick_info('CLH17', subject.info['CLH17']['½Ã°£´ÜÀ§'], "")
-            #self.request_tick_info('GCG17', subject.info['GCG17']['½Ã°£´ÜÀ§'], "")
+            # ì´ˆê¸° ë°ì´í„° ìš”ì²­
+            #self.request_tick_info('CLH17', subject.info['CLH17']['ì‹œê°„ë‹¨ìœ„'], "")
+            #self.request_tick_info('GCG17', subject.info['GCG17']['ì‹œê°„ë‹¨ìœ„'], "")
             
-            # Á¾¸ñ Á¤º¸ ·Î±× Âï±â
-            log.info("Âü¿© Á¾¸ñ : %s" % subject.info.values())
+            # ì¢…ëª© ì •ë³´ ë¡œê·¸ ì°ê¸°
+            log.info("ì°¸ì—¬ ì¢…ëª© : %s" % subject.info.values())
 
 
         else:
             c_time = "%02d%02d" % (time.localtime().tm_hour, time.localtime().tm_min)
 
-            # ·Î±×ÀÎ ½ÇÆĞ ·Î±× Ç¥½Ã ¹× ¿¡·¯ÄÚµåº° ¿¡·¯³»¿ë ¹ß¼Û
-            err_msg = "¿¡·¯ÄÚµåº° ¸Ş½ÃÁö"
+            # ë¡œê·¸ì¸ ì‹¤íŒ¨ ë¡œê·¸ í‘œì‹œ ë° ì—ëŸ¬ì½”ë“œë³„ ì—ëŸ¬ë‚´ìš© ë°œì†¡
+            err_msg = "ì—ëŸ¬ì½”ë“œë³„ ë©”ì‹œì§€"
             log.critical(err_msg)
 
             if int(c_time) >= 800 or int(c_time) < 700:
-                # ¸ŞÀÏ ¹ß¼Û
-                gmail.send_email('[±ä±Ş' + str(c_time) + '] ÇØµ¿ÀÌ ÀÛµ¿ ÁßÁö', '¿¡·¯ÄÚµå')
+                # ë©”ì¼ ë°œì†¡
+                gmail.send_email('[ê¸´ê¸‰' + str(c_time) + '] í•´ë™ì´ ì‘ë™ ì¤‘ì§€', 'ì—ëŸ¬ì½”ë“œ')
 
-                # ÀÚµ¿ÀÌ Àç½ÃÀÛ ·ÎÁ÷ ÀÛ¼º
+                # ìë™ì´ ì¬ì‹œì‘ ë¡œì§ ì‘ì„±
                 pass
 
             self.quit()
@@ -383,20 +383,20 @@ class api():
         """
         err_code = str(err_code)
         ht = {
-            "0": "Á¤»óÃ³¸®",
-            "-100": "»ç¿ëÀÚÁ¤º¸±³È¯¿¡ ½ÇÆĞÇÏ¿´½À´Ï´Ù. Àá½ÃÈÄ ´Ù½Ã ½ÃÀÛÇÏ¿© ÁÖ½Ê½Ã¿À.",
-            "-101": "¼­¹ö Á¢¼Ó ½ÇÆĞ",
-            "-102": "¹öÀüÃ³¸®°¡ ½ÇÆĞÇÏ¿´½À´Ï´Ù.",
-            "-200": "½Ã¼¼Á¶È¸ °úºÎÇÏ",
+            "0": "ì •ìƒì²˜ë¦¬",
+            "-100": "ì‚¬ìš©ìì •ë³´êµí™˜ì— ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤. ì ì‹œí›„ ë‹¤ì‹œ ì‹œì‘í•˜ì—¬ ì£¼ì‹­ì‹œì˜¤.",
+            "-101": "ì„œë²„ ì ‘ì† ì‹¤íŒ¨",
+            "-102": "ë²„ì „ì²˜ë¦¬ê°€ ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤.",
+            "-200": "ì‹œì„¸ì¡°íšŒ ê³¼ë¶€í•˜",
             "-201": "REQUEST_INPUT_st Failed",
-            "-202": "¿äÃ» Àü¹® ÀÛ¼º ½ÇÆĞ",
-            "-300": "ÁÖ¹® ÀÔ·Â°ª ¿À·ù",
-            "-301": "°èÁÂºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇÏ½Ê½Ã¿À.",
-            "-302": "Å¸ÀÎ°èÁÂ´Â »ç¿ëÇÒ ¼ö ¾ø½À´Ï´Ù.",
-            "-303": "ÁÖ¹®°¡°İÀÌ 20¾ï¿øÀ» ÃÊ°úÇÕ´Ï´Ù.",
-            "-304": "ÁÖ¹®°¡°İÀº 50¾ï¿øÀ» ÃÊ°úÇÒ ¼ö ¾ø½À´Ï´Ù.",
-            "-305": "ÁÖ¹®¼ö·®ÀÌ ÃÑ¹ßÇàÁÖ¼öÀÇ 1%¸¦ ÃÊ°úÇÕ´Ï´Ù.",
-            "-306": "ÁÖ¹®¼ö·®Àº ÃÑ¹ßÇàÁÖ¼öÀÇ 3%¸¦ ÃÊ°úÇÒ ¼ö ¾ø½À´Ï´Ù."
+            "-202": "ìš”ì²­ ì „ë¬¸ ì‘ì„± ì‹¤íŒ¨",
+            "-300": "ì£¼ë¬¸ ì…ë ¥ê°’ ì˜¤ë¥˜",
+            "-301": "ê³„ì¢Œë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì‹­ì‹œì˜¤.",
+            "-302": "íƒ€ì¸ê³„ì¢ŒëŠ” ì‚¬ìš©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+            "-303": "ì£¼ë¬¸ê°€ê²©ì´ 20ì–µì›ì„ ì´ˆê³¼í•©ë‹ˆë‹¤.",
+            "-304": "ì£¼ë¬¸ê°€ê²©ì€ 50ì–µì›ì„ ì´ˆê³¼í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+            "-305": "ì£¼ë¬¸ìˆ˜ëŸ‰ì´ ì´ë°œí–‰ì£¼ìˆ˜ì˜ 1%ë¥¼ ì´ˆê³¼í•©ë‹ˆë‹¤.",
+            "-306": "ì£¼ë¬¸ìˆ˜ëŸ‰ì€ ì´ë°œí–‰ì£¼ìˆ˜ì˜ 3%ë¥¼ ì´ˆê³¼í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         }
         return ht[err_code] + " (%s)" % err_code if err_code in ht else err_code
 
@@ -413,8 +413,8 @@ class api():
         return ret
 
     def get_start_time(self, subject_code):
-        start_time = int(subject.info[subject_code]['½ÃÀÛ½Ã°£'])
-        end_time = int(subject.info[subject_code]['¸¶°¨½Ã°£'])
+        start_time = int(subject.info[subject_code]['ì‹œì‘ì‹œê°„'])
+        end_time = int(subject.info[subject_code]['ë§ˆê°ì‹œê°„'])
         current_hour = time.localtime().tm_hour
         current_min = time.localtime().tm_min
         current_time = current_hour*100 + current_min
@@ -427,7 +427,7 @@ class api():
             day = yesterday.tm_mday
             if day < 10:
                 day = '0' + str(day)
-            return_time = str(yesterday.tm_year) + str(mon) + str(day) + subject.info[subject_code]['½ÃÀÛ½Ã°£'] + '00'
+            return_time = str(yesterday.tm_year) + str(mon) + str(day) + subject.info[subject_code]['ì‹œì‘ì‹œê°„'] + '00'
         elif current_time >= start_time:
             today = time.localtime()
             mon = today.tm_mon
@@ -436,6 +436,6 @@ class api():
             day = today.tm_mday
             if day < 10:
                 day = '0' + str(day)
-            return_time = str(today.tm_year) + str(mon) + str(day) + subject.info[subject_code]['½ÃÀÛ½Ã°£'] + '00'
+            return_time = str(today.tm_year) + str(mon) + str(day) + subject.info[subject_code]['ì‹œì‘ì‹œê°„'] + '00'
 
         return return_time

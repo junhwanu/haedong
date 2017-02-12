@@ -15,7 +15,7 @@ if __name__ == "__main__":
     
     #cmd.init()
     
-    print('실제투자(1), 테스트(2)')
+    print('실제투자(1), 테스트(2), DB Insert(3)')
     d.mode = int(input())
     #kw = kiwoom.api()
 
