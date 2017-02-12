@@ -86,7 +86,7 @@ def send_order(contract_type, subject_code, contract_cnt, order_type):
         order_info['주문유형'] = 1         # 주문유형(1 : 시장가, 2 : 지정가, 3 : STOP)
         order_info['종목코드'] = subject_code             # 종목코드
         order_info['매도수구분'] = 2      # 매도수구분(1 : 매도, 2 : 매수)
-        order_info['체결표시가격'] = recent_price[subject_code] + subject.info[subject_code]['단위']        # 체결표시가격
+        order_info['체결표시가격'] = str(round(recent_price[subject_code] + subject.info[subject_code]['단위'], subject.info[subject_code]['자릿수']))        # 체결표시가격
         if contract.get_contract_count(subject_code) > 0:
             order_info['신규수량'] = 0       # 신규수량
             order_info['청산수량'] = contract_cnt
@@ -101,7 +101,7 @@ def send_order(contract_type, subject_code, contract_cnt, order_type):
         order_info['주문유형'] = 1         # 주문유형(1 : 시장가, 2 : 지정가, 3 : STOP)
         order_info['종목코드'] = subject_code             # 종목코드
         order_info['매도수구분'] = 1       # 매도수구분(1 : 매도, 2 : 매수)
-        order_info['체결표시가격'] = str(recent_price[subject_code] - subject.info[subject_code]['단위'])        # 체결표시가격
+        order_info['체결표시가격'] = str(round(recent_price[subject_code] - subject.info[subject_code]['단위'], subject.info[subject_code]['자릿수']))        # 체결표시가격
         if contract.get_contract_count(subject_code) > 0:
             order_info['신규수량'] = 0       # 신규수량
             order_info['청산수량'] = contract_cnt
