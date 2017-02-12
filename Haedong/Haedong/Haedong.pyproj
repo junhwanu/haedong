@@ -33,6 +33,8 @@
     <Compile Include="item\subject.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\bol.py" />
+    <Compile Include="module\chart.py" />
     <Compile Include="module\cmd.py">
       <SubType>Code</SubType>
     </Compile>
@@ -52,7 +54,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="module\log_result.py" />
+    <Compile Include="module\my_cmd.py" />
+    <Compile Include="module\my_util.py" />
     <Compile Include="module\para.py" />
+    <Compile Include="module\parabolic_sar.py" />
     <Compile Include="module\santa.py">
       <SubType>Code</SubType>
     </Compile>
@@ -60,6 +65,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="module\tester.py" />
+    <Compile Include="module\trend_band.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="module\" />

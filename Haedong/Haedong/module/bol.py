@@ -8,6 +8,7 @@ def is_it_OK(subject_code, current_price):
     mesu_medo_type = ''
     contract_cnt = 2
     
+    return {'신규주문':False}
     # 매매중 또는 매매시도중, 청산시도중 일 때 구매 불가
     if subject.info[subject_code]['상태'] != '중립대기' and subject.info[subject_code]['상태'] != '매매선터치':
         return {'신규주문':False}

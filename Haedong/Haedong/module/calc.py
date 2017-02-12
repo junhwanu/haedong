@@ -1,25 +1,25 @@
 ﻿# -*- coding: utf-8 -*-
-import subject, contract, log
+import subject, contract, log, chart, my_util
 import matplotlib.pyplot as plt
+import define as d
 from scipy import stats
 import log_result as res
 import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 200, 300]
-figure = {}
-figure_count = 0
+data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 180, 240]
 
 def create_data(subject_code):
-    global figure_count
     data[subject_code] = {}
     
     data[subject_code]['idx'] = -1
     data[subject_code]['이동평균선'] = {}
+    data[subject_code]['지수이동평균선'] = {}
 
     for days in data['이동평균선']['일수']:
         data[subject_code]['이동평균선'][days] = []
+        data[subject_code]['지수이동평균선'][days] = []
 
     data[subject_code]['일목균형표'] = {}
     data[subject_code]['일목균형표']['전환선'] = []
@@ -35,12 +35,24 @@ def create_data(subject_code):
     data[subject_code]['고가'] = []
     data[subject_code]['저가'] = []
     data[subject_code]['체결시간'] = []
+    data[subject_code]['캔들'] = []
     data[subject_code]['SAR반전시간'] = []
     data[subject_code]['매매가능가'] = 0
-
-    data[subject_code]['정배열연속틱'] = 0
+    
+    data[subject_code]['정배열연속틱'] = 1
+    data[subject_code]['추세연속틱'] = 1
     data[subject_code]['추세'] = []
     data[subject_code]['추세선'] = []
+    data[subject_code]['추세선밴드'] = {}
+    data[subject_code]['추세선밴드']['상한선'] = []
+    data[subject_code]['추세선밴드']['하한선'] = []
+    data[subject_code]['극점가'] = 0
+    
+    for index in range(0,26):
+        data[subject_code]['추세선'].append(None)
+        data[subject_code]['추세선밴드']['상한선'].append(None)
+        data[subject_code]['추세선밴드']['하한선'].append(None)
+
     data[subject_code]['매매선'] = []
     data[subject_code]['결정계수'] = 0
     data[subject_code]['그래프'] = {}
@@ -55,39 +67,10 @@ def create_data(subject_code):
     data[subject_code]['저가그룹'] = []
     data[subject_code]['고저점검색완료'] = False
 
-    figure[subject_code] = plt.figure(figure_count)
-    figure_count = figure_count + 1
-    subplot = figure[subject_code].add_subplot(111) 
+    data[subject_code]['매수'] = []
+    data[subject_code]['매도'] = []
 
-    figure[subject_code].suptitle(subject_code, size=16)
-    data[subject_code]['그래프']['서브플롯'] = subplot
-    
-    data[subject_code]['그래프']['최근가'] = None
-    data[subject_code]['그래프']['현재가'] = None
-    data[subject_code]['그래프']['추세선'] = None
-    data[subject_code]['그래프']['매매선'] = None
-    data[subject_code]['그래프']['이동평균선'] = {}
-    for days in subject.info[subject_code]['이동평균선']:
-        data[subject_code]['그래프']['이동평균선'][days] = None
-    data[subject_code]['그래프']['일목균형표'] = {}
-    data[subject_code]['그래프']['일목균형표']['전환선'] = []
-    data[subject_code]['그래프']['일목균형표']['기준선'] = []
-    data[subject_code]['그래프']['일목균형표']['선행스팬1'] = []
-    data[subject_code]['그래프']['일목균형표']['선행스팬2'] = []
-    data[subject_code]['그래프']['볼린저밴드'] = {}
-    data[subject_code]['그래프']['볼린저밴드']['중심선'] = []
-    data[subject_code]['그래프']['볼린저밴드']['상한선'] = []
-    data[subject_code]['그래프']['볼린저밴드']['하한선'] = []
-    
-    plt.ion()
-    for i in range(1,250):
-        if i % 10 != 0:
-            subplot.axvline(x=i, color='silver', linestyle='-')
-        else:
-            subplot.axvline(x=i, color='dimgrey', linestyle='-')
-    #plt.show()
-
-
+    if d.get_mode() is d.REAL: chart.create_figure(subject_code)
 
 def is_sorted(subject_code, lst):
     '''
@@ -103,7 +86,10 @@ def is_sorted(subject_code, lst):
     lst_real = []
     lst_tmp = []
     for days in lst:
-        lst_real.append(data[subject_code]['이동평균선'][days][ data[subject_code]['idx'] ])
+        if subject.info[subject_code]['전략'] == '추세선밴드':
+            lst_real.append(data[subject_code]['지수이동평균선'][days][ data[subject_code]['idx'] ])
+        else:
+            lst_real.append(data[subject_code]['이동평균선'][days][ data[subject_code]['idx'] ])
     
     lst_tmp = lst_real[:]
     lst_tmp.sort()
@@ -130,124 +116,24 @@ def push(subject_code, price):
     highest_price = float(price['고가'])
     lowest_price = float(price['저가'])
     current_time = int(price['체결시간'])
+    volume = int(price['거래량'])
+
+    candle = data[subject_code]['idx'] + 1, start_price, highest_price, lowest_price, current_price, volume
+
     data[subject_code]['현재가'].append(current_price)
     data[subject_code]['시가'].append(start_price)
     data[subject_code]['고가'].append(highest_price)
     data[subject_code]['저가'].append(lowest_price)
     data[subject_code]['체결시간'].append(current_time)
-    
+    data[subject_code]['캔들'].append(candle)
 
     data[subject_code]['idx'] = data[subject_code]['idx'] + 1
     
     calc(subject_code)
 
-    #draw(subject_code)
     if data[subject_code]['idx'] > 595:
-        #show(subject_code)
-        pass
+        if d.get_mode() is d.REAL: chart.draw(subject_code)
         
-
-     
-def show(subject_code):
-    graph_width_tick_cnt = 200
-    line_range = get_line_range(subject_code)
-    if line_range > graph_width_tick_cnt:
-        line_range = graph_width_tick_cnt
-
-    subplot = data[subject_code]['그래프']['서브플롯']
-    
-    remove_line(subject_code, data[subject_code]['그래프']['현재가'])
-    data[subject_code]['그래프']['현재가'] = subplot.plot(data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - graph_width_tick_cnt: len(data[subject_code]['현재가']) ], color='black', label='Closing price', linewidth=2)[0]
-    
-    if subject.info[subject_code]['전략'] == '해동이':
-        remove_line(subject_code, data[subject_code]['그래프']['추세선'])
-        data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range - 1: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line' + 'r-squared = ' + str(data[subject_code]['결정계수']), linewidth=2)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['매매선'])
-        data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], color='m', label='Trade Line', linewidth=2)[0]
-        #data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], linewidth=2)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['일목균형표']['선행스팬1'])
-        data[subject_code]['그래프']['일목균형표']['선행스팬1'] = subplot.plot(data[subject_code]['일목균형표']['선행스팬1'][ len(data[subject_code]['일목균형표']['선행스팬1']) - graph_width_tick_cnt -26: len(data[subject_code]['일목균형표']['선행스팬1']) ], color='orange', label='Span1', linewidth=1.5)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['일목균형표']['선행스팬2'])
-        data[subject_code]['그래프']['일목균형표']['선행스팬2'] = subplot.plot(data[subject_code]['일목균형표']['선행스팬2'][ len(data[subject_code]['일목균형표']['선행스팬2']) - graph_width_tick_cnt -26: len(data[subject_code]['일목균형표']['선행스팬2']) ], color='royalblue', label='Span2', linewidth=1.5)[0]
-    elif subject.info[subject_code]['전략'] == '볼린저':
-        remove_line(subject_code, data[subject_code]['그래프']['볼린저밴드']['중심선'])
-        data[subject_code]['그래프']['볼린저밴드']['중심선'] = subplot.plot(data[subject_code]['볼린저밴드']['중심선'][-graph_width_tick_cnt:], color='purple', label='BOL_MID', linewidth=1.5)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['볼린저밴드']['상한선'])
-        data[subject_code]['그래프']['볼린저밴드']['상한선'] = subplot.plot(data[subject_code]['볼린저밴드']['상한선'][-graph_width_tick_cnt:], color='r', label='BOL_HIGH', linewidth=1.5)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['볼린저밴드']['하한선'])
-        data[subject_code]['그래프']['볼린저밴드']['하한선'] = subplot.plot(data[subject_code]['볼린저밴드']['하한선'][-graph_width_tick_cnt:], color='b', label='BOL_LOW', linewidth=1.5)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['추세선'])
-        data[subject_code]['그래프']['추세선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['추세선'][ len(data[subject_code]['추세선']) - line_range - 1: len(data[subject_code]['추세선']) ], color='coral', label='Trend Line' + 'r-squared = ' + str(data[subject_code]['결정계수']), linewidth=2)[0]
-        remove_line(subject_code, data[subject_code]['그래프']['매매선'])
-        data[subject_code]['그래프']['매매선'] = subplot.plot(list(range(graph_width_tick_cnt - line_range, graph_width_tick_cnt+1)), data[subject_code]['매매선'][ len(data[subject_code]['매매선']) - line_range - 1: len(data[subject_code]['매매선']) ], color='m', label='Trade Line', linewidth=2)[0]
-
-    list_color = ['red', 'green', 'blue', 'm', 'lightpink']
-    color_idx = 0
-    for days in subject.info[subject_code]['이동평균선']:
-        remove_line(subject_code, data[subject_code]['그래프']['이동평균선'][days])
-        data[subject_code]['그래프']['이동평균선'][days] = subplot.plot(data[subject_code]['이동평균선'][days][ len(data[subject_code]['이동평균선'][days]) - graph_width_tick_cnt: len(data[subject_code]['이동평균선'][days]) ], color=list_color[color_idx], label='MA' + str(days), linewidth=2)[0]
-        color_idx += 1
-    
-    plt.legend(loc='best')
-    plt.show()  
-
-def show_current_price(subject_code, current_price):
-    subplot = data[subject_code]['그래프']['서브플롯']
-    remove_line(subject_code, data[subject_code]['그래프']['최근가'])
-    data[subject_code]['그래프']['최근가'] = subplot.axhline(y=round(float(current_price), subject.info[subject_code]['자릿수']), color='r', linestyle='-', label='Current price')
-    
-    plt.legend(loc='best')
-    plt.show()
-
-def remove_line(subject_code, line):
-    for c in data[subject_code]['그래프']['서브플롯'].lines:
-        if id(c) == id(line):
-          c.remove()
-
-def draw(subject_code):
-
-    # set X value
-    arr_range = list(range(0, len(data[subject_code]['현재가'])))
-    data[subject_code]['그래프']['현재가'].set_xdata( arr_range )
-    '''
-    data[subject_code]['그래프']['현재가'].set_xdata( 
-        np.append( data[subject_code]['그래프']['현재가'].get_xdata(), data[subject_code]['그래프']['현재가'].get_xdata().size ) )
-    '''
-    '''
-    for days in subject.info[subject_code]['이동평균선']:
-        data[subject_code]['그래프']['이동평균선'][days].set_xdata( 
-            np.append( data[subject_code]['그래프']['이동평균선'][days].get_xdata(),
-                       data[subject_code]['그래프']['이동평균선'][days].get_xdata().size ) 
-        )
-    '''
-    # set Y value
-    data[subject_code]['그래프']['현재가'].set_ydata( data[subject_code]['현재가'] )
-    '''
-    data[subject_code]['그래프']['현재가'].set_ydata( 
-        np.append( data[subject_code]['그래프']['현재가'].get_ydata(), data[subject_code]['현재가'][ data[subject_code]['그래프']['현재가'].get_ydata().size ] ) )
-    '''
-    '''
-    for days in subject.info[subject_code]['이동평균선']:
-        data[subject_code]['그래프']['이동평균선'][days].set_ydata( 
-            np.append( data[subject_code]['그래프']['이동평균선'][days].get_ydata(), 
-                       data[subject_code]['이동평균선'][days][ data[subject_code]['그래프']['이동평균선'][days].get_ydata().size ] )
-        )
-    '''
-    #plt.draw()
- 
-
-def refresh(subject_code, price):
-    '''
-    아직 완성되지 않은 캔들의 현재가를 넣어 마지막 캔들이 있는것처럼 계산해야 할지... 현재 캔들은 제외해야할지..
-    '''
-    current_price = round(float(price['현재가']), subject.info[subject_code]['자릿수'])
-    highest_price = round(float(price['고가']), subject.info[subject_code]['자릿수'])
-    lowest_price = round(float(price['저가']), subject.info[subject_code]['자릿수'])
-
-    # 로직 작성
-
-    calc(subject_code)
-
 def calc(subject_code):
     '''
     각종 그래프 계산
@@ -263,75 +149,40 @@ def calc(subject_code):
             calculate_sar(subject_code)
         
         calc_ma_line(subject_code)
-        #trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
-        #data[subject_code]['추세'].append(trend)
-        calc_ilmok_chart(subject_code)
-        #calc_linear_regression(subject_code)
-        
-    elif subject.info[subject_code]['전략'] == '해동이':
-        calc_ma_line(subject_code)
-        
         trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
         data[subject_code]['추세'].append(trend)
-    
-        if trend == '모름' or trend != data[subject_code]['추세'][ -2 ]:
-            if data[subject_code]['정배열연속틱'] <= 7: # 바들바들 떨지마세요
-                for idx in range(data[subject_code]['idx']-1,0,-1):
-                    if data[subject_code]['추세'][idx] == trend: break
-                    data[subject_code]['추세'][idx] = trend
-
-            if data[subject_code]['정배열연속틱'] > 0:
-                log.info('이동평균선 정배열 연속틱 초기화.')                
-            data[subject_code]['정배열연속틱'] = 1
-            if contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '중립대기':
-                log.info('종목코드 : ' + subject_code + ' 상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
-                subject.info[subject_code]['상태'] = '중립대기'
-        else:
-            data[subject_code]['정배열연속틱'] += 1
-            log.info('이동평균선 ' + trend + ' ' + str(data[subject_code]['정배열연속틱']) + '틱')
-    
         calc_ilmok_chart(subject_code)
         calc_linear_regression(subject_code)
-    elif subject.info[subject_code]['전략'] == '볼린저':
-        calc_ma_line(subject_code)
         
+    elif subject.info[subject_code]['전략'] == '추세선밴드':
+        calc_ma_line(subject_code)
+        calc_ema_line(subject_code)
+
         trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
         data[subject_code]['추세'].append(trend)
+        
+        if data[subject_code]['idx'] >= subject.info[subject_code]['이동평균선'][-1]:
+            if trend != data[subject_code]['추세'][ -2 ]:
+                # 추세 반전
+                if data[subject_code]['추세연속틱'] < subject.info[subject_code]['최소연속틱'] or data[subject_code]['정배열연속틱'] < subject.info[subject_code]['최소연속틱']/2:
+                    # 추세 극점부터 연속 틱이 60 이하일 경우 추세 아님
+                    my_util.chanege_past_trend(subject_code) # 추세가 아니므로, 지난 추세를 현재추세로 덮어씌워 연속된 추세를 만듬
+
+                log.info('이동평균선 추세 연속틱 재설정.')
+                data[subject_code]['추세연속틱'] = my_util.get_trend_continuous_tick_count(subject_code)
+                data[subject_code]['정배열연속틱'] = 1
+                if contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '중립대기':
+                    log.info('종목코드 : ' + subject_code + ' 상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
+                    subject.info[subject_code]['상태'] = '중립대기'
+            else:
+                data[subject_code]['추세연속틱'] += 1
+                data[subject_code]['정배열연속틱'] += 1
+                log.info('이동평균선 ' + trend + ' 추세 연속 : ' + str(data[subject_code]['추세연속틱']) + '틱')
+        
+        calc_linear_regression(subject_code)
         calc_bollinger_bands(subject_code)
-        
+        calc_ilmok_chart(subject_code)
 
-        sar = subject.info[subject_code]['sar']
-        
-        if data[subject_code]['idx'] == 5:
-            init_sar(subject_code)
-        
-        elif data[subject_code]['idx'] > 5:
-            calculate_sar(subject_code)
-        '''
-        
-        if data[subject_code]['idx'] == 2:
-            parabolic_sar.init(subject_code)
-        
-        elif data[subject_code]['idx'] > 2:
-            parabolic_sar.calculate(subject_code)
-        '''
-        if trend == '모름' or trend != data[subject_code]['추세'][ -2 ]:
-            if data[subject_code]['정배열연속틱'] <= 7: # 바들바들 떨지마세요
-                for idx in range(data[subject_code]['idx']-1,0,-1):
-                    if data[subject_code]['추세'][idx] == trend: break
-                    data[subject_code]['추세'][idx] = trend
-
-            if data[subject_code]['정배열연속틱'] > 0:
-                log.info('이동평균선 정배열 연속틱 초기화.')
-            data[subject_code]['정배열연속틱'] = 1
-            if contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '중립대기':
-                log.info('종목코드 : ' + subject_code + ' 상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
-                subject.info[subject_code]['상태'] = '중립대기'
-        else:
-            data[subject_code]['정배열연속틱'] += 1
-            log.info('이동평균선 ' + trend + ' ' + str(data[subject_code]['정배열연속틱']) + '틱')
-        
-        calc_linear_regression(subject_code)
 
 def calc_ma_line(subject_code):
     '''
@@ -340,12 +191,26 @@ def calc_ma_line(subject_code):
     for days in data['이동평균선']['일수']:
         if data[subject_code]['idx'] >= days - 1:
             avg = sum( data[subject_code]['현재가'][ data[subject_code]['idx'] - days + 1 : data[subject_code]['idx'] + 1] ) / days    
-            #data[subject_code]['이동평균선'][days].append(round(float(avg), subject.info[subject_code]['자릿수']))
             data[subject_code]['이동평균선'][days].append(avg)
         else:
             data[subject_code]['이동평균선'][days].append(None)
-                
-
+             
+def calc_ema_line(subject_code):
+    '''
+    지수이동평균선 계산
+    '''
+    for days in data['이동평균선']['일수']:
+        if data[subject_code]['idx'] >= days - 1:
+            if data[subject_code]['idx'] == days - 1:
+                avg = sum( data[subject_code]['현재가'][ data[subject_code]['idx'] - days + 1 : data[subject_code]['idx'] + 1] ) / days    
+                data[subject_code]['지수이동평균선'][days].append(avg)
+            else:
+                alpha  = 2 / (days + 1)
+                ema = alpha * data[subject_code]['현재가'][-1] + (1.0 - alpha) * data[subject_code]['지수이동평균선'][days][-1]
+                data[subject_code]['지수이동평균선'][days].append(ema)
+        else:
+            data[subject_code]['지수이동평균선'][days].append(None)
+               
 def calc_ilmok_chart(subject_code):
     '''
     일목균형표 계산
@@ -369,28 +234,19 @@ def calc_ilmok_chart(subject_code):
         data[subject_code]['일목균형표']['선행스팬2'].append( (max( data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] ) + min(  data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] )) / 2)
     else:
         data[subject_code]['일목균형표']['선행스팬2'].append(None)
-    
-    #log.info("선행스팬1:%s" % data[subject_code]['일목균형표']['선행스팬1'][-1])
-    #log.info("선행스팬2:%s" % data[subject_code]['일목균형표']['선행스팬2'][-1])
-    
+  
 def calc_linear_regression(subject_code):
     '''
     직선회기 계산
     '''
     data[subject_code]['추세선'].append(None)
     data[subject_code]['매매선'].append(None)
-    line_range = get_line_range(subject_code)
+    data[subject_code]['추세선밴드']['상한선'].append(None)
+    data[subject_code]['추세선밴드']['하한선'].append(None)
+
+    line_range = my_util.get_trend_continuous_tick_count(subject_code)
     
     if data[subject_code]['idx'] <= line_range:
-        return
-    
-    if data[subject_code]['idx'] > 50 and get_past_trend_count(subject_code) <= 50:
-        # 잠깐 움직였다고 가정
-        reverse_past_trend(subject_code)
-        data[subject_code]['추세선'].pop() 
-        data[subject_code]['매매선'].pop()
-        
-        calc_linear_regression(subject_code)
         return
 
     result = stats.linregress(list(range( 0, line_range + 1 )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range - 1: len(data[subject_code]['현재가']) ])
@@ -398,11 +254,17 @@ def calc_linear_regression(subject_code):
     data[subject_code]['추세선기울기'] = result.slope
     data[subject_code]['결정계수'] = (result.rvalue**2)
     _x = 0
-    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 27):
         data[subject_code]['추세선'][idx] = result.slope * _x + result.intercept
         _x+=1
 
-    
+    # 표준편차를 이용한 추세선밴드
+    stdev = calc_stdev(subject_code)
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 27):
+        data[subject_code]['추세선밴드']['상한선'][idx] = data[subject_code]['추세선'][idx] + (2*stdev)
+        data[subject_code]['추세선밴드']['하한선'][idx] = data[subject_code]['추세선'][idx] - (2*stdev)
+
+    '''
     # 데이터와의 차 구함
     max = get_max_deifference(subject_code)
     
@@ -415,9 +277,20 @@ def calc_linear_regression(subject_code):
             data[subject_code]['매매선'][idx] = data[subject_code]['추세선'][idx] - diff
         elif data[subject_code]['추세'][ data[subject_code]['idx'] - 1] == '하락세':
             data[subject_code]['매매선'][idx] = data[subject_code]['추세선'][idx] + diff
+    '''
     
-    # 달마식으로 매매선 구해보자...
+def calc_stdev(subject_code):
+    sd = 0.0
+    sum = 0.0
+    
+    line_range = my_util.get_trend_continuous_tick_count(subject_code)
+    if line_range <= 1: return 0
 
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 1):
+        diff = data[subject_code]['추세선'][idx] - ((data[subject_code]['현재가'][idx] + data[subject_code]['시가'][idx])/2)
+        sum += diff**2
+
+    return math.sqrt(sum / (line_range - 1))
     
 ##### 볼린저 밴드 계산 #####
 def calc_bollinger_bands(subject_code, length = 20, numsd = 2):
@@ -445,10 +318,9 @@ def calc_bollinger_bands(subject_code, length = 20, numsd = 2):
         data[subject_code]['볼린저밴드']['캔들위치'].append('하단')
     else:
         data[subject_code]['볼린저밴드']['캔들위치'].append('중심')
-    
             
 def find_high_low_point(subject_code):
-    start_index = find_trend_start_index(subject_code)
+    start_index = my_util.get_start_index_of_trend(subject_code)
     current_trend = data[subject_code]['추세'][-1]
     data[subject_code]['고가그룹'] = []
     data[subject_code]['저가그룹'] = []
@@ -584,85 +456,6 @@ def find_high_low_point(subject_code):
 
 ##### 볼린저 밴드 계산 끝 #####
 
-def get_past_trend_count(subject_code):
-    start_index = data[subject_code]['idx'] - data[subject_code]['정배열연속틱']
-    past_trend = data[subject_code]['추세'][ start_index ]
-    if past_trend == '모름':
-        return 100
-    count = 0
-    for idx in range(start_index, 0, -1):
-        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
-            break
-        count+=1
-
-    return count
-
-def get_current_trend_count(subject_code):
-    current_trend = data[subject_code]['추세'][-1]
-    count = 0
-    for idx in range( data[subject_code]['idx'], 0, -1 ):
-        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != current_trend:
-            break
-        count+=1
-
-    return count
-
-def reverse_past_trend(subject_code):
-    start_index = data[subject_code]['idx'] - get_current_trend_count(subject_code)
-    past_trend = data[subject_code]['추세'][ start_index ]
-    for idx in range(start_index, 0, -1):
-        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
-            break
-        data[subject_code]['추세'][idx] = data[subject_code]['추세'][-1]
-    
-def get_line_range(subject_code):
-    line_range = data[subject_code]['idx'] - find_trend_start_index(subject_code)
-    if line_range < 10:
-        line_range = 10
-
-    return line_range
-
-def get_max_deifference(subject_code):
-    '''
-    추세선과 실제 데이터의 차이 중 가장 큰 값을 리턴한다.
-    '''
-    
-    max = 0
-    line_range = get_line_range(subject_code)
-    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
-        if data[subject_code]['추세'][idx] == '상승세':
-            if data[subject_code]['추세선'][idx] >= data[subject_code]['현재가'][idx] and abs(data[subject_code]['추세선'][idx] - data[subject_code]['현재가'][idx]) > max:
-                max = abs(data[subject_code]['추세선'][idx] - data[subject_code]['현재가'][idx])
-        elif data[subject_code]['추세'][idx] == '하락세':
-            if data[subject_code]['추세선'][idx] <= data[subject_code]['현재가'][idx] and abs(data[subject_code]['추세선'][idx] - data[subject_code]['현재가'][idx]) > max:
-                max = abs(data[subject_code]['추세선'][idx] - data[subject_code]['현재가'][idx])
-    return max
-
-def find_trend_start_index(subject_code):
-    start_index = data[subject_code]['idx'] - data[subject_code]['정배열연속틱'] - 1
-    if start_index <= 0:
-        return data[subject_code]['정배열연속틱']
-    past_trend = data[subject_code]['추세'][ start_index - 1]
-    current_trend = data[subject_code]['추세'][ -1 ]
-    max = 0.0
-    min = 99999.99
-    point = start_index
-    for idx in range(start_index, 0, -1):
-        if data[subject_code]['추세'][idx] == None or data[subject_code]['추세'][idx] != past_trend:
-            break
-
-        if current_trend == '상승세':
-            if data[subject_code]['현재가'][idx] < min:
-                min = data[subject_code]['현재가'][idx]
-                point = idx
-        elif current_trend == '하락세':
-            if data[subject_code]['현재가'][idx] > max:
-                max = data[subject_code]['현재가'][idx]
-                point = idx
-    
-    return point
-
-
 ###### parabolic SAR ######
 
 def init_sar(subject_code):
@@ -710,44 +503,6 @@ def init_sar(subject_code):
     
     calculate_sar(subject_code)
 
-def calculate_sar_2(subject_code):
-    flow = subject.info[subject_code]['flow']
-    sar = subject.info[subject_code]['sar']
-    af = subject.info[subject_code]['af']
-    init_af = subject.info[subject_code]['init_af']
-    maxaf = subject.info[subject_code]['maxaf']
-    ep = subject.info[subject_code]['ep']
-    hp = data[subject_code]['고가'][-1]
-    lp = data[subject_code]['저가'][-1]
-    
-
-    if flow == '상향':
-        if lp < sar:
-            flow = '하향'
-            sar = ep
-            af = init_af
-            ep = lp
-            log.info('상향 -> 하향, ' + str(data[subject_code]['체결시간'][-1]))
-        else:
-            if ep < hp:
-                ep = hp
-                af = min(af + init_af, maxaf)
-    else:
-        if hp >= sar:
-            flow = '상향'
-            sar = ep
-            af = init_af
-            ep = hp
-            log.info('하향 -> 상향, ' + str(data[subject_code]['체결시간'][-1]))
-        else:
-            if ep > lp:
-                ep = lp
-                af = min(af + init_af, maxaf)
-
-
-    subject.info[subject_code]['flow'] = flow
-    subject.info[subject_code]['sar'] = sar + af * (ep - sar)
-            
 def calculate_sar(subject_code):
 
     sar = subject.info[subject_code]['sar']
@@ -758,7 +513,6 @@ def calculate_sar(subject_code):
     temp_flow = subject.info[subject_code]['flow']
     index = data[subject_code]['idx']   
     temp_sar = subject.info[subject_code]['sar']
-    
     
     the_highest_price = 0
     the_lowest_price = 0
@@ -779,11 +533,8 @@ def calculate_sar(subject_code):
                 the_highest_price = data[subject_code]['고가'][index] 
                 ep = data[subject_code]['고가'][index]
                 af = af + init_af
-                
                 if af > maxaf:
                     af = maxaf
-                
-                #today_sar = today_sar + af * (ep - today_sar)
                     
         elif data[subject_code]['저가'][index] < next_sar: # 상승추세에서 저가가 내일의 SAR보다 낮으면 하향 반전
             temp_flow = "하향"
@@ -799,12 +550,10 @@ def calculate_sar(subject_code):
             if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
                 log.info('상태 변경, 매매완료 -> 매도가능')
                 subject.info[subject_code]['상태'] = '매도가능'
-            
-            #today_sar = today_sar + af * (ep - today_sar)
        
 
     elif temp_flow == "하향":
-        if data[subject_code]['고가'][index] <= next_sar: # 하락추세에서 고가가 내일의 SAR보다 낮으면 하락이 유효
+        if data[subject_code]['고가'][index]<= next_sar: # 하락추세에서 고가가 내일의 SAR보다 낮으면 하락이 유효
             today_sar = next_sar
             temp_flow = "하향"
             the_highest_price = 0
@@ -812,11 +561,8 @@ def calculate_sar(subject_code):
                 the_lowest_price = data[subject_code]['저가'][index]
                 ep = data[subject_code]['저가'][index]
                 af = af + init_af
-          
                 if af > maxaf:
-                    af = maxaf
-                    
-                #today_sar = today_sar + af * (ep - today_sar)                                     
+                    af = maxaf                                     
             
         elif data[subject_code]['고가'][index] > next_sar: # 하락추세에서 고가가 내일의 SAR보다 높으면 상향 반전
             temp_flow = "상향"
@@ -832,17 +578,15 @@ def calculate_sar(subject_code):
             if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
                 log.info('상태 변경, 매매완료 -> 매수가능')
                 subject.info[subject_code]['상태'] = '매수가능'
+       
 
-            #today_sar = today_sar + af * (ep - today_sar)
-
-    #next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
-    next_sar = today_sar + af * (ep - today_sar)
+    next_sar = today_sar + af * (max(the_highest_price,the_lowest_price) - today_sar)
 
     #res.info("고가:"+str(data[subject_code]['고가'][index])+" ,저가" + str(data[subject_code]['저가'][index]))
     #res.info("af:"+str(af))
-    #res.info("ep:"+str(ep)+", 고가:"+str(data[subject_code]['고가'][index]))
+    #res.info("ep:"+str(ep))
     #res.info("flow:"+str(temp_flow))
-    #res.info("sar:%s, 체결시간:%s" % (str(next_sar),data[subject_code]['체결시간'][index]))
+    #res.info("sar:%s" % str(next_sar))
     #res.debug("반전시간 리스트:%s" % str(data[subject_code]['SAR반전시간']))
     #res.info("---------------")
     

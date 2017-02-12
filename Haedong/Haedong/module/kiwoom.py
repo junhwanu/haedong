@@ -1,8 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 import sys, time, os
-import gmail, log, calc, santa, screen, para, tester, bol
+import gmail, log, calc, santa, screen, para, tester, bol, chart, trend_band
 import define as d
 import json
+import math
 import subject, contract
 import log_result as res
 
@@ -20,12 +21,13 @@ def get_instance():
 class api():
     app = None
     recent_price = {}
+    adjusted_price = {}
     recent_candle_time = {}
+    recent_price_list = {}
+    current_candle = {}
     account = ""
     cnt = 0
-    last_price = {}
-
- 
+    
     def __init__(self, mode = 1):
         super(api, self).__init__()
         if d.get_mode() == d.REAL:
@@ -239,13 +241,15 @@ class api():
                 if sScrNo == subject.info[subject_code]['화면번호']:  
                     if subject_code not in calc.data:
                         calc.create_data(subject_code)
+                        self.recent_price_list[subject_code] = []
+                        self.current_candle[subject_code] = []
 
                         if d.get_mode() == d.REAL:
                             # 초기 데이터 수신
                             data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
                             data = data.split()
                         
-                            #subject.info[subject_code]['현재가변동횟수'] = int(data[0])
+                            subject.info[subject_code]['현재가변동횟수'] = int(data[0])
 
                             current_idx = len(data) - 7
                             start_time = self.get_start_time(subject_code)
@@ -256,7 +260,8 @@ class api():
                                 price['고가'] = data[current_idx + 4]
                                 price['저가'] = data[current_idx + 5]
                                 price['체결시간'] = data[current_idx + 2]
-                            
+                                price['거래량'] = data[current_idx + 1]
+                                
                                 current_idx -= 7
                                 ''' 오늘 데이터만 받아오는 코드
                                 if int(data[current_idx + 2]) >= int(start_time):
@@ -268,36 +273,39 @@ class api():
                             self.recent_price[subject_code] = round(float(data[1]), subject.info[subject_code]['자릿수'])
 
                             self.recent_candle_time[subject_code] = data[10]
+                            self.current_candle[subject_code].append(float(data[5]))
+                            self.current_candle[subject_code].append(float(data[6]))
                             log.debug('지난 데이터 수신 완료.')
 
-                            calc.show_current_price(subject_code, self.recent_price[subject_code])
+                            #calc.show_current_price(subject_code, self.recent_price[subject_code])
                         elif d.get_mode() == d.TEST:
                             self.recent_price[subject_code] = candle['현재가']
                             self.recent_candle_time[subject_code] = candle['체결시간']
                         
+                        for idx in range(0,10): self.recent_price_list[subject_code].append(self.recent_price[subject_code]) # 현재가 삽입
+                        self.adjusted_price[subject_code] = round( float( sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
+
                     if d.get_mode() == d.REAL: # 실제투자
                         price['현재가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '현재가')
                         price['저가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '저가')
                         price['고가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '고가')
                         price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
                         price['체결시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
-
+                        price['거래량'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '거래량')
                     elif d.get_mode() == d.TEST: # 테스트
                         price = candle
 
-                    
+
                     # 캔들이 갱신되었는지 확인
-                    #if self.recent_candle_time[subject_code] != price['체결시간']:
-                    if self.last_price != price or self.recent_candle_time[subject_code] != price['체결시간']:
+                    if self.recent_candle_time[subject_code] != price['체결시간']:
                         # 캔들 갱신
                         if subject.info[subject_code]['전략'] == '해동이':
                             santa.update_state_by_current_candle(subject_code, price)
                         calc.push(subject_code, price)
                         self.recent_candle_time[subject_code] = price['체결시간']
+                        self.current_candle[subject_code] = []
                         log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
-                        self.recent_price[subject_code] = 0
-
-                    self.last_price = price
+                        
                     break
                 
         if sRQName == '상품별현재가조회':
@@ -374,6 +382,12 @@ class api():
                     elif contract.list[subject_code]['매도수구분'] == '신규매수':
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
 
+            # 최근가 평균으로 현재가 보정
+            self.recent_price_list[subject_code].append(current_price)
+            self.recent_price_list[subject_code].pop(0)
+            self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
+            self.current_candle[subject_code].append(current_price)
+
             if self.recent_price[subject_code] != current_price:
                 log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
 
@@ -384,11 +398,16 @@ class api():
                         sell_contents = santa.is_it_sell(subject_code, current_price)
                     elif subject.info[subject_code]['전략'] == '파라':
                         sell_contents = para.is_it_sell(subject_code, current_price)
-                    elif subject.info[subject_code]['전략'] == '볼린저':
-                        sell_contents = bol.is_it_sell(subject_code, current_price)
+                    elif subject.info[subject_code]['전략'] == '추세선밴드':
+                        sell_contents = trend_band.is_it_sell(subject_code, current_price, self.adjusted_price[subject_code])
                     if sell_contents['신규주문'] == True:
                         res.info('주문 체결시간 : ' + str(current_time))
                         order_result = self.send_order(sell_contents['매도수구분'], subject_code, sell_contents['수량'])
+                        
+                        if sell_contents['매도수구분'] == '신규매수':
+                            calc.data[subject_code]['매수'].append(calc.data[subject_code]['idx'])
+                        elif sell_contents['매도수구분'] == '신규매도':
+                            calc.data[subject_code]['매도'].append(calc.data[subject_code]['idx'])
                         if d.get_mode() == d.REAL: #실제투자
                             if order_result != 0:
                                 log.info(self.parse_error_code(order_result))
@@ -396,6 +415,12 @@ class api():
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 청산시도중.')
                                 subject.info[subject_code]['상태'] = '청산시도중'
                                 log.info("%s 종목 %s %s개 청산요청." % (subject_code, sell_contents['매도수구분'], sell_contents['수량']))
+                        '''
+                        if d.get_mode() == d.TEST:
+                            chart.create_figure(subject_code)
+                            chart.draw(subject_code)
+                            input() 
+                        '''
 
                 # 신규주문
                 #elif contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '매매시도중' and subject.info[subject_code]['상태'] != '매매완료' and subject.info[subject_code]['상태'] != '청산시도중':
@@ -406,20 +431,25 @@ class api():
                     elif subject.info[subject_code]['전략'] == '파라':
                         order_contents = para.is_it_OK(subject_code, current_price)
                         #log.info('para.is_it_OK? ' + str(order_contents))
-                    elif subject.info[subject_code]['전략'] == '볼린저':
-                        order_contents = bol.is_it_OK(subject_code, current_price)
+                    elif subject.info[subject_code]['전략'] == '추세선밴드':
+                         order_contents = trend_band.is_it_OK(subject_code, current_price, self.adjusted_price[subject_code], max(self.current_candle[subject_code]), min(self.current_candle[subject_code]))
                     else:
                         return
 
                     if order_contents['신규주문'] == True:
                         
                         res.info('주문 체결시간 : ' + str(current_time))
+                        res.info('추세선 기울기 : ' + str(calc.data[subject_code]['추세선기울기']))
                         # return value를 리스트로 받아와서 어떻게 사야하는지 확인
 
                         res.info('주문 내용 : ' + str(order_contents))
                         subject.info[subject_code]['주문내용'] = order_contents
                         order_result = self.send_order(order_contents['매도수구분'], subject_code, order_contents['수량'])
                         
+                        if order_contents['매도수구분'] == '신규매수':
+                            calc.data[subject_code]['매수'].append(calc.data[subject_code]['idx'])
+                        elif order_contents['매도수구분'] == '신규매도':
+                            calc.data[subject_code]['매도'].append(calc.data[subject_code]['idx'])
                         if d.get_mode() == d.REAL: # 실제투자
                             if order_result != 0:
                                 log.info(self.parse_error_code(order_result))
@@ -428,6 +458,12 @@ class api():
                                 subject.info[subject_code]['상태'] = '매매시도중'
                                 log.info("%s 종목 %s %s개 요청." % (subject_code, order_contents['매도수구분'], order_contents['수량']))
 
+                        
+                        if d.get_mode() == d.TEST:
+                            chart.create_figure(subject_code)
+                            chart.draw(subject_code)
+                            input() 
+                        
                 if subject.info[subject_code]['전략'] == '해동이':
                     santa.update_state_by_current_price(subject_code, current_price)
 
@@ -436,7 +472,7 @@ class api():
                     if subject.info[subject_code]['현재가변동횟수'] >= subject.info[subject_code]['시간단위']:
                         self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], "")
                         subject.info[subject_code]['현재가변동횟수'] = 0
-                calc.show_current_price(subject_code, current_price)
+                #calc.show_current_price(subject_code, current_price)
                 
         else:
             log.error("OnReceiveRealData : 요청하지 않은 데이터 수신")
@@ -499,6 +535,7 @@ class api():
                             profit = ((float(order_info['체결표시가격']) - float(contract.list[subject_code]['체결가'])) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
                         elif order_info['매도수구분'] == 2:
                             profit = ((float(contract.list[subject_code]['체결가'] - float(order_info['체결표시가격']))) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
+                            
                         contract.remove_contract(order_info)
                         
                         subject.info[subject_code]['누적수익'] += round(profit, 1)
@@ -536,7 +573,7 @@ class api():
                             else:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
                                 subject.info[subject_code]['상태'] = '매매완료'
-                        elif subject.info[subject_code]['전략'] == '볼린저':
+                        elif subject.info[subject_code]['전략'] == '추세선밴드':
                             if contract.get_contract_count(subject_code) > 0:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
                                 subject.info[subject_code]['상태'] = '매매중'

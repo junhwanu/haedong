@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 import shutil, time, sys, os
 import logging
+import define as d
 
 logger = None
 
@@ -30,8 +31,8 @@ def init(path):
     streamHandler.setFormatter(fomatter)
 
     logger.addHandler(fileHandler)
-    logger.addHandler(streamHandler)
-    logger.setLevel(logging.INFO)
+    if(d.get_mode() == d.REAL): logger.addHandler(streamHandler)
+    logger.setLevel(logging.DEBUG)
 
 def info(log_msg):
     logger.info(log_msg)

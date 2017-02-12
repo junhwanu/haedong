@@ -12,37 +12,44 @@ def insert(data, start_date, subject_code):
             del data[:7]
         else: break
 
-    log.info('처음 데이터 날짜 : ' + str(data[5]) + '처음 영업일 : ' + str(data[0]))
-    log.info('마지막 데이터 날짜 : ' + str(data[5]) + '마지막 영업일 : ' + str(data[0]))
     for date in range(int(start_date), int(get_today_date())): # start_date부터 어제 날짜꺼까지 저장.
-        table_name = subject_code + '_' +str(date)
+        table_name = subject_code + '_' + start_date
         insert_data = []
-        print('현재일자 :', date)
-        
-        if date != int(data[0]) :
-            log.info('휴장일 : ' + str(date))
-            continue
-#        if len(data) ==0:
- #           break
-        
-            # table_name으로 테이블이 있는지 확인한다.
+        print('현재일자 :', start_date)
         log.info('table_name' + table_name)
-        if exist_table(table_name) == False:
-           log.info('테이블 생성')
-           create_table(table_name, False)
+
+#        if date != int(data[0]) :
+#            log.info('휴장일 : ' + str(date))
+#            continue
+        if len(data) ==0:
+            break
+        if int(date) == int (data[0]) or int(date) == int(start_date) :
+            # table_name으로 테이블이 있는지 확인한다.
+            if exist_table(table_name) == False:
+              log.info('테이블 생성')
+              create_table(table_name, False)
         
             # 있으면 삭제 후 재생성
-        else:
-           log.info('테이블 삭제 후 재생성.')
-           create_table(table_name, True)
+            else:
+                log.info('테이블 삭제 후 재생성.')
+                create_table(table_name, True)
         
         for idx in range(0, len(data), 7):
             _data = data[idx:idx+7]
-            if int(_data[0]) == date:
-                insert_data.append(tuple(_data))
-            else : 
-                del data[:idx]
-                break
+            insert_data.append(tuple(_data))
+            #휴장일일때 data가 마지막일때 삭제
+            if int(data[0]) != date:
+                if len(data)==7:
+                    del data
+                else : 
+                    del data[:idx-7]
+                    break
+
+
+            
+
+            
+
         _query = "insert into " + table_name + "(working_day,min_price,max_price,market_price,date,volume,now_price) values (%s, %s, %s, %s, %s, %s, %s)" 
         curs.executemany(_query, tuple(insert_data))
         conn.commit()
