@@ -335,12 +335,14 @@ def is_it_sell(subject_code, current_price):
             ### 예를 들어 10틱 목표가인데 8틱까지 올라가면 손절가를 체결가 + 1 로 설정하여 -10틱 까지 가서 손절되는것을 막는다
             elif current_price >= contract.list[subject_code]['익절가'] - (int(subject.info[subject_code]['주문내용']['익절틱']*0.2)*subject.info[subject_code]['단위']):
                 if contract.list[subject_code]['체결가'] > contract.list[subject_code]['손절가']:
-                    contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] + ( 2*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+                    contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] + ( 3*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+                    contract.list[subject_code]['손절가'] = round(contract.list[subject_code]['손절가'],subject.info[subject_code]['자릿수'])
                     log.info("익절틱 80프로 구간 도달하여 손절가 UP, 손절가:%s" % contract.list[subject_code]['손절가'])
 
             elif current_price >= contract.list[subject_code]['익절가'] - (int(subject.info[subject_code]['주문내용']['익절틱']*0.4)*subject.info[subject_code]['단위']):
                 if contract.list[subject_code]['체결가'] > contract.list[subject_code]['손절가']:
                     contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] - ( 3*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+                    contract.list[subject_code]['손절가'] = round(contract.list[subject_code]['손절가'],subject.info[subject_code]['자릿수'])
                     log.info("익절틱 60프로 구간 도달하여 손절가 UP, 손절가:%s" % contract.list[subject_code]['손절가'])
             
             ########
@@ -424,12 +426,14 @@ def is_it_sell(subject_code, current_price):
             ## 예를 들어 10틱 목표가인데 8틱까지 올라가면 손절가를 체결가 + 1 로 설정하여 -10틱 까지 가서 손절되는것을 막는다
             elif current_price <= contract.list[subject_code]['익절가'] + (int(subject.info[subject_code]['주문내용']['익절틱']*0.2)*subject.info[subject_code]['단위']):
                 if contract.list[subject_code]['체결가'] < contract.list[subject_code]['손절가']:
-                    contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] - ( 2*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+                    contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] - ( 3*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+                    contract.list[subject_code]['손절가'] = round(contract.list[subject_code]['손절가'],subject.info[subject_code]['자릿수'])
                     log.info("익절틱 80프로 구간 도달하여 손절가 UP, 손절가:%s" % contract.list[subject_code]['손절가'])
                     
             elif current_price <= contract.list[subject_code]['익절가'] + (int(subject.info[subject_code]['주문내용']['익절틱']*0.4)*subject.info[subject_code]['단위']):
                 if contract.list[subject_code]['체결가'] < contract.list[subject_code]['손절가']:
                     contract.list[subject_code]['손절가'] = contract.list[subject_code]['체결가'] + ( 3*subject.info[subject_code]['단위'] ) #매수가보다 1틱 올려서 손절가 설정
+                    contract.list[subject_code]['손절가'] = round(contract.list[subject_code]['손절가'],subject.info[subject_code]['자릿수'])
                     log.info("익절틱 60프로 구간 도달하여 손절가 UP, 손절가:%s" % contract.list[subject_code]['손절가'])        
             ########
             #elif current_price < contract.list[subject_code]['익절가'] + (sonjal_tick*subject.info[subject_code]['단위']):
