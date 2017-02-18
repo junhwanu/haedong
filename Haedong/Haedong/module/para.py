@@ -48,7 +48,7 @@ def is_it_OK(subject_code, current_price):
     #log.info('현재 sar : ' + str(subject.info[subject_code]['sar']))
     #log.info('현재 flow : ' + subject.info[subject_code]['flow'])
     if subject.info[subject_code]['flow'] == '상향' and subject.info[subject_code]['상태'] != '매도가능': 
-        #res.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
+        #log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
         if current_price < subject.info[subject_code]['sar']:
             if current_price < max(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]):
                 log.info("")
@@ -69,7 +69,7 @@ def is_it_OK(subject_code, current_price):
                 return {'신규주문':False}
             
     elif subject.info[subject_code]['flow'] == '하향' and subject.info[subject_code]['상태'] != '매수가능':
-        #res.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
+        #log.info('현재 SAR : ' + str(subject.info[subject_code]['sar']) + ', 현재가 : ' + str(current_price))
         if current_price > subject.info[subject_code]['sar']:
             if current_price > min(calc.data[subject_code]['일목균형표']['선행스팬1'][calc.data[subject_code]['idx']],calc.data[subject_code]['일목균형표']['선행스팬2'][calc.data[subject_code]['idx']]):
                 log.info("")
@@ -320,6 +320,11 @@ def is_it_sell(subject_code, current_price):
                         contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['단위'] )
                         contract.list[subject_code]['손절가'] = current_price - (15*subject.info[subject_code]['단위'])
                     
+                    elif current_price >= contract.list[subject_code]['체결가'] + 13*subject.info[subject_code]['단위']:
+                        log.info("드리블 목표 달성으로 익절가 수정. 13틱 이상 익절로 10틱 캡으로 드리블")
+                        contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['단위'] )
+                        contract.list[subject_code]['손절가'] = current_price - (10*subject.info[subject_code]['단위'])
+                                            
                     else:
                         log.info("드리블 목표 달성으로 익절가 수정.")
                         #contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['주문내용']['익절틱'] * subject.info[subject_code]['단위'] )
@@ -410,6 +415,11 @@ def is_it_sell(subject_code, current_price):
                         log.info("드리블 목표 달성으로 익절가 수정. 20틱 이상 익절로 15틱 캡으로 드리블")
                         contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['단위'] )
                         contract.list[subject_code]['손절가'] = current_price + (15*subject.info[subject_code]['단위'])                    
+
+                    elif current_price <= (contract.list[subject_code]['체결가'] - (13*subject.info[subject_code]['단위'])):
+                        log.info("드리블 목표 달성으로 익절가 수정. 13틱 이상 익절로 10틱 캡으로 드리블")
+                        contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['단위'] )
+                        contract.list[subject_code]['손절가'] = current_price + (10*subject.info[subject_code]['단위']) 
 
                     else:
                         log.info("드리블 목표 달성으로 익절가 수정.")
