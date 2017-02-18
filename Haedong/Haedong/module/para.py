@@ -319,12 +319,7 @@ def is_it_sell(subject_code, current_price):
                         log.info("드리블 목표 달성으로 익절가 수정. 20틱 이상 익절로 15틱 캡으로 드리블")
                         contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['단위'] )
                         contract.list[subject_code]['손절가'] = current_price - (15*subject.info[subject_code]['단위'])
-                    
-                    elif current_price >= contract.list[subject_code]['체결가'] + 13*subject.info[subject_code]['단위']:
-                        log.info("드리블 목표 달성으로 익절가 수정. 13틱 이상 익절로 10틱 캡으로 드리블")
-                        contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['단위'] )
-                        contract.list[subject_code]['손절가'] = current_price - (10*subject.info[subject_code]['단위'])
-                                            
+             
                     else:
                         log.info("드리블 목표 달성으로 익절가 수정.")
                         #contract.list[subject_code]['익절가'] = current_price + ( subject.info[subject_code]['주문내용']['익절틱'] * subject.info[subject_code]['단위'] )
@@ -415,11 +410,6 @@ def is_it_sell(subject_code, current_price):
                         log.info("드리블 목표 달성으로 익절가 수정. 20틱 이상 익절로 15틱 캡으로 드리블")
                         contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['단위'] )
                         contract.list[subject_code]['손절가'] = current_price + (15*subject.info[subject_code]['단위'])                    
-
-                    elif current_price <= (contract.list[subject_code]['체결가'] - (13*subject.info[subject_code]['단위'])):
-                        log.info("드리블 목표 달성으로 익절가 수정. 13틱 이상 익절로 10틱 캡으로 드리블")
-                        contract.list[subject_code]['익절가'] = current_price - ( subject.info[subject_code]['단위'] )
-                        contract.list[subject_code]['손절가'] = current_price + (10*subject.info[subject_code]['단위']) 
 
                     else:
                         log.info("드리블 목표 달성으로 익절가 수정.")
