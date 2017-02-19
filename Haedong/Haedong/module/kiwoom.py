@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import sys, time, os
-import gmail, log, calc, santa, screen, para, tester, bol, chart, trend_band
+import gmail, log, calc, santa, screen, para, tester, bol, chart, trend_band, big_para
 import define as d
 import json
 import math
@@ -402,6 +402,8 @@ class api():
                         sell_contents = para.is_it_sell(subject_code, current_price)
                     elif subject.info[subject_code]['전략'] == '추세선밴드':
                         sell_contents = trend_band.is_it_sell(subject_code, current_price, self.adjusted_price[subject_code])
+                    elif subject.info[subject_code]['전략'] == '큰파라':
+                        sell_contents = big_para.is_it_sell(subject_code, current_price)
                     if sell_contents['신규주문'] == True:
                         res.info('주문 체결시간 : ' + str(current_time))
                         order_result = self.send_order(sell_contents['매도수구분'], subject_code, sell_contents['수량'])
@@ -434,7 +436,9 @@ class api():
                         order_contents = para.is_it_OK(subject_code, current_price)
                         #log.info('para.is_it_OK? ' + str(order_contents))
                     elif subject.info[subject_code]['전략'] == '추세선밴드':
-                         order_contents = trend_band.is_it_OK(subject_code, current_price, self.adjusted_price[subject_code], max(self.current_candle[subject_code]), min(self.current_candle[subject_code]))
+                        order_contents = trend_band.is_it_OK(subject_code, current_price, self.adjusted_price[subject_code], max(self.current_candle[subject_code]), min(self.current_candle[subject_code]))
+                    elif subject.info[subject_code]['전략'] == '큰파라':
+                        order_contents = big_para.is_it_OK(subject_code, current_price)
                     else:
                         return
 
@@ -582,6 +586,8 @@ class api():
                             else:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
                                 subject.info[subject_code]['상태'] = '중립대기'
+                        elif subject.info[subject_code]['전략'] == '큰파라':
+                            pass
                                 
                     else:
                         log.error('관리되지 않은 계약 ' + str(remove_cnt) + '개 청산 됨.')

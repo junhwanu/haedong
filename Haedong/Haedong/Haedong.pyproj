@@ -65,6 +65,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="module\tester.py" />
+    <Compile Include="module\big_para.py" />
     <Compile Include="module\trend_band.py" />
   </ItemGroup>
   <ItemGroup>

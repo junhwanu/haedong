@@ -57,7 +57,8 @@ def create_data(subject_code):
     data[subject_code]['결정계수'] = 0
     data[subject_code]['그래프'] = {}
     data[subject_code]['추세선기울기'] = 0
-    
+    data[subject_code]['표준편차'] = 0
+
     data[subject_code]['볼린저밴드'] = {}
     data[subject_code]['볼린저밴드']['중심선'] = []
     data[subject_code]['볼린저밴드']['상한선'] = []
@@ -261,6 +262,8 @@ def calc_linear_regression(subject_code):
 
     # 표준편차를 이용한 추세선밴드
     stdev = calc_stdev(subject_code)
+
+    data[subject_code]['표준편차'] = stdev
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 27):
         data[subject_code]['추세선밴드']['상한선'][idx] = data[subject_code]['추세선'][idx] + (2*stdev)
         data[subject_code]['추세선밴드']['하한선'][idx] = data[subject_code]['추세선'][idx] - (2*stdev)
