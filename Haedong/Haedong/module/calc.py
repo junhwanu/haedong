@@ -133,7 +133,8 @@ def push(subject_code, price):
     calc(subject_code)
 
     if data[subject_code]['idx'] > 595:
-        if d.get_mode() is d.REAL: chart.draw(subject_code)
+        #if d.get_mode() is d.REAL: chart.draw(subject_code)
+        pass
         
 def calc(subject_code):
     '''

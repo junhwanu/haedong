@@ -44,8 +44,10 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
                 dribble_num = int(int(order_info['신규수량'])/2)
                 safe_num = int(order_info['신규수량']) - dribble_num
 
-            list[subject_code]['계약타입'][SAFE] += safe_num
+            #list[subject_code]['계약타입'][SAFE] += safe_num
             list[subject_code]['계약타입'][DRIBBLE] += dribble_num
+            list[subject_code]['계약타입'][DRIBBLE] += safe_num
+            
             log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
             log.info('현재 보유 계약 수량, 종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(list[subject_code]['계약타입'][SAFE]) + '개, 드리블수량 ' + str(list[subject_code]['계약타입'][DRIBBLE]) + '개 보유')
         
@@ -66,8 +68,8 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
         dribble_num = int(order_info['신규수량']) - safe_num
         
         list[subject_code]['계약타입'] = {}
-        list[subject_code]['계약타입'][SAFE] = safe_num
-        list[subject_code]['계약타입'][DRIBBLE] = dribble_num
+        list[subject_code]['계약타입'][SAFE] = 0
+        list[subject_code]['계약타입'][DRIBBLE] = dribble_num + safe_num
         list[subject_code]['체결가'] = float(order_info['체결표시가격'])
         list[subject_code]['매도수구분'] = order_contents['매도수구분']
 
