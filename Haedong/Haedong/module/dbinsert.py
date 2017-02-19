@@ -2,7 +2,7 @@
 import sys, time, os, shutil
 import gmail, log, calc, santa, screen, db
 import json
-import subject, contract
+import dbsubject, contract
 import pymysql
 
 from PyQt5.QAxContainer import QAxWidget
@@ -156,7 +156,7 @@ class api():
                 temp = temp.replace(' 09 ', ' 00 ')
                 temp = temp.replace('F0','EE')
             '''
-        rtn = self.comm_rq_data("해외선물옵션틱그래프조회","opc10001", prevNext, subject.info[subject_code]['화면번호'])
+        rtn = self.comm_rq_data("해외선물옵션틱그래프조회","opc10001", prevNext, dbsubject.info[subject_code]['화면번호'])
 
         if rtn != 0:
             # 에러코드별 로그
@@ -164,7 +164,7 @@ class api():
             
         while rtn == -200:
             time.sleep(0.05)
-            rtn = self.comm_rq_data("해외선물옵션틱그래프조회","opc10001", prevNext, subject.info[subject_code]['화면번호'])
+            rtn = self.comm_rq_data("해외선물옵션틱그래프조회","opc10001", prevNext, dbsubject.info[subject_code]['화면번호'])
         
 
     def set_input_value(self, sID, sValue):
@@ -226,8 +226,8 @@ class api():
         today_time = "%04d%02d%02d" % (now_time.tm_year, now_time.tm_mon, now_time.tm_mday)
         
         if sRQName == "해외선물옵션틱그래프조회":
-            for subject_code in subject.info.keys():
-                if sScrNo == subject.info[subject_code]['화면번호']:                    
+            for subject_code in dbsubject.info.keys():
+                if sScrNo == dbsubject.info[subject_code]['화면번호']:                    
                     # 초기 데이터 수신
                     _data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
                     _data = _data.split()
@@ -248,13 +248,13 @@ class api():
                         self.recent_date = str(_data[6])
                         self.data.extend(_data)
                         #self.data.append(_data)
-                    
+                    '''
                     log.info("recent date is " + _data[6])    
                     log.info('체결시간 : int(_data[2])   ' + _data[2])
                     log.info('현재가 : ' + _data[0])
                     log.info('self.data.__len__()' + str(len(self.data)))
-                    
-                    if int(_data[2][:12]) < int(self.start_date + subject.info[subject_code]['시작시간']):
+                    '''
+                    if int(_data[2][:12]) < int(self.start_date + dbsubject.info[subject_code]['시작시간']):
                         # 입력한 날꺼까지 다 데이터를 받아오고나서 하는것!!
                         log.info('엽업일자입니당 : ' + str(_data[6]))
                         self.data.reverse()
@@ -272,10 +272,10 @@ class api():
                 
                 subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '종목코드n').strip() #현재가 = 틱의 종가
                 subject_symbol = subject_code[:2] 
-                if subject_symbol in subject.info.keys():
-                    log.info("금일 %s의 종목코드는 %s 입니다." % (subject.info[subject_symbol]["종목명"],subject_code))
-                    subject.info[subject_code] = subject.info[subject_symbol]
-                    del subject.info[subject_symbol]
+                if subject_symbol in dbsubject.info.keys():
+                    log.info("금일 %s의 종목코드는 %s 입니다." % (dbsubject.info[subject_symbol]["종목명"],subject_code))
+                    dbsubject.info[subject_code] = dbsubject.info[subject_symbol]
+                    del dbsubject.info[subject_symbol]
                     
                     # 초기 데이터 요청
                     self.request_tick_info(subject_code,1, "")
@@ -309,7 +309,7 @@ class api():
         # 캔들 생기는 시점 확인해서 가격이 안바뀌어도 옥수수에 3틱으로 설정할 경우 가격변동없이 캔들이 생기는 경우가 있으니 request_tick_info 시점 확인
         
         #log.debug("OnReceiveRealData entered.")
-        if sSubjectCode[:2] not in subject.info.keys(): #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
+        if sSubjectCode[:2] not in dbsubject.info.keys(): #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
             self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
             
@@ -345,11 +345,11 @@ class api():
             self.get_dynamic_subject_code()
 
             # 초기 데이터 요청
-            #self.request_tick_info('CLH17', subject.info['CLH17']['시간단위'], "")
-            #self.request_tick_info('GCG17', subject.info['GCG17']['시간단위'], "")
+            #self.request_tick_info('CLH17', dbsubject.info['CLH17']['시간단위'], "")
+            #self.request_tick_info('GCG17', dbsubject.info['GCG17']['시간단위'], "")
             
             # 종목 정보 로그 찍기
-            log.info("참여 종목 : %s" % subject.info.values())
+            log.info("참여 종목 : %s" % dbsubject.info.values())
 
 
         else:
@@ -413,8 +413,8 @@ class api():
         return ret
 
     def get_start_time(self, subject_code):
-        start_time = int(subject.info[subject_code]['시작시간'])
-        end_time = int(subject.info[subject_code]['마감시간'])
+        start_time = int(dbsubject.info[subject_code]['시작시간'])
+        end_time = int(dbsubject.info[subject_code]['마감시간'])
         current_hour = time.localtime().tm_hour
         current_min = time.localtime().tm_min
         current_time = current_hour*100 + current_min
@@ -427,7 +427,7 @@ class api():
             day = yesterday.tm_mday
             if day < 10:
                 day = '0' + str(day)
-            return_time = str(yesterday.tm_year) + str(mon) + str(day) + subject.info[subject_code]['시작시간'] + '00'
+            return_time = str(yesterday.tm_year) + str(mon) + str(day) + dbsubject.info[subject_code]['시작시간'] + '00'
         elif current_time >= start_time:
             today = time.localtime()
             mon = today.tm_mon
@@ -436,6 +436,6 @@ class api():
             day = today.tm_mday
             if day < 10:
                 day = '0' + str(day)
-            return_time = str(today.tm_year) + str(mon) + str(day) + subject.info[subject_code]['시작시간'] + '00'
+            return_time = str(today.tm_year) + str(mon) + str(day) + dbsubject.info[subject_code]['시작시간'] + '00'
 
         return return_time
