@@ -33,6 +33,7 @@
     <Compile Include="item\subject.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\big_para - Copy.py" />
     <Compile Include="module\bol.py" />
     <Compile Include="module\chart.py" />
     <Compile Include="module\cmd.py">

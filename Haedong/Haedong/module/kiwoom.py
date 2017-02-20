@@ -5,6 +5,7 @@ import define as d
 import json
 import math
 import subject, contract
+import my_util
 import log_result as res
 
 from PyQt5.QAxContainer import QAxWidget
@@ -374,7 +375,7 @@ class api():
                 current_time = sRealData['체결시간']
                     
             current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
-
+            '''
             # 마감시간 임박 계약 청산
             if santa.get_time(3) < int(subject.info[subject_code]['시작시간']) and santa.get_time(3) >= int(subject.info[subject_code]['마감시간']):
                 if contract.get_contract_count(subject_code) > 0:
@@ -383,15 +384,22 @@ class api():
                         self.send_order('신규매수', subject_code, contract.get_contract_count(subject_code))
                     elif contract.list[subject_code]['매도수구분'] == '신규매수':
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
-
+            '''
+            if subject.info[subject_code]['전략'] == '큰파라':
+                if my_util.is_trade_time(subject_code) is False and contract.get_contract_count(subject_code) > 0:
+                    res.info('연이은 휴장일로 모든 계약 청산 요청.')
+                    if contract.list[subject_code]['매도수구분'] == '신규매도':
+                        self.send_order('신규매수', subject_code, contract.get_contract_count(subject_code))
+                    elif contract.list[subject_code]['매도수구분'] == '신규매수':
+                        self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
             # 최근가 평균으로 현재가 보정
             self.recent_price_list[subject_code].append(current_price)
             self.recent_price_list[subject_code].pop(0)
             self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
             self.current_candle[subject_code].append(current_price)
 
-            if self.recent_price[subject_code] != current_price:
-                log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
+            if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True:
+                #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
 
                 # 청산
                 if contract.get_contract_count(subject_code) > 0 and subject.info[subject_code]['상태'] != '청산시도중':
@@ -547,7 +555,11 @@ class api():
                         subject.info[subject_code]['누적수익'] += round(profit, 1)
                         
                         res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
-
+                        '''
+                        if profit < -300 and d.get_mode() is d.TEST:
+                            #chart.draw(subject_code)
+                            input()
+                        '''
                         if subject.info[subject_code]['전략'] == '해동이':
                             if contract.get_contract_count(subject_code) > 0:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
@@ -587,7 +599,16 @@ class api():
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
                                 subject.info[subject_code]['상태'] = '중립대기'
                         elif subject.info[subject_code]['전략'] == '큰파라':
-                            pass
+                            if order_info['매도수구분'] == 2 and calc.data[subject_code]['플로우'][-1] == '상향':
+                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수가능.')
+                                subject.info[subject_code]['상태'] = '매수가능'
+                            elif order_info['매도수구분'] == 1 and calc.data[subject_code]['플로우'][-1] == '하향':
+                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매도가능.')
+                                subject.info[subject_code]['상태'] = '매도가능'
+                            else:
+                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
+                                subject.info[subject_code]['상태'] = '매매완료'
+
                                 
                     else:
                         log.error('관리되지 않은 계약 ' + str(remove_cnt) + '개 청산 됨.')
@@ -725,6 +746,8 @@ class api():
             
             contract.delete_contract(subject_code)
             subject.info[subject_code]['상태'] = '중립대기'
+            if subject.info[subject_code]['전략'] == '큰파라': subject.info[subject_code]['상태'] = '매매완료'
+
             subject.info[subject_code]['이상신호'] = False
                 
         

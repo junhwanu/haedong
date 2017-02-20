@@ -8,7 +8,7 @@ import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 200, 240]
+data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 180, 200, 240, 420]
 
 def create_data(subject_code):
     data[subject_code] = {}
@@ -71,7 +71,10 @@ def create_data(subject_code):
     data[subject_code]['매수'] = []
     data[subject_code]['매도'] = []
 
-    if d.get_mode() is d.REAL: chart.create_figure(subject_code)
+    data[subject_code]['플로우'] = []
+
+    #chart.create_figure(subject_code)
+    #if d.get_mode() is d.REAL: chart.create_figure(subject_code)
 
 def is_sorted(subject_code, lst):
     '''
@@ -144,9 +147,10 @@ def calc(subject_code):
 
         sar = subject.info[subject_code]['sar']
         
+        if data[subject_code]['idx'] < 5:
+            data[subject_code]['플로우'].append('모름')
         if data[subject_code]['idx'] == 5:
             init_sar(subject_code)
-        
         elif data[subject_code]['idx'] > 5:
             calculate_sar(subject_code)
         
@@ -177,6 +181,40 @@ def calc(subject_code):
                 if contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '중립대기':
                     log.info('종목코드 : ' + subject_code + ' 상태 변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
                     subject.info[subject_code]['상태'] = '중립대기'
+            else:
+                data[subject_code]['추세연속틱'] += 1
+                data[subject_code]['정배열연속틱'] += 1
+                log.info('이동평균선 ' + trend + ' 추세 연속 : ' + str(data[subject_code]['추세연속틱']) + '틱')
+        
+        calc_linear_regression(subject_code)
+        calc_bollinger_bands(subject_code)
+        calc_ilmok_chart(subject_code)
+    elif subject.info[subject_code]['전략'] == '큰파라':
+        calc_ma_line(subject_code)
+        calc_ema_line(subject_code)
+        
+        sar = subject.info[subject_code]['sar']
+        
+        if data[subject_code]['idx'] < 5:
+            data[subject_code]['플로우'].append('모름')
+        if data[subject_code]['idx'] == 5:
+            init_sar(subject_code)
+        elif data[subject_code]['idx'] > 5:
+            calculate_sar(subject_code)
+
+        trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
+        data[subject_code]['추세'].append(trend)
+        
+        if data[subject_code]['idx'] >= subject.info[subject_code]['이동평균선'][-1]:
+            if trend != data[subject_code]['추세'][ -2 ]:
+                # 추세 반전
+                if data[subject_code]['추세연속틱'] < subject.info[subject_code]['최소연속틱'] or data[subject_code]['정배열연속틱'] < subject.info[subject_code]['최소연속틱']/2:
+                    # 추세 극점부터 연속 틱이 60 이하일 경우 추세 아님
+                    my_util.chanege_past_trend(subject_code) # 추세가 아니므로, 지난 추세를 현재추세로 덮어씌워 연속된 추세를 만듬
+
+                log.info('이동평균선 추세 연속틱 재설정.')
+                data[subject_code]['추세연속틱'] = my_util.get_trend_continuous_tick_count(subject_code)
+                data[subject_code]['정배열연속틱'] = 1
             else:
                 data[subject_code]['추세연속틱'] += 1
                 data[subject_code]['정배열연속틱'] += 1
@@ -248,7 +286,7 @@ def calc_linear_regression(subject_code):
     data[subject_code]['추세선밴드']['하한선'].append(None)
 
     line_range = my_util.get_trend_continuous_tick_count(subject_code)
-    
+
     if data[subject_code]['idx'] <= line_range:
         return
 
@@ -261,13 +299,19 @@ def calc_linear_regression(subject_code):
         data[subject_code]['추세선'][idx] = result.slope * _x + result.intercept
         _x+=1
 
-    # 표준편차를 이용한 추세선밴드
+    # 표준편차
     stdev = calc_stdev(subject_code)
 
     data[subject_code]['표준편차'] = stdev
+    high_max = 0
+    low_max = 0
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx']):
+        high_max = max(data[subject_code]['고가'][idx] - data[subject_code]['추세선'][idx], high_max)
+        low_max = max(data[subject_code]['추세선'][idx] - data[subject_code]['저가'][idx], low_max)
+
     for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 27):
-        data[subject_code]['추세선밴드']['상한선'][idx] = data[subject_code]['추세선'][idx] + (2*stdev)
-        data[subject_code]['추세선밴드']['하한선'][idx] = data[subject_code]['추세선'][idx] - (2*stdev)
+        data[subject_code]['추세선밴드']['상한선'][idx] = data[subject_code]['추세선'][idx] + high_max
+        data[subject_code]['추세선밴드']['하한선'][idx] = data[subject_code]['추세선'][idx] - low_max
 
     '''
     # 데이터와의 차 구함
@@ -506,6 +550,7 @@ def init_sar(subject_code):
     subject.info[subject_code]['af'] = af
     subject.info[subject_code]['flow'] = temp_flow
     
+    data[subject_code]['플로우'].append(temp_flow)
     calculate_sar(subject_code)
 
 def calculate_sar(subject_code):
@@ -599,5 +644,6 @@ def calculate_sar(subject_code):
     subject.info[subject_code]['ep'] = ep
     subject.info[subject_code]['af'] = af
     flow = subject.info[subject_code]['flow'] = temp_flow
+    data[subject_code]['플로우'].append(temp_flow)
     
     

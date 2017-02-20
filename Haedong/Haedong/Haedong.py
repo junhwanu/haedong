@@ -6,6 +6,7 @@ import kiwoom, cmd, log, contract, subject, calc, tester, dbinsert
 import define as d
 import log_result as res
 import matplotlib.pyplot as plt
+import datetime
 
 kw = None
 
