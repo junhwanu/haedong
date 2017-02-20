@@ -26,6 +26,9 @@
     <Compile Include="item\contract.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="item\dbsubject.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="item\define.py">
       <SubType>Code</SubType>
     </Compile>

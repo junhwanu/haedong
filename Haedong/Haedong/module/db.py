@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import pymysql, subject, shutil, time, sys, os, log
+import pymysql, dbsubject, shutil, time, sys, os, log
 
 conn = None
 curs = None
@@ -33,7 +33,8 @@ def insert(data, start_date, subject_code):
             else:
                 log.info('테이블 삭제 후 재생성.')
                 create_table(table_name, True)
-        
+
+        print('휴장일 삭제중')
         for idx in range(0, len(data), 7):
             _data = data[idx:idx+7]
             insert_data.append(tuple(_data))
@@ -50,7 +51,7 @@ def insert(data, start_date, subject_code):
 
             
 
-        _query = "insert into " + table_name + "(working_day,min_price,max_price,market_price,date,volume,now_price) values (%s, %s, %s, %s, %s, %s, %s)" 
+        _query = "insert into " + table_name + "(working_day,min_price,max_price,market_ㅁprice,date,volume,now_price) values (%s, %s, %s, %s, %s, %s, %s)" 
         curs.executemany(_query, tuple(insert_data))
         conn.commit()
 def init():
