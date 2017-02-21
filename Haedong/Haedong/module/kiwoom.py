@@ -1,12 +1,13 @@
 ﻿# -*- coding: utf-8 -*-
 import sys, time, os
-import gmail, log, calc, santa, screen, para, tester, bol, chart, trend_band, big_para
+import gmail, log, calc, santa, screen, para, tester, bol, chart, trend_band, big_para, full_para
 import define as d
 import json
 import math
 import subject, contract
 import my_util
 import log_result as res
+import jango
 
 from PyQt5.QAxContainer import QAxWidget
 from PyQt5.QtWidgets import QApplication
@@ -29,6 +30,7 @@ class api():
     last_price = {}
     account = ""
     cnt = 0
+    jango_db = None
     
     def __init__(self, mode = 1):
         super(api, self).__init__()
@@ -40,6 +42,8 @@ class api():
             self.ocx.OnReceiveTrData[str, str, str, str, str].connect(self.OnReceiveTrData)
             self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
             self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
+            
+            self.jango_db = jango.Jango()
         
             if self.connect() == 0:
                 self.app.exec_()
@@ -412,6 +416,8 @@ class api():
                         sell_contents = trend_band.is_it_sell(subject_code, current_price, self.adjusted_price[subject_code])
                     elif subject.info[subject_code]['전략'] == '큰파라':
                         sell_contents = big_para.is_it_sell(subject_code, current_price)
+                    elif subject.info[subject_code]['전략'] == '풀파라':
+                        sell_contents = full_para.is_it_sell(subject_code, current_price)
                     if sell_contents['신규주문'] == True:
                         res.info('주문 체결시간 : ' + str(current_time))
                         order_result = self.send_order(sell_contents['매도수구분'], subject_code, sell_contents['수량'])
@@ -447,6 +453,8 @@ class api():
                         order_contents = trend_band.is_it_OK(subject_code, current_price, self.adjusted_price[subject_code], max(self.current_candle[subject_code]), min(self.current_candle[subject_code]))
                     elif subject.info[subject_code]['전략'] == '큰파라':
                         order_contents = big_para.is_it_OK(subject_code, current_price)
+                    elif subject.info[subject_code]['전략'] == '풀파라':
+                        order_contents = full_para.is_it_OK(subject_code, current_price)
                     else:
                         return
 
