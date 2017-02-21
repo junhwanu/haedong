@@ -35,7 +35,7 @@ def is_it_OK(subject_code, current_price):
         log.info('신규 주문 가능상태가 아니므로 매매 불가. 상태 : ' + subject.info[subject_code]['상태'])
         return {'신규주문':False}
 
-    if calc.data[subject_code]['이동평균선'][30][-1] == None :
+    if calc.data[subject_code]['이동평균선'][30][calc.data[subject_code]['idx']] == None :
         log.info('이동평균선 미생성으로 매매 불가. 현재 이동평균선30 : ' + str(calc.data[subject_code]['이동평균선'][30][-1]))
         return {'신규주문':False}
 
