@@ -75,17 +75,25 @@ class api():
         """
         return self.ocx.dynamicCall("GetLoginInfo(QString)", [sTag]).rstrip(';')
     
+    #def get_dbinput_info(self):
+    #    subject_code = dbsubject.info[]
+
     def get_dynamic_subject_info(self):
         self.get_dynamic_subject_code()
         self.get_dynamic_subject_market_time()
     
     def get_dynamic_subject_code(self):
-        lists = ['MTL','ENG','CUR','IDX','CMD']
+        
+        self.set_input_value("상품코드", '')
+        self.comm_rq_data("상품별현재가조회", "opt10006", "", screen.S0010)
+        
+        '''
+        lists = ['CMD','MTL','ENG','CUR','IDX']
         for list in lists:
             self.set_input_value("상품코드", list)
             self.comm_rq_data("상품별현재가조회", "opt10006", "", screen.S0010)
-            time.sleep(0.5)
-        
+            time.sleep(1)
+        '''
     def get_dynamic_subject_market_time(self):
         lists = ['MTL','ENG','CUR','IDX','CMD']
         for list in lists:
@@ -226,6 +234,73 @@ class api():
         today_time = "%04d%02d%02d" % (now_time.tm_year, now_time.tm_mon, now_time.tm_mday)
         
         if sRQName == "해외선물옵션틱그래프조회":
+            subject_codes = list(dbsubject.info.keys())
+            subject_code=subject_codes[0]
+            print(subject_code)
+            print(dbsubject.info[subject_code]['화면번호'])
+            print(sScrNo)
+            if sScrNo == dbsubject.info[subject_code]['화면번호']:                    
+                # 초기 데이터 수신
+                log.info('sTrCode' + sTrCode)
+                log.info('sRecordName' + sRecordName)
+                _data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
+                _data = _data.split()
+                
+                if self.recent_date == None:
+                    self.recent_date = _data[6]
+
+                if int(self.recent_date) < int(_data[6]):
+                    # 입력한 날꺼까지 다 데이터를 받아오고나서 하는것!!(2주치 받을때만 사용되어짐)
+                    log.info('self.recent_date' + self.recent_date)
+                    log.info('영업일자 : ' + str(_data[6]))
+                    self.data.reverse()
+                    log.debug(self.start_date)
+                    db.insert(self.data, self.start_date, subject_code)
+                    time.sleep(5)
+                    del dbsubject.info[subject_code]
+                    del subject_codes[0]
+                    self.data=[]
+                    _data=[]
+                    self.recent_date=None
+                    if len(subject_codes)>0:
+                        subject_code=subject_codes[0]
+                        self.request_tick_info(subject_code,1, "")
+                    else :
+                        quit()
+
+#                 print('today_time',today_time)
+                if int(_data[6]) <= int (today_time):
+                    self.recent_date = str(_data[6])
+                    self.data.extend(_data)
+                    #self.data.append(_data)
+                
+                log.info("recent date is " + _data[6])    
+                log.info('체결시간 : int(_data[2])   ' + _data[2])
+                log.info('현재가 : ' + _data[0])
+                log.info('self.data.__len__()' + str(len(self.data)))
+                
+                if int(_data[2][:12]) < int(self.start_date + dbsubject.info[subject_code]['시작시간']):
+                    # 입력한 날꺼까지 다 데이터를 받아오고나서 하는것!!
+                    log.info('엽업일자입니당 : ' + str(_data[6]))
+                    self.data.reverse()
+                    log.debug(self.start_date)
+                    db.insert(self.data, self.start_date, subject_code)
+                    #time.sleep(5)
+                    del dbsubject.info[subject_code]
+                    del subject_codes[0]
+                    self.data=[]
+                    _data=[]
+                    self.recent_date=None
+                    if len(subject_codes)>0:
+                        subject_code=subject_codes[0]
+                        self.request_tick_info(subject_code,1, "")
+                    else :
+                        quit()
+
+                else:
+                    time.sleep(0.2)
+                    self.request_tick_info(subject_code,1, sPreNext)   
+            '''
             for subject_code in dbsubject.info.keys():
                 if sScrNo == dbsubject.info[subject_code]['화면번호']:                    
                     # 초기 데이터 수신
@@ -248,38 +323,52 @@ class api():
                         self.recent_date = str(_data[6])
                         self.data.extend(_data)
                         #self.data.append(_data)
-                    '''
-                    log.info("recent date is " + _data[6])    
-                    log.info('체결시간 : int(_data[2])   ' + _data[2])
-                    log.info('현재가 : ' + _data[0])
-                    log.info('self.data.__len__()' + str(len(self.data)))
-                    '''
+                
+                    #log.info("recent date is " + _data[6])    
+                    #log.info('체결시간 : int(_data[2])   ' + _data[2])
+                    #log.info('현재가 : ' + _data[0])
+                    #log.info('self.data.__len__()' + str(len(self.data)))
+                
                     if int(_data[2][:12]) < int(self.start_date + dbsubject.info[subject_code]['시작시간']):
                         # 입력한 날꺼까지 다 데이터를 받아오고나서 하는것!!
                         log.info('엽업일자입니당 : ' + str(_data[6]))
                         self.data.reverse()
                         log.debug(self.start_date)
                         db.insert(self.data, self.start_date, subject_code)
+                        break
                     else:
                         time.sleep(0.2)
                         self.request_tick_info(subject_code,1, sPreNext)    
-                          
-                break
+                '''          
                 
         if sRQName == '상품별현재가조회':
             
-            for i in range(20):
+            for i in range(68):
                 
                 subject_code = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '종목코드n').strip() #현재가 = 틱의 종가
+                if subject_code ==None:
+                    break
+
                 subject_symbol = subject_code[:2] 
                 if subject_symbol in dbsubject.info.keys():
                     log.info("금일 %s의 종목코드는 %s 입니다." % (dbsubject.info[subject_symbol]["종목명"],subject_code))
                     dbsubject.info[subject_code] = dbsubject.info[subject_symbol]
                     del dbsubject.info[subject_symbol]
-                    
-                    # 초기 데이터 요청
-                    self.request_tick_info(subject_code,1, "")
-                    self.recent_request_candle_time = time.time()
+                    #print('초기초기 지워지워 ', dbsubject.info.keys())
+                    #print(subject_code)
+                    #self.request_tick_info(subject_code,1, "")
+                    #self.recent_request_candle_time = time.time()
+     
+            #print(dbsubject.info.keys())
+            subject_codes = list(dbsubject.info.keys())
+            print(subject_codes)
+            print(subject_codes[0])
+            self.request_tick_info(subject_codes[0],1, "")        
+            # 초기 데이터 요청
+            #리스트로 subject_code 가져와서 이걸 1개씩 던진다!! 
+            #포문안되는게 해외선물 거기서 돈다... 따라서 저기 break하면서 나올때 리스트 된거 하나씩날리는 함수만들어서 진행!
+            #self.request_tick_info(subject_code,1, "")
+            #self.recent_request_candle_time = time.time()
         
         if sRQName == "장운영정보조회":
             
@@ -349,7 +438,7 @@ class api():
             #self.request_tick_info('GCG17', dbsubject.info['GCG17']['시간단위'], "")
             
             # 종목 정보 로그 찍기
-            log.info("참여 종목 : %s" % dbsubject.info.values())
+            #log.info("참여 종목 : %s" % dbsubject.info.values())
 
 
         else:
