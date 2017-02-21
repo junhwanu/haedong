@@ -28,9 +28,14 @@ class Jango():
         self.cursor.execute(sql,(subject_code,))
         self.con.commit()
         
-    def update_db_contract(self, subject_code, how_many):
+    def update_how_many_db_contract(self, subject_code, how_many):
         sql = "UPDATE jango SET how_many=? WHERE subject_code=? and removed='false'"
         self.cursor.execute(sql,(how_many, subject_code,))
+        self.con.commit()
+
+    def update_sonjalga_db_contract(self, subject_code, sonjalga):
+        sql = "UPDATE jango SET sonjalga=? WHERE subject_code=? and removed='false'"
+        self.cursor.execute(sql,(sonjalga, subject_code,))
         self.con.commit()
         
     def get_db_jango(self, subject_code):
