@@ -7,6 +7,7 @@ import math
 import subject, contract
 import my_util
 import log_result as res
+import jango
 
 from PyQt5.QAxContainer import QAxWidget
 from PyQt5.QtWidgets import QApplication
@@ -29,6 +30,7 @@ class api():
     last_price = {}
     account = ""
     cnt = 0
+    jango_db = None
     
     def __init__(self, mode = 1):
         super(api, self).__init__()
@@ -40,6 +42,8 @@ class api():
             self.ocx.OnReceiveTrData[str, str, str, str, str].connect(self.OnReceiveTrData)
             self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
             self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
+            
+            self.jango_db = jango.Jango()
         
             if self.connect() == 0:
                 self.app.exec_()

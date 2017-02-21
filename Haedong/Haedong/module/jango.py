@@ -28,6 +28,11 @@ class Jango():
         self.cursor.execute(sql,(subject_code,))
         self.con.commit()
         
+    def update_db_contract(self, subject_code, how_many):
+        sql = "UPDATE jango SET how_many=? WHERE subject_code=? and removed='false'"
+        self.cursor.execute(sql,(how_many, subject_code,))
+        self.con.commit()
+        
     def get_db_jango(self, subject_code):
         rtn = self.cursor.execute("select * from jango where subject_code=? and removed='false'",(subject_code,))
         for r in rtn:
