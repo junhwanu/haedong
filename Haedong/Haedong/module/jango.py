@@ -28,38 +28,26 @@ class Jango():
         self.cursor.execute(sql,(subject_code,))
         self.con.commit()
         
-    def update_how_many_db_contract(self, subject_code, how_many):
-        sql = "UPDATE jango SET how_many=? WHERE subject_code=? and removed='false'"
-        self.cursor.execute(sql,(how_many, subject_code,))
-        self.con.commit()
-
-    def update_sonjalga_db_contract(self, subject_code, sonjalga):
-        sql = "UPDATE jango SET sonjalga=? WHERE subject_code=? and removed='false'"
-        self.cursor.execute(sql,(sonjalga, subject_code,))
-        self.con.commit()
-        
     def get_db_jango(self, subject_code):
+
         rtn = self.cursor.execute("select * from jango where subject_code=? and removed='false'",(subject_code,))
+
         for r in rtn:
             dic = {}
-            dic['subject_code'] = r[0]
+            dic['종목코드'] = r[0]
             dic['매매가'] = r[1]
+            dic['매도수구분'] = r[2]
             dic['플로우'] = r[3]
             dic['잔고수량'] = r[4]
             dic['손절가'] = r[5]
             dic['주문일자'] = r[6]
-            if r[2] == 'mesu':
-                dic['매도수구분'] = '매수'            
-            elif r[2] == 'medo':
-                dic['매도수구분'] = '매도'
-                
-            print(dic)
+            #print(dic)
             return dic
-        #cursor.execute('INSERT INTO images VALUES(?)', (img,))
+
 if __name__ == "__main__":
     
-    #jg = Jango()
-    #jg.select_jango('GCJ17')
-    #jg.add_db_contract('GCJ17', 1120.2, 'up', 2, 1020.2, "20170221")
+    jg = Jango()
+    jg.get_db_jango('GCJ17')
+    #jg.add_db_contract('GCJ17', 1120.2, 1,'up', 2, 1020.2, "20170221")
     #jg.delete_db_contract('GCJ17')
     pass
