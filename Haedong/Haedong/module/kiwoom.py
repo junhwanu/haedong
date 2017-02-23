@@ -669,7 +669,8 @@ class api():
             
             # 종목 정보 로그 찍기
             log.info("참여 종목 : %s" % subject.info.values())
-
+            if d.get_mode() == d.REAL:   
+                self.set_jango_from_db()
 
         else:
             c_time = "%02d%02d" % (time.localtime().tm_hour, time.localtime().tm_min)
