@@ -560,6 +560,9 @@ class api():
                             
                         contract.remove_contract(order_info)
                         
+                        if d.get_mode() == d.REAL:
+                            self.delete_jango_to_db(order_info['종목코드'])
+                        
                         subject.info[subject_code]['누적수익'] += round(profit, 1)
                         
                         res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
@@ -625,6 +628,8 @@ class api():
 
             # 신규매매
             if add_cnt > 0:
+                if d.get_mode() == d.REAL:
+                    self.insert_jango_to_db(order_info)
                 rtn = contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
                 if rtn == False:
                     self.clear_all_subject(subject_code)
@@ -759,6 +764,55 @@ class api():
             subject.info[subject_code]['이상신호'] = False
                 
         
-        
 
+    def set_jango_from_db(self):
+        for subject_code in subject.info.keys(): 
+
+            subject_info = {}
+            subject_info = self.jango_db.get_db_jango(subject_code)
+            if subject_info == None:
+                print("DB에 저장 된 종목이 없습니다.")
+                return
+            
+            order_info = {}
+            order_info['주문번호'] = ""
+            order_info['원주문번호'] = ""
+            order_info['주문유형'] = 1
+            order_info['종목코드'] = subject_info['종목코드']
+            order_info['매도수구분'] = subject_info['매도수구분']
+            order_info['체결표시가격'] = subject_info['매매가']
+            order_info['신규수량'] = subject_info['잔고수량']
+            order_info['청산수량'] = 0
+            order_info['체결수량'] = subject_info['잔고수량']
+            
+            order_contents = {}
+            if subject_info['매도수구분'] == '1':
+                order_contents['매도수구분'] = '신규매도'
+            elif subject_info['매도수구분'] == '2':
+                order_contents['매도수구분'] = '신규매수'
+            order_contents['익절틱'] = 50
+            order_contents['손절틱'] = 9999
+
+            contract.add_contract(order_info,order_contents)
+            print("---------------")
+            print("DB에 있는 신규 계약 추가합니다.")
+            print(order_info)
+            print("---------------")
+            
+    def insert_jango_to_db(self,order_info):
+        now = time.localtime()
+        current_time = "%04d%02d%02d" % (now.tm_year, now.tm_mon, now.tm_mday)
+        
+        subject_code =order_info['종목코드']
+        meme_price = order_info['체결표시가격']
+        mesu_medo =  order_info['매도수구분']
+        flow = ""
+        how_many = order_info['신규수량']
+        sonjalga = 0
+        date = str(current_time)
+        
+        self.jango_db.add_db_contract(subject_code, meme_price, mesu_medo, flow, how_many, sonjalga, date)
+        
+    def delete_jango_to_db(self,subject_code): 
+        self.jango_db.delete_db_contract(subject_code)
             
