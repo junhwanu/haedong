@@ -48,6 +48,7 @@
     <Compile Include="module\dbinsert.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\full_para.py" />
     <Compile Include="module\gmail.py">
       <SubType>Code</SubType>
     </Compile>

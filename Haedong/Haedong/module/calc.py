@@ -8,7 +8,7 @@ import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 180, 200, 240, 420]
+data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 150, 200, 240, 300]
 
 def create_data(subject_code):
     data[subject_code] = {}
@@ -165,6 +165,13 @@ def calc(subject_code):
 
         sar = subject.info[subject_code]['sar']
        
+        if data[subject_code]['idx'] < 5:
+            data[subject_code]['플로우'].append('모름')
+        if data[subject_code]['idx'] == 5:
+            init_sar(subject_code)
+        elif data[subject_code]['idx'] > 5:
+            calculate_sar(subject_code)
+
         calc_ma_line(subject_code)
         calc_ema_line(subject_code)
         calc_ilmok_chart(subject_code)
@@ -199,7 +206,6 @@ def calc(subject_code):
         calc_ilmok_chart(subject_code)
     elif subject.info[subject_code]['전략'] == '큰파라':
         calc_ma_line(subject_code)
-        calc_ema_line(subject_code)
         
         sar = subject.info[subject_code]['sar']
         
@@ -210,27 +216,6 @@ def calc(subject_code):
         elif data[subject_code]['idx'] > 5:
             calculate_sar(subject_code)
 
-        trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
-        data[subject_code]['추세'].append(trend)
-        
-        if data[subject_code]['idx'] >= subject.info[subject_code]['이동평균선'][-1]:
-            if trend != data[subject_code]['추세'][ -2 ]:
-                # 추세 반전
-                if data[subject_code]['추세연속틱'] < subject.info[subject_code]['최소연속틱'] or data[subject_code]['정배열연속틱'] < subject.info[subject_code]['최소연속틱']/2:
-                    # 추세 극점부터 연속 틱이 60 이하일 경우 추세 아님
-                    my_util.chanege_past_trend(subject_code) # 추세가 아니므로, 지난 추세를 현재추세로 덮어씌워 연속된 추세를 만듬
-
-                log.info('이동평균선 추세 연속틱 재설정.')
-                data[subject_code]['추세연속틱'] = my_util.get_trend_continuous_tick_count(subject_code)
-                data[subject_code]['정배열연속틱'] = 1
-            else:
-                data[subject_code]['추세연속틱'] += 1
-                data[subject_code]['정배열연속틱'] += 1
-                log.info('이동평균선 ' + trend + ' 추세 연속 : ' + str(data[subject_code]['추세연속틱']) + '틱')
-        
-        calc_linear_regression(subject_code)
-        calc_bollinger_bands(subject_code)
-        calc_ilmok_chart(subject_code)
 
 
 def calc_ma_line(subject_code):
