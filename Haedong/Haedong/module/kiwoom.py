@@ -609,16 +609,9 @@ class api():
                             else:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
                                 subject.info[subject_code]['상태'] = '중립대기'
-                        elif subject.info[subject_code]['전략'] == '큰파라':
-                            if order_info['매도수구분'] == 2 and calc.data[subject_code]['플로우'][-1] == '상향':
-                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수가능.')
-                                subject.info[subject_code]['상태'] = '매수가능'
-                            elif order_info['매도수구분'] == 1 and calc.data[subject_code]['플로우'][-1] == '하향':
-                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매도가능.')
-                                subject.info[subject_code]['상태'] = '매도가능'
-                            else:
-                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
-                                subject.info[subject_code]['상태'] = '매매완료'
+                        elif subject.info[subject_code]['전략'] == '큰파라' or subject.info[subject_code]['전략'] == '풀파라':
+                            log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
+                            subject.info[subject_code]['상태'] = '매매완료'
 
                                 
                     else:

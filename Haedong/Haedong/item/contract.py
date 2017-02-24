@@ -69,7 +69,7 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
         
         list[subject_code]['계약타입'] = {}
         list[subject_code]['계약타입'][SAFE] = 0
-        list[subject_code]['계약타입'][DRIBBLE] = dribble_num + safe_num
+        list[subject_code]['계약타입'][DRIBBLE] = safe_num + dribble_num
         list[subject_code]['체결가'] = float(order_info['체결표시가격'])
         list[subject_code]['매도수구분'] = order_contents['매도수구분']
 
