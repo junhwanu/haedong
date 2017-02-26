@@ -3,7 +3,6 @@ import threading
 import sys, os
 import subject, contract, log, kiwoom
 
-
 class proc(threading.Thread):
     def run(self):
         while True:
@@ -16,7 +15,7 @@ class proc(threading.Thread):
                 pass
                 # 메뉴 번호 안내
             elif cmd == 'get_contract':
-                kiwoom.get_instance()
+                kiwoom.get_instance().get_contract_list()
                 pass
             '''
             elif cmd == '1':
@@ -49,8 +48,9 @@ class proc(threading.Thread):
 
 
 _cmd = proc()
+
 def init():
     _cmd.start()
-
+    
 def get_instance():
     return _cmd

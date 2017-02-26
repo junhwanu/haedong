@@ -18,8 +18,10 @@ def get_instance():
     global kiwoom
 
     if kiwoom == None:
+        print("키움이 없음.")
+        #gmail.send_email('시작합니다.','안녕')
         kiwoom = api()
-        gmail.send_email('시작합니다.','안녕')
+
     return kiwoom
 
 class api():
@@ -35,6 +37,10 @@ class api():
     jango_db = None
     state = '대기'
     
+    def start(self):
+        if self.connect() == 0:
+            self.app.exec_()
+
     def __init__(self, mode = 1):
         super(api, self).__init__()
         if d.get_mode() == d.REAL:
@@ -48,9 +54,6 @@ class api():
             
             self.jango_db = jango.Jango()
         
-            if self.connect() == 0:
-                self.app.exec_()
-
         elif d.get_mode() == d.TEST:
             pass
 
@@ -111,7 +114,10 @@ class api():
             time.sleep(0.5)
         
     def get_contract_list(self):
+        print(self.account)
         self.set_input_value("계좌번호", self.account)
+        #self.set_input_value("비밀번호입력매체","00");
+        #self.set_input_value("비밀번호","0000");
         self.set_input_value("조회구분", "0")
         
         rtn = self.comm_rq_data("주문체결내역조회", "opw30005", "", screen.S0012)
@@ -668,7 +674,6 @@ class api():
             if d.get_mode() == d.REAL:   
                 # 다이나믹 종목 정보 요청
                 self.get_dynamic_subject_code()
-                self.get_contract_list()
 
                 # 종목 정보 로그 찍기
                 log.info("참여 종목 : %s" % subject.info.values())
