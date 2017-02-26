@@ -379,17 +379,8 @@ class api():
                 current_time = sRealData['체결시간']
                     
             current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
-            '''
-            # 마감시간 임박 계약 청산
-            if santa.get_time(3) < int(subject.info[subject_code]['시작시간']) and santa.get_time(3) >= int(subject.info[subject_code]['마감시간']):
-                if contract.get_contract_count(subject_code) > 0:
-                    log.info('마감시간 임박으로 모든 계약 청산 요청.')
-                    if contract.list[subject_code]['매도수구분'] == '신규매도':
-                        self.send_order('신규매수', subject_code, contract.get_contract_count(subject_code))
-                    elif contract.list[subject_code]['매도수구분'] == '신규매수':
-                        self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
-            '''
-            if subject.info[subject_code]['전략'] == '큰파라':
+
+            if subject.info[subject_code]['전략'] == '풀파라':
                 if my_util.is_trade_time(subject_code) is False and contract.get_contract_count(subject_code) > 0:
                     res.info('연이은 휴장일로 모든 계약 청산 요청.')
                     if contract.list[subject_code]['매도수구분'] == '신규매도':
@@ -610,8 +601,17 @@ class api():
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 중립대기.')
                                 subject.info[subject_code]['상태'] = '중립대기'
                         elif subject.info[subject_code]['전략'] == '큰파라' or subject.info[subject_code]['전략'] == '풀파라':
-                            log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
-                            subject.info[subject_code]['상태'] = '매매완료'
+                            if contract.get_contract_count(subject_code) > 0:
+                                if order_info['매도수구분'] == 1:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수중.')
+                                    subject.info[subject_code]['상태'] = '매수중'
+                                elif order_info['매도수구분'] == 2:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매도중.')
+                                    subject.info[subject_code]['상태'] = '매도중'
+                                pass
+                            else:
+                                log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
+                                subject.info[subject_code]['상태'] = '매매완료'
 
                                 
                     else:
