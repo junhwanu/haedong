@@ -4,13 +4,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def send_email(subject, contents):  
-    from_addr = 'genioustar@gmail.com'
-    to_addr = 'genioustar@gmail.com'
+    from_addr = 'haedong2017@gmail.com'
+    to_addr = 'junhwanu@gmail.com'
 
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
 
-    server.login(from_addr, '098google')
+    server.login(from_addr, 'goehddl00')
 
     body = MIMEMultipart()
     body['subject'] = subject

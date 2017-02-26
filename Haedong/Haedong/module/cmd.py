@@ -7,12 +7,18 @@ import subject, contract, log, kiwoom
 class proc(threading.Thread):
     def run(self):
         while True:
+            self.show()
             cmd = input()
             print(cmd)
 
             if cmd == 'help':
+                self.print_help()
                 pass
                 # 메뉴 번호 안내
+            elif cmd == 'get_contract':
+                kiwoom.get_instance()
+                pass
+            '''
             elif cmd == '1':
                 rtn = kiwoom.get_instance().send_order('신규매도', '0101', kiwoom.get_instance().account, 1, 'CLG17', 1, '0', '0', '1', '')
                 log.debug("주문 rtn : " + str(rtn))
@@ -22,6 +28,10 @@ class proc(threading.Thread):
                 log.debug("주문 rtn : " + str(rtn))
                 # 그래프 확인, 종목정보로 구분
                 pass
+            '''
+
+    def show(self):
+        print("1. 계약 정보 가져오기. (get_contract)")
 
     def print_help(self):
         print("################# 명령어 #################")

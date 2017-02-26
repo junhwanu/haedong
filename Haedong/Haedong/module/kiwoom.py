@@ -15,9 +15,11 @@ from PyQt5.QtWidgets import QApplication
 kiwoom = None
 
 def get_instance():
+    global kiwoom
+
     if kiwoom == None:
         kiwoom = api()
-    
+        gmail.send_email('시작합니다.','안녕')
     return kiwoom
 
 class api():
@@ -31,6 +33,7 @@ class api():
     account = ""
     cnt = 0
     jango_db = None
+    state = '대기'
     
     def __init__(self, mode = 1):
         super(api, self).__init__()
@@ -107,6 +110,12 @@ class api():
             self.comm_rq_data("장운영정보조회", "opw50001", "", screen.S0011)
             time.sleep(0.5)
         
+    def get_contract_list(self):
+        self.set_input_value("계좌번호", self.account)
+        self.set_input_value("조회구분", "0")
+        
+        rtn = self.comm_rq_data("주문체결내역조회", "opw30005", "", screen.S0012)
+        print(rtn)
 
     def send_order(self, contract_type, subject_code, contract_cnt):
         
@@ -241,6 +250,10 @@ class api():
         """
         
         price = {}
+        
+        if sRQName == '주문체결내역조회':
+            state = '매매가능'
+            return
         
         if sRQName == "해외선물옵션틱그래프조회":
             for subject_code in subject.info.keys():
@@ -393,7 +406,7 @@ class api():
             self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
             self.current_candle[subject_code].append(current_price)
 
-            if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True:
+            if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and state == '매매가능':
                 #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
 
                 # 청산
@@ -652,18 +665,14 @@ class api():
             self.account = self.get_login_info("ACCNO")
             log.info("계좌번호 : " + self.account)
             
-            # 다이나믹 종목 정보 요청
-            #self.get_dynamic_subject_info()
-            self.get_dynamic_subject_code()
-
-            # 초기 데이터 요청
-            #self.request_tick_info('CLH17', subject.info['CLH17']['시간단위'], "")
-            #self.request_tick_info('GCG17', subject.info['GCG17']['시간단위'], "")
-            
-            # 종목 정보 로그 찍기
-            log.info("참여 종목 : %s" % subject.info.values())
             if d.get_mode() == d.REAL:   
-                self.set_jango_from_db()
+                # 다이나믹 종목 정보 요청
+                self.get_dynamic_subject_code()
+                self.get_contract_list()
+
+                # 종목 정보 로그 찍기
+                log.info("참여 종목 : %s" % subject.info.values())
+                #self.set_jango_from_db()
 
         else:
             c_time = "%02d%02d" % (time.localtime().tm_hour, time.localtime().tm_min)
