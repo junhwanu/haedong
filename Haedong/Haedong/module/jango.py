@@ -7,12 +7,12 @@ class Jango():
     
     def __init__(self):
         
-        if os.path.exists("../jango.db") == False:
-            self.con = sqlite3.connect("../jango.db")
+        if os.path.exists("../../jango.db") == False:
+            self.con = sqlite3.connect("../../jango.db")
             self.cursor = self.con.cursor()
             self.create_table()
         else:
-            self.con = sqlite3.connect("../jango.db")
+            self.con = sqlite3.connect("../../jango.db")
             self.cursor = self.con.cursor()
             
     def create_table(self):
