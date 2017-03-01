@@ -6,13 +6,20 @@ class Jango():
     con = None
     
     def __init__(self):
+        path = 'C:/headong/db/' #절대경로
+        path2 = "../../jango.db" #상대경로
         
-        if os.path.exists("../jango.db") == False:
-            self.con = sqlite3.connect("../jango.db")
+        full_path = path + 'jango.db'
+        
+        if not os.path.isdir(path): 
+            os.makedirs(path) 
+        
+        if os.path.exists(full_path) == False:
+            self.con = sqlite3.connect(full_path)
             self.cursor = self.con.cursor()
             self.create_table()
         else:
-            self.con = sqlite3.connect("../jango.db")
+            self.con = sqlite3.connect(full_path)
             self.cursor = self.con.cursor()
             
     def create_table(self):
