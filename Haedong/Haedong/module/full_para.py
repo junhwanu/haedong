@@ -4,6 +4,7 @@ import log_result as res
 import define as d
 
 def is_it_OK(subject_code, current_price):
+
     profit_tick = subject.info[subject_code]['익절틱']
     sonjal_tick = subject.info[subject_code]['손절틱']
     mesu_medo_type = None
@@ -26,7 +27,12 @@ def is_it_OK(subject_code, current_price):
         else: return false
     else: return false
 
-    contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
+    
+    if d.get_mode() == d.TEST:
+        contract_cnt = subject.info[subject_code]['신규매매수량']
+    elif d.get_mode() == d.REAL:
+        contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
+        
     if contract_cnt == 0: return false
 
     order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':sonjal_tick, '수량':contract_cnt}
