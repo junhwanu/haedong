@@ -634,6 +634,9 @@ class api():
                         elif order_info['매도수구분'] == 2:
                             profit = ((float(contract.list[subject_code]['체결가'] - float(order_info['체결표시가격']))) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
                             
+                        contract.my_deposit += (profit * 100)
+                        contract.my_deposit += (subject.info[subject_code]['위탁증거금'] * remove_cnt)
+
                         contract.remove_contract(order_info)
                         
                         if d.get_mode() == d.REAL:

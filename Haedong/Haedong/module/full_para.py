@@ -27,6 +27,8 @@ def is_it_OK(subject_code, current_price):
     else: return false
 
     contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
+    if contract_cnt == 0: return false
+
     order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':sonjal_tick, '수량':contract_cnt}
     subject.info[subject_code]['주문내용'] = order_contents
     log.debug('para.is_it_OK() : 모든 구매조건 통과.')
