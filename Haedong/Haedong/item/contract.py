@@ -7,6 +7,8 @@ SAFE = '목표달성청산'
 DRIBBLE = '드리블'
 ALL = '전체'
 
+my_deposit = 0
+
 def add_contract(order_info, order_contents): # 계약타입(목표달성 청산 또는 달성 후 드리블)
     """
     신규계약을 관리리스트에 추가한다.

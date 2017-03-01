@@ -18,7 +18,6 @@ def get_instance():
     global kiwoom
 
     if kiwoom == None:
-        print("키움이 없음.")
         #gmail.send_email('시작합니다.','안녕')
         kiwoom = api()
 
@@ -36,11 +35,8 @@ class api():
     cnt = 0
     jango_db = None
     state = '대기'
+    timestamp = None
     
-    def start(self):
-        if self.connect() == 0:
-            self.app.exec_()
-
     def __init__(self, mode = 1):
         super(api, self).__init__()
         if d.get_mode() == d.REAL:
@@ -54,6 +50,10 @@ class api():
             
             self.jango_db = jango.Jango()
         
+            self.timestamp = time.time()
+
+            if self.connect() == 0:
+                self.app.exec_()
         elif d.get_mode() == d.TEST:
             pass
 
@@ -112,13 +112,36 @@ class api():
             self.set_input_value("품목구분", list)
             self.comm_rq_data("장운영정보조회", "opw50001", "", screen.S0011)
             time.sleep(0.5)
+
+    def get_jango_list(self):
+        self.set_input_value("계좌번호", self.account)
+        self.set_input_value("비밀번호", "")
+        self.set_input_value("비밀번호입력매체", "00")
+        self.set_input_value("통화코드", "")
+        self.comm_rq_data("미결제잔고내역조회", "opw30003", "", screen.S0012)
+
+    def get_my_deposit_info(self):
+        self.set_input_value("계좌번호", self.account)
+        self.set_input_value("비밀번호", "")
+        self.set_input_value("비밀번호입력매체", "00")
+        self.comm_rq_data("예수금및증거금현황조회", "opw30009", "", screen.S0011)
+
+    def get_futures_deposit(self):
+        lists = ['MTL','ENG','CUR','IDX','CMD']
+        today = my_util.get_today_date()
+        for list in lists:
+            self.set_input_value("품목구분", list)
+            self.set_input_value("적용일자", today)
+            self.comm_rq_data("상품별증거금조회", "opw20004", "", screen.S0011)
+            time.sleep(0.5)
         
     def get_contract_list(self):
         print(self.account)
         self.set_input_value("계좌번호", self.account)
-        #self.set_input_value("비밀번호입력매체","00");
-        #self.set_input_value("비밀번호","0000");
+        self.set_input_value("비밀번호","");
+        self.set_input_value("비밀번호입력매체","00");
         self.set_input_value("조회구분", "0")
+        self.set_input_value("종목코드","");
         
         rtn = self.comm_rq_data("주문체결내역조회", "opw30005", "", screen.S0012)
         print(rtn)
@@ -257,10 +280,46 @@ class api():
         
         price = {}
         
-        if sRQName == '주문체결내역조회':
-            state = '매매가능'
+        if sRQName == '미결제잔고내역조회':
+            if self.state == '매매가능': return
+
+            self.state = '매매가능'
+            order_info = {}
+            order_contents = {}
+            contract_cnt = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '매도수량'))
+            
+            if contract_cnt is 0:
+                contract_cnt = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '매수수량'))
+                order_contents['매도수구분'] = '신규매수'
+            else:
+                order_contents['매도수구분'] = '신규매도'    
+
+            if contract_cnt is 0: return
+
+            order_info['종목코드'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '종목코드').strip()
+            order_info['신규수량'] = contract_cnt
+            order_info['체결표시가격'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '평균단가').strip()
+            order_contents['익절틱'] = subject.info[order_info['종목코드']]['익절틱']
+            order_contents['손절틱'] = subject.info[order_info['종목코드']]['손절틱']
+                                                 
+            contract.add_contract(order_info, order_contents)            
+            
             return
         
+        elif sRQName == "상품별증거금조회":
+            for i in range(0, 20):
+                subject_symbol = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '파생품목코드').strip()
+                if len(subject_symbol) is 0: break
+
+                for subject_code in subject.info.keys():
+                    if subject_symbol == subject_code[0:len(subject_symbol)]:
+                        subject_deposit = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, i, '위탁증거금').strip())
+                        subject.info[subject_code]['위탁증거금'] = subject_deposit
+            return
+        elif sRQName == "예수금및증거금현황조회":
+            contract.my_deposit = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '주문가능금액').strip())
+            return    
+
         if sRQName == "해외선물옵션틱그래프조회":
             for subject_code in subject.info.keys():
                 if sScrNo == subject.info[subject_code]['화면번호']:  
@@ -329,7 +388,8 @@ class api():
                         calc.push(subject_code, price)
                         self.recent_candle_time[subject_code] = price['체결시간']
                         self.current_candle[subject_code] = []
-                        log.debug("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
+
+                        log.info("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
                     
                     self.last_price[subject_code] = price
                     break
@@ -377,8 +437,13 @@ class api():
         :param sRealType: 리얼타입
         :param sRealData: 실시간 데이터전문
         """
-        # 캔들 생기는 시점 확인해서 가격이 안바뀌어도 옥수수에 3틱으로 설정할 경우 가격변동없이 캔들이 생기는 경우가 있으니 request_tick_info 시점 확인
         
+        current_timestamp = time.time()
+        if self.timestamp != None and self.timestamp + 2 < current_timestamp and self.state == '대기':
+            self.timestamp = time.time()
+            self.get_jango_list()
+            self.get_my_deposit_info()
+
         #log.debug("OnReceiveRealData entered.")
         if subject_code not in subject.info.keys() and d.get_mode() == d.REAL: #정의 하지 않은 종목이 실시간 데이터 들어오는 경우 실시간 해제
             #self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
@@ -412,7 +477,7 @@ class api():
             self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
             self.current_candle[subject_code].append(current_price)
 
-            if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and state == '매매가능':
+            if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and self.state == '매매가능':
                 #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
 
                 # 청산
@@ -542,7 +607,8 @@ class api():
         elif sGubun == '1':
             
             log.info('체결잔고')
-            
+            self.get_my_deposit_info()
+
             if subject.info[order_info['종목코드']]['이상신호'] == True:
                 log.info(str(order_info['종목코드'])+"종목 이상신호에 대한 체결로 무시")
                 return
@@ -674,6 +740,8 @@ class api():
             if d.get_mode() == d.REAL:   
                 # 다이나믹 종목 정보 요청
                 self.get_dynamic_subject_code()
+                self.get_futures_deposit()
+                self.get_my_deposit_info()
 
                 # 종목 정보 로그 찍기
                 log.info("참여 종목 : %s" % subject.info.values())

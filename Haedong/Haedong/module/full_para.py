@@ -26,7 +26,7 @@ def is_it_OK(subject_code, current_price):
         else: return false
     else: return false
 
-    contract_cnt = subject.info[subject_code]['신규매매수량']
+    contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
     order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':sonjal_tick, '수량':contract_cnt}
     subject.info[subject_code]['주문내용'] = order_contents
     log.debug('para.is_it_OK() : 모든 구매조건 통과.')
@@ -61,22 +61,6 @@ def is_it_sell(subject_code, current_price):
                 contract.list[subject_code]['손절가'] = current_price + subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
     return {'신규주문':False}
 
-'''
-def get_time(add_min):
-    # 현재 시간 정수형으로 return
-
-    current_hour = time.localtime().tm_hour
-    current_min = time.localtime().tm_min
-    if current_min + add_min >= 60:
-        current_hour += 1
-        current_min -= 60
-
-    current_time = current_hour*100 + current_min
-    
-
-        
-    return current_time  
-'''
 def get_time(add_min,subject_code):
     # 현재 시간 정수형으로 return
     if d.get_mode() == d.REAL: #실제투자

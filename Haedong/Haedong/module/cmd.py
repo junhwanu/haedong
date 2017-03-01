@@ -17,17 +17,17 @@ class proc(threading.Thread):
             elif cmd == 'get_contract':
                 kiwoom.get_instance().get_contract_list()
                 pass
-            '''
+            
             elif cmd == '1':
-                rtn = kiwoom.get_instance().send_order('신규매도', '0101', kiwoom.get_instance().account, 1, 'CLG17', 1, '0', '0', '1', '')
+                rtn = kiwoom.get_instance().send_order('신규매도', 'GCJ17', 2)
                 log.debug("주문 rtn : " + str(rtn))
                 pass
             elif cmd == '2':
-                rtn = kiwoom.get_instance().send_order('신규매수', '0101', kiwoom.get_instance().account, 2, 'CLG17', 1, '0', '0', '1', '')
+                rtn = kiwoom.get_instance().send_order('신규매수', 'GCJ17', 2)
                 log.debug("주문 rtn : " + str(rtn))
                 # 그래프 확인, 종목정보로 구분
                 pass
-            '''
+            
 
     def show(self):
         print("1. 계약 정보 가져오기. (get_contract)")
