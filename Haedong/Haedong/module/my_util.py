@@ -86,7 +86,7 @@ def get_time(add_min):
 
 def is_end_time(add_min, subject_code):
     if d.get_mode() is d.REAL:
-        if get_time(0) < int(subject.info[subject_code]['마감시간']) and get_time(add_min) >= subject.info[subject_code]['마감시간']:
+        if get_time(0) < int(subject.info[subject_code]['마감시간']) and get_time(add_min) >= int(subject.info[subject_code]['마감시간']):
             return True
     elif d.get_mode() is d.TEST:
         _time = str(calc.data[subject_code]['체결시간'][-1])
