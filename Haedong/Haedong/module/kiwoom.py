@@ -611,11 +611,8 @@ class api():
             pass
 
         elif sGubun == '1':
-
-            #if order_info['체결수량'] > 0 or order_info['청산수량'] > 0:
-            log.info('체결잔고')
-            res.info(order_info)            
             
+            log.info('체결잔고')
             if d.get_mode() == d.REAL:
                 self.get_my_deposit_info()
 
@@ -623,10 +620,9 @@ class api():
                 log.info(str(order_info['종목코드'])+"종목 이상신호에 대한 체결로 무시")
                 return
             
-            #log.info(order_info)
-
+            log.info(order_info)
+            res.info(order_info)
             order_info['체결표시가격'] = round( float(order_info['체결표시가격']), subject.info[order_info['종목코드']]['자릿수'])
-             
 
             #res.info(order_info)
             # 잔고통보
@@ -728,8 +724,6 @@ class api():
 
             # 신규매매
             if add_cnt > 0:
-                subject.info[subject_code]['반전시현재가'] = order_info['체결표시가격']
-                
                 if d.get_mode() == d.REAL:
                     #self.insert_jango_to_db(order_info)
                     pass

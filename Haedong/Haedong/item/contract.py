@@ -106,7 +106,6 @@ def remove_contract(order_info):
             if list[subject_code]['계약타입'][DRIBBLE] == 0:
                 del list[subject_code]
                 log.info(subject_code + " 종목 모든 계약 청산 합니다.")
-                subject.info[subject_code]['반전시현재가'] = 0
 
         return True
         
