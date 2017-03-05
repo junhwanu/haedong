@@ -74,7 +74,8 @@ def get_time(add_min,subject_code):
     if d.get_mode() == d.REAL: #실제투자
         current_hour = time.localtime().tm_hour
         current_min = time.localtime().tm_min
-        if current_min + add_min >= 60:
+        current_min += add_min
+        if current_min >= 60:
             current_hour += 1
             current_min -= 60
     
@@ -83,7 +84,8 @@ def get_time(add_min,subject_code):
     elif d.get_mode() == d.TEST: #테스트
         current_hour = int(str(calc.data[subject_code]['체결시간'][-1])[8:10])
         current_min = int(str(calc.data[subject_code]['체결시간'][-1])[10:12])
-        if current_min + add_min >= 60:
+        current_min += add_min
+        if current_min >= 60:
             current_hour += 1
             current_min -= 60
     
