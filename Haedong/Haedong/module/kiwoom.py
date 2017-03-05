@@ -745,7 +745,8 @@ class api():
                     log.info("%s 종목 %s개 신규매도." % (subject_code, order_info['신규수량']))
                 
                 try:
-                    gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
+                    if d.get_mode() == d.REAL:
+                        gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
                 except Exception as err: pass
 
 
@@ -782,7 +783,8 @@ class api():
 
             if int(c_time) >= 800 or int(c_time) < 700:
                 # 메일 발송
-                gmail.send_email('[긴급' + str(c_time) + '] 해동이 작동 중지', '에러코드')
+                if d.get_mode() == d.REAL:
+                    gmail.send_email('[긴급' + str(c_time) + '] 해동이 작동 중지', '에러코드')
 
                 # 자동이 재시작 로직 작성
                 pass

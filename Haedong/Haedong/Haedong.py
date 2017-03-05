@@ -13,7 +13,7 @@ kw = None
 if __name__ == "__main__":
     log.init(os.path.dirname(os.path.abspath(__file__).replace('\\','/')))
     res.init(os.path.dirname(os.path.abspath(__file__).replace('\\','/')))
-    
+        
     print('실제투자(1), 테스트(2), DB Insert(3)')
     d.mode = int(input())
     

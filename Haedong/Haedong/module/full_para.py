@@ -30,7 +30,9 @@ def is_it_OK(subject_code, current_price):
     #contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
     contract_cnt = 2
     if contract_cnt == 0: return false
-
+    
+    subject.info[subject_code]['반전시현재가'] = current_price
+    
     order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':sonjal_tick, '수량':contract_cnt}
     subject.info[subject_code]['주문내용'] = order_contents
     log.debug('para.is_it_OK() : 모든 구매조건 통과.')
@@ -39,6 +41,8 @@ def is_it_OK(subject_code, current_price):
 
 def is_it_sell(subject_code, current_price):
     index = calc.data[subject_code]['idx']
+    first_chungsan = 120
+    
     if contract.get_contract_count(subject_code) > 0:
         # 계약 보유중
         if contract.list[subject_code]['매도수구분'] == '신규매수':
