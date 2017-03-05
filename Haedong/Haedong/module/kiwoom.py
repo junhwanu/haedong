@@ -48,7 +48,7 @@ class api():
             self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
             self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
             
-            self.jango_db = jango.Jango()
+            #self.jango_db = jango.Jango()
         
             self.timestamp = time.time()
 
@@ -390,7 +390,8 @@ class api():
                         self.recent_candle_time[subject_code] = price['체결시간']
                         self.current_candle[subject_code] = []
 
-                        log.info("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
+                        if d.get_mode() == d.REAL:
+                            log.info("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
                     
                     self.last_price[subject_code] = price
                     break
@@ -462,6 +463,7 @@ class api():
             elif d.get_mode() == d.TEST: #테스트
                 current_price = sRealData['현재가']    
                 current_time = sRealData['체결시간']
+                self.state = '매매가능'
                     
             current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
 
@@ -480,7 +482,7 @@ class api():
 
             if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and self.state == '매매가능':
                 #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
-
+                
                 # 청산
                 if contract.get_contract_count(subject_code) > 0 and subject.info[subject_code]['상태'] != '청산시도중':
                     sell_contents = None
@@ -519,6 +521,7 @@ class api():
 
                 # 신규주문
                 #elif contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '매매시도중' and subject.info[subject_code]['상태'] != '매매완료' and subject.info[subject_code]['상태'] != '청산시도중':
+                
                 elif contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '매매시도중' and subject.info[subject_code]['상태'] != '청산시도중':
                     order_contents = None
                     if subject.info[subject_code]['전략'] == '해동이':
@@ -531,6 +534,7 @@ class api():
                     elif subject.info[subject_code]['전략'] == '큰파라':
                         order_contents = big_para.is_it_OK(subject_code, current_price)
                     elif subject.info[subject_code]['전략'] == '풀파라':
+                        
                         order_contents = full_para.is_it_OK(subject_code, current_price)
                     else:
                         return
@@ -607,17 +611,22 @@ class api():
             pass
 
         elif sGubun == '1':
-            
+
+            #if order_info['체결수량'] > 0 or order_info['청산수량'] > 0:
             log.info('체결잔고')
-            self.get_my_deposit_info()
+            res.info(order_info)            
+            
+            if d.get_mode() == d.REAL:
+                self.get_my_deposit_info()
 
             if subject.info[order_info['종목코드']]['이상신호'] == True:
                 log.info(str(order_info['종목코드'])+"종목 이상신호에 대한 체결로 무시")
                 return
             
-            log.info(order_info)
-            res.info(order_info)
+            #log.info(order_info)
+
             order_info['체결표시가격'] = round( float(order_info['체결표시가격']), subject.info[order_info['종목코드']]['자릿수'])
+             
 
             #res.info(order_info)
             # 잔고통보
@@ -638,9 +647,6 @@ class api():
                             
 
                         contract.remove_contract(order_info)
-                        
-                        if d.get_mode() == d.REAL:
-                            self.delete_jango_to_db(order_info['종목코드'])
                         
                         subject.info[subject_code]['누적수익'] += round(profit, 1)
                         subject.info[subject_code]['청산내용']['수량'] -= remove_cnt
@@ -722,8 +728,11 @@ class api():
 
             # 신규매매
             if add_cnt > 0:
+                subject.info[subject_code]['반전시현재가'] = order_info['체결표시가격']
+                
                 if d.get_mode() == d.REAL:
-                    self.insert_jango_to_db(order_info)
+                    #self.insert_jango_to_db(order_info)
+                    pass
                 rtn = contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
                 if rtn == False:
                     self.clear_all_subject(subject_code)
