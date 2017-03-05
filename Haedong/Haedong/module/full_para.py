@@ -39,8 +39,6 @@ def is_it_OK(subject_code, current_price):
 
 def is_it_sell(subject_code, current_price):
     index = calc.data[subject_code]['idx']
-    first_chungsan = 120
-    
     if contract.get_contract_count(subject_code) > 0:
         # 계약 보유중
         if contract.list[subject_code]['매도수구분'] == '신규매수':
