@@ -474,6 +474,7 @@ class api():
                         self.send_order('신규매수', subject_code, contract.get_contract_count(subject_code))
                     elif contract.list[subject_code]['매도수구분'] == '신규매수':
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
+
             # 최근가 평균으로 현재가 보정
             self.recent_price_list[subject_code].append(current_price)
             self.recent_price_list[subject_code].pop(0)
@@ -498,9 +499,10 @@ class api():
                         sell_contents = full_para.is_it_sell(subject_code, current_price)
                     if sell_contents['신규주문'] == True:
                         res.info('주문 체결시간 : ' + str(current_time))
+                        subject.info[subject_code]['청산내용'] = sell_contents
+
                         order_result = self.send_order(sell_contents['매도수구분'], subject_code, sell_contents['수량'])
                         
-                        subject.info[subject_code]['청산내용'] = sell_contents
                         if sell_contents['매도수구분'] == '신규매수':
                             calc.data[subject_code]['매수'].append(calc.data[subject_code]['idx'])
                         elif sell_contents['매도수구분'] == '신규매도':
@@ -522,7 +524,7 @@ class api():
                 # 신규주문
                 #elif contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '매매시도중' and subject.info[subject_code]['상태'] != '매매완료' and subject.info[subject_code]['상태'] != '청산시도중':
                 
-                elif contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '매매시도중' and subject.info[subject_code]['상태'] != '청산시도중':
+                elif contract.get_contract_count(subject_code) == 0 and subject.info[subject_code]['상태'] != '매매시도중' and subject.info[subject_code]['상태'] != '청산시도중' and subject.info[subject_code]['상태'] != '매수중' and subject.info[subject_code]['상태'] != '매도중':
                     order_contents = None
                     if subject.info[subject_code]['전략'] == '해동이':
                         order_contents = santa.is_it_OK(subject_code, current_price)

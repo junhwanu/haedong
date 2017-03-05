@@ -51,13 +51,10 @@ def is_it_sell(subject_code, current_price):
             elif calc.data[subject_code]['플로우'][-1] == '상향' and subject.info[subject_code]['sar'] > current_price:
                 res.info("하향 반전되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
                 return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
-            elif calc.data[subject_code]['플로우'][-1] == '상향'and subject.info[subject_code]['sar'] + subject.info[subject_code]['매매틱간격'] * subject.info[subject_code]['단위'] > current_price:
-                res.info("하향 반전되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
-                return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
             elif current_price > contract.list[subject_code]['익절가']:
                 contract.list[subject_code]['익절가'] = current_price + subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                 contract.list[subject_code]['손절가'] = current_price - subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
-            elif current_price - subject.info[subject_code]['반전시현재가'] >= first_chungsan*subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0:
+            elif current_price - subject.info[subject_code]['반전시현재가'] >= first_chungsan*subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0 and int(contract.get_contract_count(subject_code) / 2) > 0:
                 return {'신규주문':True, '매도수구분':'신규매도', '수량':int((contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE])/2)}
         elif contract.list[subject_code]['매도수구분'] == '신규매도':
             # 매도일때
@@ -67,13 +64,10 @@ def is_it_sell(subject_code, current_price):
             elif calc.data[subject_code]['플로우'][-1] == '하향' and subject.info[subject_code]['sar'] < current_price:
                 res.info("상향 반전되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
                 return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
-            elif calc.data[subject_code]['플로우'][-1] == '하향' and subject.info[subject_code]['sar'] - subject.info[subject_code]['매매틱간격'] * subject.info[subject_code]['단위'] < current_price:
-                res.info("상향 반전되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
-                return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
             elif current_price < contract.list[subject_code]['익절가']:
                 contract.list[subject_code]['익절가'] = current_price - subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                 contract.list[subject_code]['손절가'] = current_price + subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
-            elif subject.info[subject_code]['반전시현재가'] - current_price >= first_chungsan*subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0:
+            elif subject.info[subject_code]['반전시현재가'] - current_price >= first_chungsan*subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0 and int(contract.get_contract_count(subject_code) / 2) > 0:
                 return {'신규주문':True, '매도수구분':'신규매수', '수량':int((contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE])/2)}
     return {'신규주문':False}
 

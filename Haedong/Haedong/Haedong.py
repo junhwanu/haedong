@@ -2,7 +2,7 @@
 import sys, os, time, threading
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)).replace('\\','/') + '/module')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)).replace('\\','/') + '/item')
-import kiwoom, cmd, log, contract, subject, calc, tester, dbinsert, dbsubject
+import kiwoom, cmd, log, contract, subject, calc, tester, dbinsert, dbsubject, my_util
 import define as d
 import log_result as res
 import matplotlib.pyplot as plt

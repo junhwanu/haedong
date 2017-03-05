@@ -76,7 +76,8 @@ def get_time(add_min):
     # 현재 시간 정수형으로 return
     current_hour = time.localtime().tm_hour
     current_min = time.localtime().tm_min
-    if current_min + add_min >= 60:
+    current_min += add_min
+    if current_min >= 60:
         current_hour += 1
         current_min -= 60
 
