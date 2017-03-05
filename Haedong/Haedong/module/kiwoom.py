@@ -318,6 +318,7 @@ class api():
             return
         elif sRQName == "예수금및증거금현황조회":
             contract.my_deposit = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '주문가능금액').strip())
+            log.info('예수금 현황 : ' + str(contract.my_deposit))
             return    
 
         if sRQName == "해외선물옵션틱그래프조회":
@@ -497,6 +498,7 @@ class api():
                         res.info('주문 체결시간 : ' + str(current_time))
                         order_result = self.send_order(sell_contents['매도수구분'], subject_code, sell_contents['수량'])
                         
+                        subject.info[subject_code]['청산내용'] = sell_contents
                         if sell_contents['매도수구분'] == '신규매수':
                             calc.data[subject_code]['매수'].append(calc.data[subject_code]['idx'])
                         elif sell_contents['매도수구분'] == '신규매도':
@@ -634,8 +636,6 @@ class api():
                         elif order_info['매도수구분'] == 2:
                             profit = ((float(contract.list[subject_code]['체결가'] - float(order_info['체결표시가격']))) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
                             
-                        contract.my_deposit += (profit * 100)
-                        contract.my_deposit += (subject.info[subject_code]['위탁증거금'] * remove_cnt)
 
                         contract.remove_contract(order_info)
                         
@@ -643,7 +643,8 @@ class api():
                             self.delete_jango_to_db(order_info['종목코드'])
                         
                         subject.info[subject_code]['누적수익'] += round(profit, 1)
-                        
+                        subject.info[subject_code]['청산내용']['수량'] -= remove_cnt
+
                         res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
                         '''
                         if profit < -300 and d.get_mode() is d.TEST:
@@ -655,7 +656,10 @@ class api():
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
                                 subject.info[subject_code]['상태'] = '매매중'
                             else:
-                                if order_info['매도수구분'] == 1:
+                                if subject.info[subject_code]['청산내용']['수량'] > 0:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 청산시도중.')
+                                    subject.info[subject_code]['상태'] = '청산시도중'
+                                elif order_info['매도수구분'] == 1:
                                     if calc.data[subject_code]['추세'][ calc.data[subject_code]['idx']] == '상승세':
                                         log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
                                         subject.info[subject_code]['상태'] = '매매완료'
@@ -671,7 +675,10 @@ class api():
                                         subject.info[subject_code]['상태'] = '중립대기'
                         elif subject.info[subject_code]['전략'] == '파라':
                             if contract.get_contract_count(subject_code) > 0:
-                                if order_info['매도수구분'] == 1:
+                                if subject.info[subject_code]['청산내용']['수량'] > 0:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 청산시도중.')
+                                    subject.info[subject_code]['상태'] = '청산시도중'
+                                elif order_info['매도수구분'] == 1:
                                     log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수중.')
                                     subject.info[subject_code]['상태'] = '매수중'
                                 elif order_info['매도수구분'] == 2:
@@ -682,7 +689,10 @@ class api():
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매완료.')
                                 subject.info[subject_code]['상태'] = '매매완료'
                         elif subject.info[subject_code]['전략'] == '추세선밴드':
-                            if contract.get_contract_count(subject_code) > 0:
+                            if subject.info[subject_code]['청산내용']['수량'] > 0:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 청산시도중.')
+                                    subject.info[subject_code]['상태'] = '청산시도중'
+                            elif contract.get_contract_count(subject_code) > 0:
                                 log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매매중.')
                                 subject.info[subject_code]['상태'] = '매매중'
                             else:
@@ -690,7 +700,10 @@ class api():
                                 subject.info[subject_code]['상태'] = '중립대기'
                         elif subject.info[subject_code]['전략'] == '큰파라' or subject.info[subject_code]['전략'] == '풀파라':
                             if contract.get_contract_count(subject_code) > 0:
-                                if order_info['매도수구분'] == 1:
+                                if subject.info[subject_code]['청산내용']['수량'] > 0:
+                                    log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 청산시도중.')
+                                    subject.info[subject_code]['상태'] = '청산시도중'
+                                elif order_info['매도수구분'] == 1:
                                     log.info("종목코드 : " + subject_code + ' 상태변경, ' + subject.info[subject_code]['상태'] + ' -> 매수중.')
                                     subject.info[subject_code]['상태'] = '매수중'
                                 elif order_info['매도수구분'] == 2:
