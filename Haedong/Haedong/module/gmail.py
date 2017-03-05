@@ -18,7 +18,7 @@ def send_email(subject, contents):
     body['To'] = to_addr
 
     html = ("<div>%s</div>" % contents)
-    msg = MIMEText(html, 'html')
+    msg = MIMEText(html, '')
     body.attach(msg)
 
     server.sendmail(from_addr=from_addr,

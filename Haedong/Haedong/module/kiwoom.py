@@ -47,7 +47,7 @@ class api():
             self.ocx.OnReceiveTrData[str, str, str, str, str].connect(self.OnReceiveTrData)
             self.ocx.OnReceiveChejanData[str, int, str].connect(self.OnReceiveChejanData)
             self.ocx.OnReceiveRealData[str, str, str].connect(self.OnReceiveRealData)
-            
+
             #self.jango_db = jango.Jango()
         
             self.timestamp = time.time()
@@ -730,6 +730,7 @@ class api():
                     #self.insert_jango_to_db(order_info)
                     pass
                 rtn = contract.add_contract(order_info, subject.info[subject_code]['주문내용'])
+
                 if rtn == False:
                     self.clear_all_subject(subject_code)
                     return
@@ -743,6 +744,10 @@ class api():
                     subject.info[subject_code]['상태'] = '매도중'
                     log.info("%s 종목 %s개 신규매도." % (subject_code, order_info['신규수량']))
                 
+                try:
+                    gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
+                except Exception as err: pass
+
 
     def OnEventConnect(self, nErrCode):
         """
