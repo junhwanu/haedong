@@ -29,9 +29,14 @@ def is_it_OK(subject_code, current_price):
         else: return false
     else: return false
 
-    contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
+    
+    if d.get_mode() == d.REAL:
+        contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
+    
+    
+    contract_cnt = 2
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
-    #contract_cnt = 2
+    
     if contract_cnt == 0: return false
     
     subject.info[subject_code]['반전시현재가'] = current_price
@@ -46,10 +51,10 @@ def is_it_sell(subject_code, current_price):
     index = calc.data[subject_code]['idx']
     first_chungsan = 120
     
-    log.debug("종목코드(" + subject_code + ") is_it_sell() 진입.")
+    #log.debug("종목코드(" + subject_code + ") is_it_sell() 진입.")
     if contract.get_contract_count(subject_code) > 0:
         # 계약 보유중
-        log.debug("종목코드(" + subject_code + ") is_it_sell() / 보유 계약 : " + str(contract.get_contract_count(subject_code)))
+        #log.debug("종목코드(" + subject_code + ") is_it_sell() / 보유 계약 : " + str(contract.get_contract_count(subject_code)))
         if contract.list[subject_code]['매도수구분'] == '신규매수':
             # 매수일때
             if current_price <= contract.list[subject_code]['손절가']:
