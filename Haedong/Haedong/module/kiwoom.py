@@ -36,6 +36,7 @@ class api():
     jango_db = None
     state = '대기'
     timestamp = None
+    candle_data = {}
     
     def __init__(self, mode = 1):
         super(api, self).__init__()
@@ -324,43 +325,52 @@ class api():
         if sRQName == "해외선물옵션틱그래프조회":
             for subject_code in subject.info.keys():
                 if sScrNo == subject.info[subject_code]['화면번호']:  
-                    if subject_code not in calc.data:
+                    if subject_code not in calc.data or calc.data[subject_code]['idx'] == -1:
                         calc.create_data(subject_code)
                         self.recent_price_list[subject_code] = []
                         self.current_candle[subject_code] = []
 
                         if d.get_mode() == d.REAL:
-                            # 초기 데이터 수신
-                            data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
-                            data = data.split()
-                        
-                            subject.info[subject_code]['현재가변동횟수'] = int(data[0])
+                            # 종목코드 데이터가 있는지 확인
+                            if subject_code in self.candle_data.keys():
+                                data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
+                                data = data.split()
+                                self.candle_data[subject_code] = self.candle_data[subject_code] + data[1:]
 
-                            current_idx = len(data) - 7
-                            start_time = self.get_start_time(subject_code)
-                            while current_idx > 8:
+                                subject.info[subject_code]['현재가변동횟수'] = int(data[0])
+
+                                current_idx = len(self.candle_data[subject_code]) - 7
+                                start_time = self.get_start_time(subject_code)
+                                while current_idx > 8:
                             
-                                price['현재가'] = data[current_idx]
-                                price['시가'] = data[current_idx + 3]
-                                price['고가'] = data[current_idx + 4]
-                                price['저가'] = data[current_idx + 5]
-                                price['체결시간'] = data[current_idx + 2]
-                                price['거래량'] = data[current_idx + 1]
+                                    price['현재가'] = self.candle_data[subject_code][current_idx]
+                                    price['시가'] = self.candle_data[subject_code][current_idx + 3]
+                                    price['고가'] = self.candle_data[subject_code][current_idx + 4]
+                                    price['저가'] = self.candle_data[subject_code][current_idx + 5]
+                                    price['체결시간'] = self.candle_data[subject_code][current_idx + 2]
+                                    price['거래량'] = self.candle_data[subject_code][current_idx + 1]
                                 
-                                current_idx -= 7
-                                ''' 오늘 데이터만 받아오는 코드
-                                if int(data[current_idx + 2]) >= int(start_time):
+                                    current_idx -= 7
+                                    ''' 오늘 데이터만 받아오는 코드
+                                    if int(data[current_idx + 2]) >= int(start_time):
+                                        calc.push(subject_code, price)
+                                    '''
                                     calc.push(subject_code, price)
-                                '''
-                                calc.push(subject_code, price)
 
-                            # 최근가
-                            self.recent_price[subject_code] = round(float(data[1]), subject.info[subject_code]['자릿수'])
+                                # 최근가
+                                self.recent_price[subject_code] = round(float(self.candle_data[subject_code][1]), subject.info[subject_code]['자릿수'])
 
-                            self.recent_candle_time[subject_code] = data[10]
-                            self.current_candle[subject_code].append(float(data[5]))
-                            self.current_candle[subject_code].append(float(data[6]))
-                            log.debug('지난 데이터 수신 완료.')
+                                self.recent_candle_time[subject_code] = self.candle_data[subject_code][10]
+                                self.current_candle[subject_code].append(float(self.candle_data[subject_code][5]))
+                                self.current_candle[subject_code].append(float(self.candle_data[subject_code][6]))
+                                log.debug('지난 데이터 수신 완료.')
+                            else:
+                                data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
+                                self.candle_data[subject_code] = data.split()
+
+                                self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], sPreNext)
+
+                                return
 
                             #calc.show_current_price(subject_code, self.recent_price[subject_code])
                         elif d.get_mode() == d.TEST:
@@ -482,7 +492,7 @@ class api():
             self.current_candle[subject_code].append(current_price)
 
             if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and self.state == '매매가능':
-                #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
+                log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
                 # 청산
                 if contract.get_contract_count(subject_code) > 0 and subject.info[subject_code]['상태'] != '청산시도중':
