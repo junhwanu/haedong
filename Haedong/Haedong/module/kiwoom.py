@@ -382,6 +382,7 @@ class api():
                         
                         for idx in range(0,10): self.recent_price_list[subject_code].append(self.recent_price[subject_code]) # 현재가 삽입
                         self.adjusted_price[subject_code] = round( float( sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
+                        return
 
                     if d.get_mode() == d.REAL: # 실제투자
                         price['현재가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '현재가')

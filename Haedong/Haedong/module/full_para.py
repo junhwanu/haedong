@@ -53,7 +53,7 @@ def is_it_sell(subject_code, current_price):
     first_chungsan = 120
     
     log.debug("종목코드(" + subject_code + ") is_it_sell() 진입.")
-    log.debug("종목코드(" + subject_code + ") 현재 SAR : " + str(subjecct.info[subject_code]['sar']))
+    log.debug("종목코드(" + subject_code + ") 현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']))
     if contract.get_contract_count(subject_code) > 0:
         # 계약 보유중
         log.debug("종목코드(" + subject_code + ") is_it_sell() / 보유 계약 : " + str(contract.get_contract_count(subject_code)))
