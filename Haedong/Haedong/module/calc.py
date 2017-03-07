@@ -8,7 +8,7 @@ import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 150, 200, 240, 300]
+data['이동평균선']['일수'] = [5, 20, 40, 60, 100, 120, 150, 200, 240, 300]
 
 def create_data(subject_code):
     data[subject_code] = {}

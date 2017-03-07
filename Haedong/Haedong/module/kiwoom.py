@@ -332,7 +332,7 @@ class api():
 
                         if d.get_mode() == d.REAL:
                             # 종목코드 데이터가 있는지 확인
-                            if subject_code in self.candle_data.keys():
+                            if subject_code in self.candle_data.keys() and len(self.candle_data[subject_code]) > 20000:
                                 data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
                                 data = data.split()
                                 self.candle_data[subject_code] = self.candle_data[subject_code] + data[1:]
@@ -366,10 +366,13 @@ class api():
                                 log.debug('지난 데이터 수신 완료.')
                             else:
                                 data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
-                                self.candle_data[subject_code] = data.split()
+                                if subject_code in self.candle_data.keys():
+                                    data = data.split()
+                                    self.candle_data[subject_code] = self.candle_data[subject_code] + data[1:]
+                                else: self.candle_data[subject_code] = data.split()
 
                                 self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], sPreNext)
-
+                                time.sleep(0.2)
                                 return
 
                             #calc.show_current_price(subject_code, self.recent_price[subject_code])
@@ -491,7 +494,7 @@ class api():
             self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
             self.current_candle[subject_code].append(current_price)
 
-            if self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and self.state == '매매가능':
+            if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and my_util.is_trade_time(subject_code) is True and self.state == '매매가능':
                 log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
                 # 청산
