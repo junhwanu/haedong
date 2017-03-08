@@ -22,7 +22,7 @@ def is_it_OK(subject_code, current_price):
         if current_price < subject.info[subject_code]['sar'] and my_util.is_sorted(subject_code) == '하락세':
             mesu_medo_type = '신규매도'
             log.debug("종목코드(" + subject_code + ") 하향 반전.")
-        elif contract.get_contract_count(subject_code) == 0 and calc.data[subject_code]['플로우'][-2] =='하향' and my_util.is_sorted(subject_code) == '상승세':
+        elif calc.data[subject_code]['플로우'][-2] =='하향' and my_util.is_sorted(subject_code) == '상승세':
             mesu_medo_type = '신규매수'
             log.debug("종목코드(" + subject_code + ") 상향 반전.")
         else: return false
@@ -30,7 +30,7 @@ def is_it_OK(subject_code, current_price):
         if current_price > subject.info[subject_code]['sar'] and my_util.is_sorted(subject_code) == '상승세':
             mesu_medo_type = '신규매수'
             log.debug("종목코드(" + subject_code + ") 상향 반전.")
-        elif contract.get_contract_count(subject_code) == 0 and calc.data[subject_code]['플로우'][-2] =='상향' and my_util.is_sorted(subject_code) == '하락세':
+        elif calc.data[subject_code]['플로우'][-2] =='상향' and my_util.is_sorted(subject_code) == '하락세':
             mesu_medo_type = '신규매도'
             log.debug("종목코드(" + subject_code + ") 하향 반전.")
         else: return false
@@ -41,7 +41,7 @@ def is_it_OK(subject_code, current_price):
         contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
     
     
-    #contract_cnt = 2
+    contract_cnt = 2
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
@@ -68,29 +68,30 @@ def is_it_sell(subject_code, current_price):
             if current_price <= contract.list[subject_code]['손절가']:
                 res.info("손절가가 되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
                 return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
-            elif calc.calc.data[subject_code]['플로우'][-1] == '상향' and subject.info[subject_code]['sar'] > current_price:
+            elif calc.data[subject_code]['플로우'][-1] == '상향' and subject.info[subject_code]['sar'] > current_price:
                 res.info("하향 반전되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
                 return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
             elif current_price > contract.list[subject_code]['익절가']:
                 contract.list[subject_code]['익절가'] = current_price + subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                 contract.list[subject_code]['손절가'] = current_price - subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                 log.debug("종목코드(" + subject_code + ") 익절가 갱신.")
-            elif current_price - subject.info[subject_code]['반전시현재가'] >= first_chungsan*subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0 and int(contract.get_contract_count(subject_code) / 2) > 0:
+            elif current_price - subject.info[subject_code]['반전시현재가'] >= first_chungsan * subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0 and int(contract.get_contract_count(subject_code) / 2) > 0:
                 return {'신규주문':True, '매도수구분':'신규매도', '수량':int((contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE])/2)}
         elif contract.list[subject_code]['매도수구분'] == '신규매도':
             # 매도일때
             if current_price >= contract.list[subject_code]['손절가']:
                 res.info("손절가가 되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
                 return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
-            elif calc.calc.data[subject_code]['플로우'][-1] == '하향' and subject.info[subject_code]['sar'] < current_price:
+            elif calc.data[subject_code]['플로우'][-1] == '하향' and subject.info[subject_code]['sar'] < current_price:
                 res.info("상향 반전되어 " + str(contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]) + "개 청산 요청.")
                 return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
             elif current_price < contract.list[subject_code]['익절가']:
                 contract.list[subject_code]['익절가'] = current_price - subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                 contract.list[subject_code]['손절가'] = current_price + subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                 log.debug("종목코드(" + subject_code + ") 익절가 갱신.")
-            elif subject.info[subject_code]['반전시현재가'] - current_price >= first_chungsan*subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0 and int(contract.get_contract_count(subject_code) / 2) > 0:
+            elif (subject.info[subject_code]['반전시현재가'] - current_price) >= first_chungsan * subject.info[subject_code]['단위'] and subject.info[subject_code]['반전시현재가'] != 0 and int(contract.get_contract_count(subject_code) / 2) > 0:
                 return {'신규주문':True, '매도수구분':'신규매수', '수량':int((contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE])/2)}
+            print("123")
     return {'신규주문':False}
 
 def get_time(add_min,subject_code):

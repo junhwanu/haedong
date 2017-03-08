@@ -64,7 +64,7 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
 
     else:
         log.info("신규 계약 추가")
-        subject.info[subject_code]['반전시현재가'] = order_info['체결표시가격']
+        subject.info[subject_code]['반전시현재가'] = float(order_info['체결표시가격'])
         list[subject_code] = {}
         
         safe_num = int(int(order_info['신규수량'])/2)
