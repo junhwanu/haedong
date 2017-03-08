@@ -372,7 +372,7 @@ class api():
                                 else: self.candle_data[subject_code] = data.split()
 
                                 self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], sPreNext)
-                                time.sleep(0.2)
+                                time.sleep(0.25)
                                 return
 
                             #calc.show_current_price(subject_code, self.recent_price[subject_code])
