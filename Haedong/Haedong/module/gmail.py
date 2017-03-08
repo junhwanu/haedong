@@ -3,10 +3,13 @@ import smtplib
 from email.mime.multipart import MIMEMultipart  
 from email.mime.text import MIMEText
 
-def send_email(subject, contents):  
+def send_email(subject, contents , account=None):  
     from_addr = 'haedong2017@gmail.com'
-
-    to_addr = 'hayden4143@gmail.com'
+    
+    if account == None:
+        to_addr = 'genioustar@gmail.com,hayden4143@gmail,junhwanu@gmail.com'
+    elif account == '5107243872' or account == '7003919272':
+        to_addr = 'hayden4143@gmail'
 
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
