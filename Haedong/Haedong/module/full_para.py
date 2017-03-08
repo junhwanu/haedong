@@ -17,7 +17,7 @@ def is_it_OK(subject_code, current_price):
         log.debug('신규 주문 가능상태가 아니므로 매매 불가. 상태 : ' + subject.info[subject_code]['상태'])
         return false
     
-    log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subjecct.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
+    log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
     if subject.info[subject_code]['flow'] == '상향': 
         if current_price < subject.info[subject_code]['sar'] and my_util.is_sorted(subject_code) == '하락세':
             mesu_medo_type = '신규매도'

@@ -391,6 +391,8 @@ class api():
                         price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
                         price['체결시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
                         price['거래량'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '거래량')
+
+                        subject.info[subject_code]['현재가변동횟수'] = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '최종틱갯수'))
                     elif d.get_mode() == d.TEST: # 테스트
                         price = candle
 
@@ -423,6 +425,7 @@ class api():
                     
                     # 초기 데이터 요청
                     self.request_tick_info(subject_code,subject.info[subject_code]["시간단위"], "")
+                    time.sleep(0.2)
         
             if d.RECEIVED_PRODUCT_COUNT == d.PRODUCT_CNT:
                 self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
