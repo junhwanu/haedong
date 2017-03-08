@@ -34,7 +34,7 @@ def is_it_OK(subject_code, current_price):
         contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
     
     
-    contract_cnt = 2
+    #contract_cnt = 2
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
