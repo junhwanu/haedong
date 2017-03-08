@@ -17,6 +17,7 @@ def is_it_OK(subject_code, current_price):
         log.debug('신규 주문 가능상태가 아니므로 매매 불가. 상태 : ' + subject.info[subject_code]['상태'])
         return false
     
+    log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
     if subject.info[subject_code]['flow'] == '상향': 
         if current_price < subject.info[subject_code]['sar'] and my_util.is_sorted(subject_code) == '하락세':
             mesu_medo_type = '신규매도'
@@ -51,10 +52,11 @@ def is_it_sell(subject_code, current_price):
     index = calc.data[subject_code]['idx']
     first_chungsan = 120
     
-    #log.debug("종목코드(" + subject_code + ") is_it_sell() 진입.")
+    log.debug("종목코드(" + subject_code + ") is_it_sell() 진입.")
+    log.debug("종목코드(" + subject_code + ") 현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']))
     if contract.get_contract_count(subject_code) > 0:
         # 계약 보유중
-        #log.debug("종목코드(" + subject_code + ") is_it_sell() / 보유 계약 : " + str(contract.get_contract_count(subject_code)))
+        log.debug("종목코드(" + subject_code + ") is_it_sell() / 보유 계약 : " + str(contract.get_contract_count(subject_code)))
         if contract.list[subject_code]['매도수구분'] == '신규매수':
             # 매수일때
             if current_price <= contract.list[subject_code]['손절가']:
