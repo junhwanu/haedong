@@ -372,7 +372,7 @@ class api():
                                 else: self.candle_data[subject_code] = data.split()
 
                                 self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], sPreNext)
-                                time.sleep(0.3)
+                                time.sleep(0.35)
                                 return
 
                             #calc.show_current_price(subject_code, self.recent_price[subject_code])
@@ -392,7 +392,7 @@ class api():
                         price['체결시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
                         price['거래량'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '거래량')
 
-                        subject.info[subject_code]['현재가변동횟수'] = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '최종틱갯수'))
+                        #subject.info[subject_code]['현재가변동횟수'] = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '최종틱갯수'))
                     elif d.get_mode() == d.TEST: # 테스트
                         price = candle
 
@@ -591,7 +591,7 @@ class api():
 
                 self.recent_price[subject_code] = current_price
                 if d.get_mode() == d.REAL: #실제투자
-                    if subject.info[subject_code]['현재가변동횟수'] >= subject.info[subject_code]['시간단위']:
+                    if subject.info[subject_code]['현재가변동횟수'] >= 10: #subject.info[subject_code]['시간단위']:
                         self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], "")
                         subject.info[subject_code]['현재가변동횟수'] = 0
                 #calc.show_current_price(subject_code, current_price)

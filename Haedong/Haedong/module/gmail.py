@@ -7,9 +7,11 @@ def send_email(subject, contents , account=None):
     from_addr = 'haedong2017@gmail.com'
     
     if account == None:
-        to_addr = 'genioustar@gmail.com,hayden4143@gmail,junhwanu@gmail.com'
+        to_addr = 'genioustar@gmail.com,hayden4143@gmail.com,junhwanu@gmail.com'
     elif account == '5107243872' or account == '7003919272':
-        to_addr = 'hayden4143@gmail'
+        to_addr = 'hayden4143@gmail.com'
+    elif account == '5105855972':
+        to_addr = 'junhwanu@gmail.com'
 
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
@@ -21,7 +23,7 @@ def send_email(subject, contents , account=None):
     body['From'] = from_addr
     body['To'] = to_addr
 
-    html = ("<div>%s</div>" % contents)
+    html = ("<div>%s</div>" % str(contents))
     msg = MIMEText(html, '')
     body.attach(msg)
 

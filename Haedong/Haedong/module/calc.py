@@ -134,7 +134,9 @@ def push(subject_code, price):
     data[subject_code]['idx'] = data[subject_code]['idx'] + 1
     
     calc(subject_code)
-
+    
+    res.info('캔들 갯수 : ' + str(data[subject_code]['idx']))
+    res.info('캔들 체결시간 : ' + str(data[subject_code]['체결시간'][-1]))
     if data[subject_code]['idx'] > 595:
         #if d.get_mode() is d.REAL: chart.draw(subject_code)
         pass
