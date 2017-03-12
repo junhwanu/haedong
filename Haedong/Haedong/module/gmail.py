@@ -12,6 +12,8 @@ def send_email(subject, contents , account=None):
         to_addr = 'hayden4143@gmail.com'
     elif account == '5105855972':
         to_addr = 'junhwanu@gmail.com'
+    elif account =='51115392':
+        to_addr = 'jenioustar@gmail.com'
 
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
