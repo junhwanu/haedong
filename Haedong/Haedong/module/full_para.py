@@ -10,7 +10,7 @@ def is_it_OK(subject_code, current_price):
     mesu_medo_type = None
     false = {'신규주문': False}
 
-    if calc.data[subject_code]['idx'] < 300:
+    if calc.data[subject_code]['idx'] < 1200:
         return false
     
     if subject.info[subject_code]['상태'] == '매수중' or subject.info[subject_code]['상태'] == '매도중' or subject.info[subject_code]['상태'] == '청산시도중' or subject.info[subject_code]['상태'] == '매매시도중':
@@ -25,13 +25,13 @@ def is_it_OK(subject_code, current_price):
         elif calc.data[subject_code]['플로우'][-2] =='하향' and my_util.is_sorted(subject_code) == '상승세':
             mesu_medo_type = '신규매수'
             log.debug("종목코드(" + subject_code + ") 상향 반전.")
-            return false #임시코드
+            #return false #임시코드
         else: return false
     elif subject.info[subject_code]['flow'] == '하향':
         if current_price > subject.info[subject_code]['sar'] and my_util.is_sorted(subject_code) == '상승세':
             mesu_medo_type = '신규매수'
             log.debug("종목코드(" + subject_code + ") 상향 반전.")
-            return false #임시코드
+            #return false #임시코드
         elif calc.data[subject_code]['플로우'][-2] =='상향' and my_util.is_sorted(subject_code) == '하락세':
             mesu_medo_type = '신규매도'
             log.debug("종목코드(" + subject_code + ") 하향 반전.")
@@ -41,13 +41,14 @@ def is_it_OK(subject_code, current_price):
     
     if d.get_mode() == d.REAL:
         contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
-    
+    else:
+        contract_cnt = 2
     
     #contract_cnt = 2
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
-    if contract_cnt < 4: contract_cnt = 4 #임시코드
+    #if contract_cnt < 4: contract_cnt = 4 #임시코드
 
     subject.info[subject_code]['반전시현재가'] = current_price
     
