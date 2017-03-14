@@ -135,6 +135,7 @@ def is_holiday(subject_code):
     return False
 
 def is_trade_time(subject_code):
+    if d.get_mode() is d.TEST: return True
     if d.get_mode() is d.TEST and calc.data[subject_code]['idx'] < 10: 
         return True
     if is_end_time(3, subject_code) is False or is_holiday(subject_code) is False:

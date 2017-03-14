@@ -284,7 +284,6 @@ class api():
         
         if sRQName == '미결제잔고내역조회':
             if self.state == '매매가능': return
-
             self.state = '매매가능'
             order_info = {}
             order_contents = {}
@@ -483,22 +482,24 @@ class api():
                 self.state = '매매가능'
                     
             current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
-
+            '''
             if subject.info[subject_code]['전략'] == '풀파라':
                 if my_util.is_trade_time(subject_code) is False and contract.get_contract_count(subject_code) > 0:
                     res.info('연이은 휴장일로 모든 계약 청산 요청.')
                     if contract.list[subject_code]['매도수구분'] == '신규매도':
+                        subject.info[subject_code]['청산내용'] = {'신규주문':True, '매도수구분':'신규매도', '수량': contract.get_contract_count(subject_code)}
                         self.send_order('신규매수', subject_code, contract.get_contract_count(subject_code))
                     elif contract.list[subject_code]['매도수구분'] == '신규매수':
+                        subject.info[subject_code]['청산내용'] = {'신규주문':True, '매도수구분':'신규매수', '수량': contract.get_contract_count(subject_code)}
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
-
+            '''
             # 최근가 평균으로 현재가 보정
             self.recent_price_list[subject_code].append(current_price)
             self.recent_price_list[subject_code].pop(0)
             self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
             self.current_candle[subject_code].append(current_price)
 
-            if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price:# and my_util.is_trade_time(subject_code) is True and self.state == '매매가능':
+            if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and self.state == '매매가능':# and my_util.is_trade_time(subject_code) is True:
                 log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
                 # 청산

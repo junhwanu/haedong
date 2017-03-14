@@ -8,7 +8,7 @@ import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 40, 60, 100, 120, 150, 200, 240, 300]
+data['이동평균선']['일수'] = [5, 20, 40, 60, 100, 120, 150, 200, 240, 600]
 
 def create_data(subject_code):
     data[subject_code] = {}
@@ -72,6 +72,7 @@ def create_data(subject_code):
     data[subject_code]['매도'] = []
 
     data[subject_code]['플로우'] = []
+    data[subject_code]['SAR'] = []
 
     #chart.create_figure(subject_code)
     #if d.get_mode() is d.REAL: chart.create_figure(subject_code)
@@ -591,6 +592,12 @@ def calculate_sar(subject_code):
             ep = the_lowest_price
             
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+            t_sar = {}
+            t_sar['시작값'] = ep
+            if data[subject_code]['idx'] > 1800:
+                if len(data[subject_code]['SAR']) > 0:
+                    data[subject_code]['SAR'][-1]['끝값'] = subject.info[subject_code]['sar']
+                data[subject_code]['SAR'].append(t_sar)
             #res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 저가: ' + str(data[subject_code]['저가'][index]) + ' / sar: ' + str(next_sar))
             if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
                 log.info('상태 변경, 매매완료 -> 매도가능')
@@ -619,6 +626,13 @@ def calculate_sar(subject_code):
             ep = the_highest_price
             
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+            t_sar = {}
+            t_sar['시작값'] = ep            
+            if data[subject_code]['idx'] > 1800:
+                if len(data[subject_code]['SAR']) > 0:
+                    data[subject_code]['SAR'][-1]['끝값'] = subject.info[subject_code]['sar']
+                data[subject_code]['SAR'].append(t_sar)
+
             #res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 고가: ' + str(data[subject_code]['고가'][index]) + ' / sar: ' + str(next_sar))
             if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
                 log.info('상태 변경, 매매완료 -> 매수가능')

@@ -3,7 +3,7 @@ import screen
 
 
 info = {      
-            "GCJ17":{
+            "GC":{
                 "종목명":"GOLD",
                 "시간단위":60,
                 "단위":0.1,

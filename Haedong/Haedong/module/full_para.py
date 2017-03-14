@@ -10,7 +10,7 @@ def is_it_OK(subject_code, current_price):
     mesu_medo_type = None
     false = {'신규주문': False}
 
-    if calc.data[subject_code]['idx'] < 1200:
+    if calc.data[subject_code]['idx'] < 3000:
         return false
     
     if subject.info[subject_code]['상태'] == '매수중' or subject.info[subject_code]['상태'] == '매도중' or subject.info[subject_code]['상태'] == '청산시도중' or subject.info[subject_code]['상태'] == '매매시도중':
@@ -48,7 +48,7 @@ def is_it_OK(subject_code, current_price):
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
-    #if contract_cnt < 4: contract_cnt = 4 #임시코드
+    if contract_cnt < 4: contract_cnt = 4 #임시코드
 
     subject.info[subject_code]['반전시현재가'] = current_price
     
@@ -120,4 +120,4 @@ def get_time(add_min,subject_code):
     
         current_time = current_hour*100 + current_min
         
-    return current_time   
+    return current_time
