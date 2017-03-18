@@ -48,7 +48,7 @@ def is_it_OK(subject_code, current_price):
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
-    if contract_cnt < 4: contract_cnt = 4 #임시코드
+    if contract_cnt < 4: contract_cnt = 1 #임시코드
 
     subject.info[subject_code]['반전시현재가'] = current_price
     

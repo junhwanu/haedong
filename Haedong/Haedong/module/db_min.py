@@ -48,7 +48,7 @@ def insert(data, start_date, subject_code):
 def init():
     global conn
     global curs
-    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong', charset='utf8')
+    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong_min', charset='utf8')
     curs = conn.cursor()
 
 def execute(_query):
@@ -69,7 +69,7 @@ def exist_table(table_name):
     global curs
     temp = []
 
-    query = "show tables in haedong like '%s'"%table_name
+    query = "show tables in haedong_min like '%s'"%table_name
     curs.execute(query)
     conn.commit()
 
@@ -94,7 +94,7 @@ def create_table(table_name, need_delete):
         conn.close()
 
     # 테이블 생성
-    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong', charset='utf8')
+    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong_min', charset='utf8')
     curs = conn.cursor()
     query = "create table %s select * from root_table" %table_name
     curs.execute(query)
@@ -180,7 +180,7 @@ def insert(data, start_date, subject_code):
 def init():
     global conn
     global curs
-    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong', charset='utf8')
+    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong_min', charset='utf8')
     curs = conn.cursor()
 
 def execute(_query):
@@ -201,7 +201,7 @@ def exist_table(table_name):
     global curs
     temp = []
 
-    query = "show tables in haedong like '%s'"%table_name
+    query = "show tables in haedong_min like '%s'"%table_name
     curs.execute(query)
     conn.commit()
 
@@ -226,7 +226,7 @@ def create_table(table_name, need_delete):
         conn.close()
 
     # 테이블 생성
-    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong', charset='utf8')
+    conn = pymysql.connect(host='211.253.28.132', user='root', password='goehddl', db='haedong_min', charset='utf8')
     curs = conn.cursor()
     query = "create table %s select * from root_table" %table_name
     curs.execute(query)
