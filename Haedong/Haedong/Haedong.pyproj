@@ -42,6 +42,9 @@
     <Compile Include="module\cmd.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\daytrading.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="module\db.py">
       <SubType>Code</SubType>
     </Compile>
