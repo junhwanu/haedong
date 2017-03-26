@@ -120,9 +120,6 @@ def is_it_OK(subject_code, current_price):
         else: return false
     
    
-    
-    
-    
     elif subject.info[subject_code]['상태'] == '매수대기' or subject.info[subject_code]['상태'] == '매도대기':
         if subject.info[subject_code]['상태'] == '매수대기':
             if current_price < subject.info[subject_code]['매수대기목표가']:
@@ -164,29 +161,7 @@ def is_it_OK(subject_code, current_price):
         subject.info[subject_code]['상태'] = '중립대기'
         return false
     
-    
-    
-    
-    
-    
-    
-    
-    
-
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
     
     if d.get_mode() == d.REAL:
         contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
@@ -197,7 +172,6 @@ def is_it_OK(subject_code, current_price):
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
-   
 
     subject.info[subject_code]['반전시현재가'] = current_price
     print("반전시현재가는 %s 입니다." % current_price)
