@@ -176,8 +176,11 @@ def calc(subject_code):
             calculate_sar(subject_code)
 
         calc_ma_line(subject_code)
+        trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
+        data[subject_code]['추세'].append(trend)
         calc_ema_line(subject_code)
         calc_ilmok_chart(subject_code)
+        calc_linear_regression(subject_code)
        
     elif subject.info[subject_code]['전략'] == '추세선밴드':
         calc_ma_line(subject_code)

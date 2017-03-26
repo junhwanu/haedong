@@ -31,8 +31,8 @@ def init(path):
     streamHandler.setFormatter(fomatter)
 
     logger.addHandler(fileHandler)
-    #logger.addHandler(streamHandler)
-    logger.setLevel(logging.DEBUG)
+    logger.addHandler(streamHandler)
+    logger.setLevel(logging.INFO)
 
 def info(log_msg):
     logger.info(log_msg)

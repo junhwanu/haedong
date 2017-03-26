@@ -341,7 +341,13 @@ class api():
                                 self.candle_data[subject_code] = self.candle_data[subject_code] + data[1:]
 
                                 subject.info[subject_code]['현재가변동횟수'] = int(data[0])
-
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']] = {}
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['현재가'] = float(data[1])
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['시가'] = float(data[4])
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = float(data[5])
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = float(data[6])
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = float(data[3])
+                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['거래량'] = float(data[2])
                                 current_idx = len(self.candle_data[subject_code]) - 7
                                 start_time = self.get_start_time(subject_code)
                                 while current_idx > 8:
@@ -478,7 +484,25 @@ class api():
             if d.get_mode() == d.REAL: #실제투자
                 current_price = self.ocx.dynamicCall("GetCommRealData(QString, int)", "현재가", 140)    # 140이 뭔지 확인
                 current_time = self.ocx.dynamicCall("GetCommRealData(QString, int)", "체결시간", 20)    # 체결시간이 뭔지 확인
+                if subject.info[subject_code]['현재가변동횟수'] == 0:
+                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['시가'] = current_price
+                    
                 subject.info[subject_code]['현재가변동횟수'] += 1 # 시세 조회 횟수 누적
+                
+                if current_price > subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가']:
+                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = current_price
+                    
+                if current_price < subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가']:
+                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = current_price
+                    
+                if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
+                    # 캔들 추가
+                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = current_time
+                    calc.push(subject_code, subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
+                    subject.info[subject_code]['현재가변동횟수'] = 0
+                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
+                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
+                                        
             elif d.get_mode() == d.TEST: #테스트
                 current_price = sRealData['현재가']    
                 current_time = sRealData['체결시간']
@@ -584,20 +608,13 @@ class api():
                                 subject.info[subject_code]['상태'] = '매매시도중'
                                 log.info("%s 종목 %s %s개 요청." % (subject_code, order_contents['매도수구분'], order_contents['수량']))
 
-                        '''
-                        if d.get_mode() == d.TEST:
-                            chart.create_figure(subject_code)
-                            chart.draw(subject_code)
-                            input() 
-                        '''
-                if subject.info[subject_code]['전략'] == '해동이':
-                    santa.update_state_by_current_price(subject_code, current_price)
-
                 self.recent_price[subject_code] = current_price
+                '''
                 if d.get_mode() == d.REAL: #실제투자
                     if subject.info[subject_code]['현재가변동횟수'] >= 10: #subject.info[subject_code]['시간단위']:
                         self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], "")
                         subject.info[subject_code]['현재가변동횟수'] = 0
+                '''
                 #calc.show_current_price(subject_code, current_price)
                 
         else:
