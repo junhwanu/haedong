@@ -37,6 +37,9 @@ class api():
     state = '대기'
     timestamp = None
     candle_data = {}
+    win = 0
+    lose = 0
+    gain = []
     
     def __init__(self, mode = 1):
         super(api, self).__init__()
@@ -500,7 +503,7 @@ class api():
             self.current_candle[subject_code].append(current_price)
 
             if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and self.state == '매매가능':# and my_util.is_trade_time(subject_code) is True:
-                log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
+                #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
                 # 청산
                 if contract.get_contract_count(subject_code) > 0 and subject.info[subject_code]['상태'] != '청산시도중':
@@ -664,10 +667,45 @@ class api():
 
                         contract.remove_contract(order_info)
                         
+                        full_para.previous_profit = round(profit, 1)
+
+
+                        #first_chungsan = 55
+                        #first_chungsan_dribble = 5
+                        
+                        #second_chungsan = 300
+                        #second_chungsan_dribble = 15
+
+
                         subject.info[subject_code]['누적수익'] += round(profit, 1)
                         subject.info[subject_code]['청산내용']['수량'] -= remove_cnt
 
+                        profit = round(profit, 1)
+                        
+                        '''
+                        if profit > 1500:
+                            full_para.first_chungsan = 55
+                            print("first_chungsan=30")
+                        elif profit > 1000:
+                            full_para.first_chungsan = 55
+                            print("first_chungsan=50")
+                        elif profit <= 500:
+                            full_para.first_chungsan = 77
+                            print("first_chungsan=77")
+                        '''
+                        
                         res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
+                        if profit > 0:
+                            self.win +=1
+                        else:
+                            self.lose +=1
+                            
+                        percent = int(self.win/(self.win+self.lose)*100)
+                        print("승률:%s, 승:%s, 패:%s" % (percent, self.win, self.lose))
+                        self.gain.append(profit)
+                        self.gain.sort()
+                        self.gain.reverse()
+                        
                         '''
                         if profit < -300 and d.get_mode() is d.TEST:
                             #chart.draw(subject_code)
