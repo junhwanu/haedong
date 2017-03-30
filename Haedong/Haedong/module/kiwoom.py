@@ -40,7 +40,8 @@ class api():
     win = 0
     lose = 0
     gain = []
-    
+    temp_candle = {}
+
     def __init__(self, mode = 1):
         super(api, self).__init__()
         if d.get_mode() == d.REAL:
@@ -358,11 +359,10 @@ class api():
                                     '''
                                     calc.push(subject_code, price)
 
-                                if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
-                                    calc.push(subject_code, subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
-                                    subject.info[subject_code]['현재가변동횟수'] = 0
-                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
-                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
+                                if len(self.temp_candle[subject_code]) > 0:
+                                    log.debug('초기 데이터 수신간에 수신된 temp_candle들 push.')
+                                    for candle in self.temp_candle[subject_code]:
+                                        calc.push(subject_code, candle)
 
                                 # 최근가
                                 self.recent_price[subject_code] = round(float(self.candle_data[subject_code][1]), subject.info[subject_code]['자릿수'])
@@ -372,6 +372,7 @@ class api():
                                 self.current_candle[subject_code].append(float(self.candle_data[subject_code][6]))
                                 log.debug('지난 데이터 수신 완료.')
                             else:
+                                log.debug('지난 데이터 수신 요청.')
                                 data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
                                 if subject_code in self.candle_data.keys():
                                     data = data.split()
@@ -387,6 +388,14 @@ class api():
                                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = float(data[6])
                                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = float(data[3])
                                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['거래량'] = float(data[2])
+                                    
+                                    self.temp_candle[subject_code] = []
+                                    if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
+                                        self.temp_candle.append(subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
+                                        subject.info[subject_code]['현재가변동횟수'] = 0
+                                        subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
+                                        subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
+                                        log.debug('초기 데이터 수신 시, 현재가 변동횟수가 시간단위와 동일하여 temp_candle에 캔들 삽입.')
 
                                 self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], sPreNext)
                                 time.sleep(0.35)
@@ -442,7 +451,7 @@ class api():
                     # 초기 데이터 요청
                     self.request_tick_info(subject_code,subject.info[subject_code]["시간단위"], "")
                     time.sleep(0.3)
-        
+                        
             if d.RECEIVED_PRODUCT_COUNT == d.PRODUCT_CNT:
                 self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
                 self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0011)
@@ -511,12 +520,30 @@ class api():
                 if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
                     # 캔들 추가
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = current_time
-                    calc.push(subject_code, subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
+                    
+                    if len(calc.data[subject_code]['현재가']) > 0:
+                        calc.push(subject_code, subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
+
+                        log.info("캔들 추가, 체결시간: " + str(current_time))
+                    
+                        log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
+                        '''
+                        if subject.info[subject_code]['flow'] == '상향': 
+                            log.debug("매수 예정가 : " + str(calc.data[subject_code]['추세선'][-1] - 5 * subject.info[subject_code]['단위']))
+                        elif subject.info[subject_code]['flow'] == '하향': 
+                            log.debug("매도 예정가 : " + str(calc.data[subject_code]['추세선'][-1] + 5 * subject.info[subject_code]['단위']))
+                        log.debug("추세선 : " + str(calc.data[subject_code]['추세선'][-1]))
+                        log.debug("추세선밴드 상한 : " + str(calc.data[subject_code]['추세선밴드']['상한선'][-1]))
+                        log.debug("추세선밴드 하한 : " + str(calc.data[subject_code]['추세선밴드']['하한선'][-1]))
+                        '''
+                    else:
+                        self.temp_candle[subject_code].append(subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
+                        log.debug('초기 데이터 수신이 완료되지 않은 상태로 캔들이 완성되어 temp_candle에 삽입.')
+
                     subject.info[subject_code]['현재가변동횟수'] = 0
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
-                    log.debug("캔들 추가.")
-
+                    
             elif d.get_mode() == d.TEST: #테스트
                 current_price = sRealData['현재가']    
                 current_time = sRealData['체결시간']
@@ -694,15 +721,13 @@ class api():
                         elif order_info['매도수구분'] == 2:
                             profit = ((float(contract.list[subject_code]['체결가'] - float(order_info['체결표시가격']))) / subject.info[subject_code]['단위'] * subject.info[subject_code]['틱가치'] - 15) * remove_cnt
                             
+                        if order_info['매도수구분'] == 1:
+                            full_para.previous_profit = ((float(order_info['체결표시가격']) - float(contract.list[subject_code]['체결가'])) / subject.info[subject_code]['단위'])
+                        elif order_info['매도수구분'] == 2:
+                            full_para.previous_profit = ((float(contract.list[subject_code]['체결가'] - float(order_info['체결표시가격']))) / subject.info[subject_code]['단위'])
 
                         contract.remove_contract(order_info)
                         
-                        if order_info['매도수구분'] == 1:
-                            full_para.previous_profit = ( float(order_info['체결표시가격']) - float(contract.list[subject_code]['체결가']) ) / subject.info[subject_code]['단위']
-                        elif order_info['매도수구분'] == 2:
-                            full_para.previous_profit = ( float(contract.list[subject_code]['체결가']) - float(order_info['체결표시가격']) ) / subject.info[subject_code]['단위']
-
-
                         #first_chungsan = 55
                         #first_chungsan_dribble = 5
                         
@@ -728,16 +753,14 @@ class api():
                         '''
                         
                         res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
-                        if profit > 0:
-                            self.win +=1
-                        else:
-                            self.lose +=1
+                        if contract.get_contract_count(subject_code) == 0:
+                            if profit > 0:
+                                self.win +=1
+                            else:
+                                self.lose +=1
                             
-                        percent = int(self.win/(self.win+self.lose)*100)
-                        print("승률:%s, 승:%s, 패:%s" % (percent, self.win, self.lose))
-                        self.gain.append(profit)
-                        self.gain.sort()
-                        self.gain.reverse()
+                            percent = int(self.win/(self.win+self.lose)*100)
+                            print("승률:%s, 승:%s, 패:%s" % (percent, self.win, self.lose))
                         
                         '''
                         if profit < -300 and d.get_mode() is d.TEST:

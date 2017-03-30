@@ -178,10 +178,11 @@ def calc(subject_code):
         calc_ma_line(subject_code)
         trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
         data[subject_code]['추세'].append(trend)
+        '''
         calc_ema_line(subject_code)
         calc_ilmok_chart(subject_code)
-        calc_linear_regression(subject_code)
-       
+        calc_linear_regression_in_para(subject_code)
+        '''
     elif subject.info[subject_code]['전략'] == '추세선밴드':
         calc_ma_line(subject_code)
         calc_ema_line(subject_code)
@@ -274,7 +275,58 @@ def calc_ilmok_chart(subject_code):
         data[subject_code]['일목균형표']['선행스팬2'].append( (max( data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] ) + min(  data[subject_code]['현재가'][data[subject_code]['idx'] - 52 : data[subject_code]['idx']] )) / 2)
     else:
         data[subject_code]['일목균형표']['선행스팬2'].append(None)
-  
+
+def calc_linear_regression_in_para(subject_code):  
+    '''
+    직선회기 계산
+    파라볼릭 SAR 지난 신호에서 최극점을 기준으로 계산
+    '''
+    data[subject_code]['추세선'].append(None)
+    data[subject_code]['매매선'].append(None)
+    data[subject_code]['추세선밴드']['상한선'].append(None)
+    data[subject_code]['추세선밴드']['하한선'].append(None)
+
+    # 지난 신호 마지막 index를 찾는다.
+    last_index = data[subject_code]['idx']
+    for idx in range(data[subject_code]['idx'], 0, -1):
+        if data[subject_code]['플로우'][idx] != data[subject_code]['플로우'][-1]:
+            last_index = idx
+            break
+
+    # 지난 신호 중에서 최고 극점을 찾는다.
+    ep = 0
+    ep_index = 0
+    if data[subject_code]['플로우'][last_index] == '하향': ep = 999999
+
+    for idx in range(last_index, 0, -1):
+        if data[subject_code]['플로우'][idx] == data[subject_code]['플로우'][last_index]:
+            if data[subject_code]['플로우'][idx] == '상향' and ep < data[subject_code]['현재가'][idx]:
+                ep = data[subject_code]['현재가'][idx]
+                ep_index = idx
+            elif data[subject_code]['플로우'][idx] == '하향' and ep > data[subject_code]['현재가'][idx]:
+                ep = data[subject_code]['현재가'][idx]
+                ep_index = idx
+        else: break
+    
+    line_range = data[subject_code]['idx'] - ep_index
+    result = stats.linregress(list(range( 0, line_range + 1 )), data[subject_code]['현재가'][ len(data[subject_code]['현재가']) - line_range - 1: len(data[subject_code]['현재가']) ])
+
+    data[subject_code]['추세선기울기'] = result.slope
+    data[subject_code]['결정계수'] = (result.rvalue**2)
+    _x = 0
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 27):
+        data[subject_code]['추세선'][idx] = result.slope * _x + result.intercept
+        _x+=1
+
+    # 표준편차
+    stdev = calc_stdev(subject_code)
+
+    data[subject_code]['표준편차'] = stdev
+    
+    for idx in range(data[subject_code]['idx'] - line_range, data[subject_code]['idx'] + 27):
+        data[subject_code]['추세선밴드']['상한선'][idx] = data[subject_code]['추세선'][idx] + 2 * stdev
+        data[subject_code]['추세선밴드']['하한선'][idx] = data[subject_code]['추세선'][idx] - 2 * stdev
+    
 def calc_linear_regression(subject_code):
     '''
     직선회기 계산

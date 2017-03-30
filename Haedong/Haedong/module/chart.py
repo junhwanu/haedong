@@ -50,11 +50,12 @@ def init_graph(subject_code):
     graph[subject_code]['추세선밴드'] = {}
     graph[subject_code]['추세선밴드']['상한선'] = ax.plot(x_axis_span, calc.data[subject_code]['추세선밴드']['상한선'], color='#0f98ab', linewidth=1)[0]
     graph[subject_code]['추세선밴드']['하한선'] = ax.plot(x_axis_span, calc.data[subject_code]['추세선밴드']['하한선'], color='#0f98ab', linewidth=1)[0]
+    '''
     graph[subject_code]['볼린저밴드'] = {}
     graph[subject_code]['볼린저밴드']['상한선'] = ax.plot(x_axis, calc.data[subject_code]['볼린저밴드']['상한선'], color='#fa8072', linewidth=1)[0]
     graph[subject_code]['볼린저밴드']['중심선'] = ax.plot(x_axis, calc.data[subject_code]['볼린저밴드']['중심선'], color='#c79bbf', linewidth=1)[0]
     graph[subject_code]['볼린저밴드']['하한선'] = ax.plot(x_axis, calc.data[subject_code]['볼린저밴드']['하한선'], color='#fa8072', linewidth=1)[0]
-
+    '''
     graph[subject_code]['지수이동평균선'] = {}
     colors = ['red', 'blue', 'green']
     color_idx = 0
@@ -113,12 +114,14 @@ def draw(subject_code):
     #ax.draw_artist(graph[subject_code]['추세선밴드']['하한선'])
 
     # 볼린저밴드
+    '''
     graph[subject_code]['볼린저밴드']['상한선'].set_xdata(x_axis)
     graph[subject_code]['볼린저밴드']['상한선'].set_ydata(calc.data[subject_code]['볼린저밴드']['상한선'])
     graph[subject_code]['볼린저밴드']['하한선'].set_xdata(x_axis)
     graph[subject_code]['볼린저밴드']['하한선'].set_ydata(calc.data[subject_code]['볼린저밴드']['하한선'])
     graph[subject_code]['볼린저밴드']['중심선'].set_xdata(x_axis)
     graph[subject_code]['볼린저밴드']['중심선'].set_ydata(calc.data[subject_code]['볼린저밴드']['중심선'])
+    '''
     #ax.draw_artist(graph[subject_code]['볼린저밴드']['상한선'])
     #ax.draw_artist(graph[subject_code]['볼린저밴드']['하한선'])
     #ax.draw_artist(graph[subject_code]['볼린저밴드']['중심선'])
