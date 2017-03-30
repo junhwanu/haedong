@@ -16,8 +16,7 @@ if __name__ == "__main__":
     
     print('실제투자(1), 테스트(2), DB Insert(3)')
     d.mode = int(input())
-    
-    
+        
     #cmd.init()
     if d.get_mode() == 1:
         try:

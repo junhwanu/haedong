@@ -42,12 +42,17 @@
     <Compile Include="module\cmd.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\daytrading.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="module\db.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="module\dbinsert.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\dbinsert_by_min.py" />
+    <Compile Include="module\db_min.py" />
     <Compile Include="module\full_para.py" />
     <Compile Include="module\gmail.py">
       <SubType>Code</SubType>

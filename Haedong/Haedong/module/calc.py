@@ -8,7 +8,7 @@ import math
 
 data = {}
 data['이동평균선'] = {}
-data['이동평균선']['일수'] = [5, 20, 40, 60, 100, 120, 150, 200, 240, 600]
+data['이동평균선']['일수'] = [5, 20, 30, 60, 100, 120, 150, 200, 240, 600]
 
 def create_data(subject_code):
     data[subject_code] = {}
@@ -176,8 +176,11 @@ def calc(subject_code):
             calculate_sar(subject_code)
 
         calc_ma_line(subject_code)
+        trend = is_sorted(subject_code, subject.info[subject_code]['이동평균선'])
+        data[subject_code]['추세'].append(trend)
         calc_ema_line(subject_code)
         calc_ilmok_chart(subject_code)
+        calc_linear_regression(subject_code)
        
     elif subject.info[subject_code]['전략'] == '추세선밴드':
         calc_ma_line(subject_code)
@@ -599,8 +602,9 @@ def calculate_sar(subject_code):
                     data[subject_code]['SAR'][-1]['끝값'] = subject.info[subject_code]['sar']
                 data[subject_code]['SAR'].append(t_sar)
             #res.info('반전되었음, 상향->하향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 저가: ' + str(data[subject_code]['저가'][index]) + ' / sar: ' + str(next_sar))
-            if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
+            if subject.info[subject_code]['상태'] == '중립대기' or subject.info[subject_code]['상태'] == '매매완료' or subject.info[subject_code]['상태'] == '매수대기':
                 log.info('상태 변경, 매매완료 -> 매도가능')
+                print('상태 변경, 매매완료 -> 매도가능')
                 subject.info[subject_code]['상태'] = '매도가능'
        
 
@@ -634,8 +638,9 @@ def calculate_sar(subject_code):
                 data[subject_code]['SAR'].append(t_sar)
 
             #res.info('반전되었음, 하향->상향, 시간 : ' + str(data[subject_code]['SAR반전시간'][-1]) + ', 고가: ' + str(data[subject_code]['고가'][index]) + ' / sar: ' + str(next_sar))
-            if subject.info[subject_code]['상태'] == '매매완료' and subject.info[subject_code]['전략'] == '파라':
+            if subject.info[subject_code]['상태'] == '중립대기' or subject.info[subject_code]['상태'] == '매매완료' or subject.info[subject_code]['상태'] == '매도대기':
                 log.info('상태 변경, 매매완료 -> 매수가능')
+                print('상태 변경, 매매완료 -> 매수가능')
                 subject.info[subject_code]['상태'] = '매수가능'
        
 

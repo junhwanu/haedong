@@ -145,7 +145,7 @@ def is_trade_time(subject_code):
 def is_sorted(subject_code):
     org_lst = []
     for days in subject.info[subject_code]['이동평균선']:
-        org_lst.append(calc.data[subject_code]['이동평균선'][days][-1])
+        org_lst.append(calc.data[subject_code]['이동평균선'][days][-2])
 
     sort_lst = org_lst[:]
     sort_lst.sort()
