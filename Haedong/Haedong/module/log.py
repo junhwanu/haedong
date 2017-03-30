@@ -32,7 +32,7 @@ def init(path):
 
     logger.addHandler(fileHandler)
     logger.addHandler(streamHandler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
 def info(log_msg):
     logger.info(log_msg)

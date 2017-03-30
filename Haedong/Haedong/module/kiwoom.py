@@ -340,14 +340,6 @@ class api():
                                 data = data.split()
                                 self.candle_data[subject_code] = self.candle_data[subject_code] + data[1:]
 
-                                subject.info[subject_code]['현재가변동횟수'] = int(data[0])
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']] = {}
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['현재가'] = float(data[1])
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['시가'] = float(data[4])
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = float(data[5])
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = float(data[6])
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = float(data[3])
-                                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['거래량'] = float(data[2])
                                 current_idx = len(self.candle_data[subject_code]) - 7
                                 start_time = self.get_start_time(subject_code)
                                 while current_idx > 8:
@@ -366,6 +358,12 @@ class api():
                                     '''
                                     calc.push(subject_code, price)
 
+                                if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
+                                    calc.push(subject_code, subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
+                                    subject.info[subject_code]['현재가변동횟수'] = 0
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
+
                                 # 최근가
                                 self.recent_price[subject_code] = round(float(self.candle_data[subject_code][1]), subject.info[subject_code]['자릿수'])
 
@@ -378,7 +376,17 @@ class api():
                                 if subject_code in self.candle_data.keys():
                                     data = data.split()
                                     self.candle_data[subject_code] = self.candle_data[subject_code] + data[1:]
-                                else: self.candle_data[subject_code] = data.split()
+                                else: 
+                                    data = data.split()
+                                    self.candle_data[subject_code] = data
+                                    subject.info[subject_code]['현재가변동횟수'] = int(data[0])
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']] = {}
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['현재가'] = float(data[1])
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['시가'] = float(data[4])
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = float(data[5])
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = float(data[6])
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = float(data[3])
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['거래량'] = float(data[2])
 
                                 self.request_tick_info(subject_code, subject.info[subject_code]['시간단위'], sPreNext)
                                 time.sleep(0.35)
@@ -433,7 +441,7 @@ class api():
                     
                     # 초기 데이터 요청
                     self.request_tick_info(subject_code,subject.info[subject_code]["시간단위"], "")
-                    time.sleep(0.2)
+                    time.sleep(0.3)
         
             if d.RECEIVED_PRODUCT_COUNT == d.PRODUCT_CNT:
                 self.ocx.dynamicCall("DisconnectRealData(QString)", screen.S0010)
@@ -484,6 +492,9 @@ class api():
             if d.get_mode() == d.REAL: #실제투자
                 current_price = self.ocx.dynamicCall("GetCommRealData(QString, int)", "현재가", 140)    # 140이 뭔지 확인
                 current_time = self.ocx.dynamicCall("GetCommRealData(QString, int)", "체결시간", 20)    # 체결시간이 뭔지 확인
+                current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
+
+                subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['현재가'] = current_price
                 if subject.info[subject_code]['현재가변동횟수'] == 0:
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['시가'] = current_price
                     
@@ -495,6 +506,8 @@ class api():
                 if current_price < subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가']:
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = current_price
                     
+                #log.debug("현재가 변동횟수, " + str(subject.info[subject_code]['현재가변동횟수']))
+                #log.debug("make candle, " + str(subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]))    
                 if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
                     # 캔들 추가
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = current_time
@@ -502,13 +515,14 @@ class api():
                     subject.info[subject_code]['현재가변동횟수'] = 0
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
-                                        
+                    log.debug("캔들 추가.")
+
             elif d.get_mode() == d.TEST: #테스트
                 current_price = sRealData['현재가']    
                 current_time = sRealData['체결시간']
+                current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
                 self.state = '매매가능'
                     
-            current_price = round(float(current_price), subject.info[subject_code]['자릿수'])
             '''
             if subject.info[subject_code]['전략'] == '풀파라':
                 if my_util.is_trade_time(subject_code) is False and contract.get_contract_count(subject_code) > 0:
@@ -527,7 +541,7 @@ class api():
             self.current_candle[subject_code].append(current_price)
 
             if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and self.state == '매매가능':# and my_util.is_trade_time(subject_code) is True:
-                #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
+                log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
                 # 청산
                 if contract.get_contract_count(subject_code) > 0 and subject.info[subject_code]['상태'] != '청산시도중':
@@ -581,7 +595,6 @@ class api():
                     elif subject.info[subject_code]['전략'] == '큰파라':
                         order_contents = big_para.is_it_OK(subject_code, current_price)
                     elif subject.info[subject_code]['전략'] == '풀파라':
-                        
                         order_contents = full_para.is_it_OK(subject_code, current_price)
                     else:
                         return
@@ -684,7 +697,10 @@ class api():
 
                         contract.remove_contract(order_info)
                         
-                        full_para.previous_profit = round(profit, 1)
+                        if order_info['매도수구분'] == 1:
+                            full_para.previous_profit = ( float(order_info['체결표시가격']) - float(contract.list[subject_code]['체결가']) ) / subject.info[subject_code]['단위']
+                        elif order_info['매도수구분'] == 2:
+                            full_para.previous_profit = ( float(contract.list[subject_code]['체결가']) - float(order_info['체결표시가격']) ) / subject.info[subject_code]['단위']
 
 
                         #first_chungsan = 55

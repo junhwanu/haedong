@@ -31,15 +31,16 @@ def is_it_OK(subject_code, current_price):
         log.debug('신규 주문 가능상태가 아니므로 매매 불가. 상태 : ' + subject.info[subject_code]['상태'])
         return false
     
+    log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
+
     if subject.info[subject_code]['상태'] != '매수대기' and subject.info[subject_code]['상태'] != '매도대기':  
-        log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
         if subject.info[subject_code]['flow'] == '상향': 
             if current_price < subject.info[subject_code]['sar'] and my_util.is_sorted(subject_code) == '하락세':
                 mesu_medo_type = '신규매도'
                 log.debug("종목코드(" + subject_code + ") 하향 반전.")
                 
-                if previous_profit > 500:
-                    print("이전 이익이 500 이상으로 매매포기")
+                if previous_profit > 50 * subject.info[subject_code]['단위']:
+                    print("이전 이익이 50틱 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
@@ -65,8 +66,8 @@ def is_it_OK(subject_code, current_price):
                 mesu_medo_type = '신규매수'
                 log.debug("종목코드(" + subject_code + ") 상향 반전.")
 
-                if previous_profit > 500:
-                    print("이전 이익이 500 이상으로 매매포기")
+                if previous_profit > 50 * subject.info[subject_code]['단위']:
+                    print("이전 이익이 50틱 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
@@ -95,8 +96,8 @@ def is_it_OK(subject_code, current_price):
                 mesu_medo_type = '신규매수'
                 log.debug("종목코드(" + subject_code + ") 상향 반전.")
 
-                if previous_profit > 500:
-                    print("이전 이익이 500 이상으로 매매포기")
+                if previous_profit > 50 * subject.info[subject_code]['단위']:
+                    print("이전 이익이 50틱 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
@@ -122,8 +123,8 @@ def is_it_OK(subject_code, current_price):
                 mesu_medo_type = '신규매도'
                 log.debug("종목코드(" + subject_code + ") 하향 반전.")
                 
-                if previous_profit > 500:
-                    print("이전 이익이 500 이상으로 매매포기")
+                if previous_profit > 50 * subject.info[subject_code]['단위']:
+                    print("이전 이익이 50틱 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
@@ -197,7 +198,9 @@ def is_it_OK(subject_code, current_price):
     else:
         contract_cnt = 2
     
-    contract_cnt = 2
+    if subject.info[subject_code]['신규매매수량'] < contract_cnt:
+        contract_cnt = subject.info[subject_code]['신규매매수량']
+
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
