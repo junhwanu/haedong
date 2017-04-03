@@ -17,6 +17,9 @@ def create_data(subject_code):
     data[subject_code]['이동평균선'] = {}
     data[subject_code]['지수이동평균선'] = {}
 
+    #Add
+    data[subject_code]['이전반전시SAR값'] = 0
+
     for days in data['이동평균선']['일수']:
         data[subject_code]['이동평균선'][days] = []
         data[subject_code]['지수이동평균선'][days] = []
@@ -646,6 +649,8 @@ def calculate_sar(subject_code):
             
             ep = the_lowest_price
             
+            data[subject_code]['이전반전시SAR값'] = next_sar
+            
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
             t_sar = {}
             t_sar['시작값'] = ep
@@ -680,6 +685,8 @@ def calculate_sar(subject_code):
             the_highest_price = data[subject_code]['고가'][index]
             
             ep = the_highest_price
+            
+            data[subject_code]['이전반전시SAR값'] = next_sar
             
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
             t_sar = {}

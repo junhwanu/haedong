@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-import kiwoom, log, contract, subject, calc, time, pymysql
+import kiwoom, log, contract, subject, calc, time, pymysql, subject
 import log_result as res
 
 curs = None
@@ -13,11 +13,11 @@ def init():
 
     start_date = input()
     #end_date = get_yesterday()
-    end_date = '20170326'
+    end_date = '20170330'
     #end_date = str(int(start_date) + 1)
     print('종목코드를 입력하세요. (ex. CL)')
     subject_code = input()
-
+    subject.GC = subject_code
     kw = kiwoom.api(2)
 
     connect()
