@@ -18,7 +18,7 @@ def is_it_OK(subject_code, current_price):
     gap_between_5ma_current_price = 3 # 전전 5이평선과 틱 차이로 급격하게 변할시 바로 매매
 
 
-    #print(get_time(0,subject_code))
+    #log.info(get_time(0,subject_code))
     profit_tick = subject.info[subject_code]['익절틱']
     sonjal_tick = subject.info[subject_code]['손절틱']
     mesu_medo_type = None
@@ -39,19 +39,19 @@ def is_it_OK(subject_code, current_price):
                 log.debug("종목코드(" + subject_code + ") 하향 반전.")
                 
                 if previous_profit > 50:
-                    print("이전 이익이 500 이상으로 매매포기")
+                    log.info("이전 이익이 500 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
                     return false
                 
                 if calc.data[subject_code]['이동평균선'][5][-1] - current_price > subject.info[subject_code]['단위']* gap_between_5ma_current_price:
-                    print("급격히 하락하여 바로 매도주문 들어갑니다.")
+                    log.info("급격히 하락하여 바로 매도주문 들어갑니다.")
                     pass
                 else:
                     subject.info[subject_code]['매도대기목표가'] = current_price + subject.info[subject_code]['단위']*subject.info[subject_code]['sar매매틱간격']
                     subject.info[subject_code]['상태'] = '매도대기'
-                    print("천천히 하락하여 매도 대기 상태로 변경")
+                    log.info("천천히 하락하여 매도 대기 상태로 변경")
                     return false
                 
             elif calc.data[subject_code]['플로우'][-2] =='하향' and my_util.is_sorted(subject_code) == '상승세':
@@ -59,19 +59,19 @@ def is_it_OK(subject_code, current_price):
                 log.debug("종목코드(" + subject_code + ") 상향 반전.")
 
                 if previous_profit > 50:
-                    print("이전 이익이 500 이상으로 매매포기")
+                    log.info("이전 이익이 500 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
                     return false
 
                 if current_price - calc.data[subject_code]['이동평균선'][5][-1] > subject.info[subject_code]['단위']* gap_between_5ma_current_price :
-                    print("급격히 상승하여 바로 매수주문 들어갑니다.")
+                    log.info("급격히 상승하여 바로 매수주문 들어갑니다.")
                     pass
                 else:
                     subject.info[subject_code]['매도대기목표가'] = current_price - subject.info[subject_code]['단위']*subject.info[subject_code]['sar매매틱간격']
                     subject.info[subject_code]['상태'] = '매수대기'
-                    print("천천히 상승하여 매수 대기 상태로 변경")
+                    log.info("천천히 상승하여 매수 대기 상태로 변경")
                     return false
                
             else: return false
@@ -81,19 +81,19 @@ def is_it_OK(subject_code, current_price):
                 log.debug("종목코드(" + subject_code + ") 상향 반전.")
 
                 if previous_profit > 50:
-                    print("이전 이익이 500 이상으로 매매포기")
+                    log.info("이전 이익이 500 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
                     return false
                 
                 if current_price - calc.data[subject_code]['이동평균선'][5][-1] > subject.info[subject_code]['단위']* gap_between_5ma_current_price:
-                    print("급격히 상승하여 바로 매수주문 들어갑니다.")
+                    log.info("급격히 상승하여 바로 매수주문 들어갑니다.")
                     pass
                 else:
                     subject.info[subject_code]['매도대기목표가'] = current_price - subject.info[subject_code]['단위']*subject.info[subject_code]['sar매매틱간격']
                     subject.info[subject_code]['상태'] = '매수대기'
-                    print("천천히 상승하여 매수 대기 상태로 변경")
+                    log.info("천천히 상승하여 매수 대기 상태로 변경")
                     return false
                 
             elif calc.data[subject_code]['플로우'][-2] =='상향' and my_util.is_sorted(subject_code) == '하락세':
@@ -101,19 +101,19 @@ def is_it_OK(subject_code, current_price):
                 log.debug("종목코드(" + subject_code + ") 하향 반전.")
                 
                 if previous_profit > 50:
-                    print("이전 이익이 500 이상으로 매매포기")
+                    log.info("이전 이익이 500 이상으로 매매포기")
                     temp_index = calc.data[subject_code]['idx']
                     subject.info[subject_code]['상태'] = '중립대기'
                     previous_profit = 0
                     return false
                 
                 if calc.data[subject_code]['이동평균선'][5][-1] - current_price > subject.info[subject_code]['단위']* gap_between_5ma_current_price:
-                    print("급격히 하락하여 바로 매도주문 들어갑니다.")
+                    log.info("급격히 하락하여 바로 매도주문 들어갑니다.")
                     pass
                 else:
                     subject.info[subject_code]['매도대기목표가'] = current_price + subject.info[subject_code]['단위']*subject.info[subject_code]['sar매매틱간격']
                     subject.info[subject_code]['상태'] = '매도대기'
-                    print("천천히 하락하여 매도 대기 상태로 변경")
+                    log.info("천천히 하락하여 매도 대기 상태로 변경")
                     return false
                 
             else: return false
@@ -127,13 +127,13 @@ def is_it_OK(subject_code, current_price):
         if subject.info[subject_code]['상태'] == '매수대기':
             if current_price < subject.info[subject_code]['매수대기목표가']:
                 mesu_medo_type = '신규매수'
-                print("%s 종목 매수대기목표가 터치하여 매수, 매수대기목표가:%s" % (subject_code,subject.info[subject_code]['매수대기목표가']))
+                log.info("%s 종목 매수대기목표가 터치하여 매수, 매수대기목표가:%s" % (subject_code,subject.info[subject_code]['매수대기목표가']))
             else: return false
 
         elif subject.info[subject_code]['상태'] == '매도대기':
             if current_price > subject.info[subject_code]['매도대기목표가']:
                 mesu_medo_type = '신규매도'
-                print("%s 종목 매도대기목표가 터치하여 매도, 매도대기목표가:%s" % (subject_code,subject.info[subject_code]['매도대기목표가']))
+                log.info("%s 종목 매도대기목표가 터치하여 매도, 매도대기목표가:%s" % (subject_code,subject.info[subject_code]['매도대기목표가']))
             else: return false
         else: return false
     else: return false
@@ -144,7 +144,7 @@ def is_it_OK(subject_code, current_price):
     else:
         if calc.data[subject_code]['idx'] - temp_index > 2:
             if previous_profit > 500:
-                print("이전 이익이 500 이상으로 매매포기")
+                log.info("이전 이익이 500 이상으로 매매포기")
                 temp_index = calc.data[subject_code]['idx']
                 subject.info[subject_code]['상태'] = '중립대기'
 
@@ -152,14 +152,14 @@ def is_it_OK(subject_code, current_price):
         else:
             if previous_profit != 0:
                 previous_profit = 0
-                print("ddd")
+                log.info("ddd")
                 return false 
     '''
         
 
 
-    if get_time(0,subject_code) > 2100 and get_time(0,subject_code) < 2300:
-        print("21~23 시 사이라 매매 포기 합니다.")
+    if get_time(0,subject_code) > 2100 and get_time(0,subject_code) < 2230:
+        log.info("21:00~22:30 사이라 매매 포기 합니다.")
         #subject.info[subject_code]['상태'] = '매매완료'
         subject.info[subject_code]['상태'] = '중립대기'
         return false
@@ -169,8 +169,8 @@ def is_it_OK(subject_code, current_price):
     else:
         contract_cnt = 2
     
-    if subject.info[subejct_code]['신규매매수량'] < contract_cnt:
-        contract_cnt = subject.info[subejct_code]['신규매매수량']
+    if subject.info[subject_code]['신규매매수량'] < contract_cnt:
+        contract_cnt = subject.info[subject_code]['신규매매수량']
 
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
@@ -178,7 +178,7 @@ def is_it_OK(subject_code, current_price):
    
 
     subject.info[subject_code]['반전시현재가'] = current_price
-    print("반전시현재가는 %s 입니다." % current_price)
+    log.info("반전시현재가는 %s 입니다." % current_price)
     
     order_contents = {'신규주문':True, '매도수구분':mesu_medo_type, '익절틱':profit_tick, '손절틱':sonjal_tick, '수량':contract_cnt}
     subject.info[subject_code]['주문내용'] = order_contents
@@ -263,7 +263,7 @@ def get_time(add_min,subject_code):
         current_time = current_hour*100 + current_min
     
     elif d.get_mode() == d.TEST: #테스트
-        #print(calc.data[subject_code]['체결시간'][-1])
+        #log.info(calc.data[subject_code]['체결시간'][-1])
         current_hour = int(str(calc.data[subject_code]['체결시간'][-1])[8:10])
         current_min = int(str(calc.data[subject_code]['체결시간'][-1])[10:12])
         current_min += add_min
@@ -271,8 +271,8 @@ def get_time(add_min,subject_code):
             current_hour += 1
             current_min -= 60
     
-        #print(current_hour)
-        #print(current_min)
+        #log.info(current_hour)
+        #log.info(current_min)
         current_time = current_hour*100 + current_min
         
         current_time = int(str(calc.data[subject_code]['체결시간'][-1])[8:12])
