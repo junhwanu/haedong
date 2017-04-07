@@ -568,7 +568,7 @@ class api():
             self.current_candle[subject_code].append(current_price)
 
             if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and self.state == '매매가능':# and my_util.is_trade_time(subject_code) is True:
-                log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
+                #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
                 # 청산
                 if contract.get_contract_count(subject_code) > 0 and subject.info[subject_code]['상태'] != '청산시도중':
@@ -858,7 +858,7 @@ class api():
                 
                 try:
                     if d.get_mode() == d.REAL:
-                        gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
+                        gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
                 except Exception as err: pass
 
 
@@ -885,6 +885,7 @@ class api():
                 # 종목 정보 로그 찍기
                 log.info("참여 종목 : %s" % subject.info.values())
                 #self.set_jango_from_db()
+
 
         else:
             c_time = "%02d%02d" % (time.localtime().tm_hour, time.localtime().tm_min)
