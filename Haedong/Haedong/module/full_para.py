@@ -117,7 +117,7 @@ def is_it_OK(subject_code, current_price):
         contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
     
     
-    contract_cnt = 1
+    contract_cnt = 2
     log.debug("종목코드(" + subject_code + ") 신규 매매 계약 수 " + str(contract_cnt))
     
     if contract_cnt == 0: return false
@@ -154,8 +154,8 @@ def is_it_sell(subject_code, current_price):
                     contract.list[subject_code]['손절가'] = current_price - subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                     num_cont = int((contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE])/2)
                     if num_cont < 1:
-                        num_count = 1
-                    return {'신규주문':True, '매도수구분':'신규매도', '수량':num_count}
+                        num_cont = 1
+                    return {'신규주문':True, '매도수구분':'신규매도', '수량':num_cont}
                 else:
                     return {'신규주문':True, '매도수구분':'신규매도', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
             elif calc.data[subject_code]['플로우'][-1] == '상향' and (subject.info[subject_code]['sar'] + sar_before_reverse_tic*subject.info[subject_code]['단위']) > current_price:
@@ -182,8 +182,8 @@ def is_it_sell(subject_code, current_price):
                     contract.list[subject_code]['손절가'] = current_price + subject.info[subject_code]['익절틱'] * subject.info[subject_code]['단위']
                     num_cont = int((contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE])/2)
                     if num_cont < 1:
-                        num_count = 1
-                    return {'신규주문':True, '매도수구분':'신규매수', '수량':num_count}
+                        num_cont = 1
+                    return {'신규주문':True, '매도수구분':'신규매수', '수량':num_cont}
                 else:
                     return {'신규주문':True, '매도수구분':'신규매수', '수량':contract.list[subject_code]['계약타입'][contract.SAFE] + contract.list[subject_code]['계약타입'][contract.DRIBBLE]}
             elif calc.data[subject_code]['플로우'][-1] == '하향' and (subject.info[subject_code]['sar'] - sar_before_reverse_tic*subject.info[subject_code]['단위']) < current_price:
