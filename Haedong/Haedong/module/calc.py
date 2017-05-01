@@ -18,7 +18,7 @@ def create_data(subject_code):
     data[subject_code]['지수이동평균선'] = {}
 
     #Add
-    data[subject_code]['이전반전시SAR값'] = 0
+    data[subject_code]['이전반전시SAR값'] = [0]
 
     for days in data['이동평균선']['일수']:
         data[subject_code]['이동평균선'][days] = []
@@ -649,9 +649,16 @@ def calculate_sar(subject_code):
             
             ep = the_lowest_price
             
-            data[subject_code]['이전반전시SAR값'] = next_sar
-            
+            data[subject_code]['이전반전시SAR값'].append(next_sar)
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+            
+            if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
+                subject.info[subject_code]['맞틀리스트'].append('틀')
+                #print(subject.info[subject_code]['맞틀리스트'])
+            else:
+                subject.info[subject_code]['맞틀리스트'].append('맞')
+                #print(subject.info[subject_code]['맞틀리스트'])
+                
             t_sar = {}
             t_sar['시작값'] = ep
             if data[subject_code]['idx'] > 1800:
@@ -686,9 +693,16 @@ def calculate_sar(subject_code):
             
             ep = the_highest_price
             
-            data[subject_code]['이전반전시SAR값'] = next_sar
-            
+            data[subject_code]['이전반전시SAR값'].append(next_sar)
             data[subject_code]['SAR반전시간'].append(data[subject_code]['체결시간'][index])
+            
+            if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
+                subject.info[subject_code]['맞틀리스트'].append('맞')
+                #print(subject.info[subject_code]['맞틀리스트'])
+            else:
+                subject.info[subject_code]['맞틀리스트'].append('틀')
+                #print(subject.info[subject_code]['맞틀리스트'])
+            
             t_sar = {}
             t_sar['시작값'] = ep            
             if data[subject_code]['idx'] > 1800:
