@@ -114,7 +114,7 @@ def is_it_OK(subject_code, current_price):
 
 def is_it_sell(subject_code, current_price):
     index = calc.data[subject_code]['idx']
-    first_chungsan = 120
+    first_chungsan = 100
     first_chungsan_dribble = 5
     
     second_chungsan = 300
