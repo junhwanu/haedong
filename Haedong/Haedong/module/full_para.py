@@ -21,7 +21,7 @@ def is_it_OK(subject_code, current_price):
         log.debug('신규 주문 가능상태가 아니므로 매매 불가. 상태 : ' + subject.info[subject_code]['상태'])
         return false
     
-    log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
+    #log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
     if subject.info[subject_code]['flow'] == '상향': 
         if current_price < subject.info[subject_code]['sar']:
             log.debug("종목코드(" + subject_code + ") 하향 반전.")
@@ -99,10 +99,54 @@ def is_it_OK(subject_code, current_price):
     profit = profit/subject.info[subject_code]['단위']
     if profit != 0 and profit > 50:
         print("이전 profit이 50 이상으로 매매 포기 profit:%s" % profit)
+        res.info("이전 profit이 50 이상으로 매매 포기 profit:%s" % profit)
+        if profit > 160:
+            subject.info[subject_code]['맞틀리스트'].append('틀')
+            subject.info[subject_code]['맞틀리스트'].append('틀')
+            subject.info[subject_code]['맞틀리스트'].append('틀')
+            subject.info[subject_code]['맞틀리스트'].append('틀')
+            subject.info[subject_code]['맞틀리스트'].append('틀')
+            res.info("!!!!!!!!!!!!!!!!!!")
+            res.info(subject.info[subject_code]['맞틀리스트'])
         return false
     
+    
+    
+    if len(calc.data[subject_code]['SAR반전시간']) > 0 and calc.data[subject_code]['SAR반전시간'][-1] == calc.data[subject_code]['체결시간'][-1]: # 반전 후 SAR로 갱신되었다면
+
+        if subject.info[subject_code]['맞틀리스트'][-4:] == ['맞','틀','틀', '틀']:
+            log.info("연속 4번 틀 로 매매하지 않습니다.")
+            return false
+        
+        if subject.info[subject_code]['맞틀리스트'][-3:] == ['틀','틀','틀']:
+            if subject.info[subject_code]['맞틀리스트'][-5:] == ['맞','틀','틀','틀','틀']:
+                pass
+            else:
+                log.info("연속 4번 틀 로 매매하지 않습니다.")
+                return false
+        
+        if subject.info[subject_code]['맞틀리스트'][-4:] == ['틀','틀','틀','맞']:
+            log.info("연속 4번 틀 로 매매하지 않습니다.")
+            return false
+    else:
+        if subject.info[subject_code]['맞틀리스트'][-3:] == ['맞','틀','틀'] and profit < 0:
+            log.info("연속 4번 틀 로 매매하지 않습니다.")
+            return false
+        
+        if subject.info[subject_code]['맞틀리스트'][-3:] == ['틀','틀','틀']:
+
+            if subject.info[subject_code]['맞틀리스트'][-4:] == ['맞','틀','틀','틀'] and profit < 0:
+                pass
+            elif profit > 0:
+                log.info("연속 4번 틀 로 매매하지 않습니다.")
+                return false
+            else:
+                log.info("연속 4번 틀 로 매매하지 않습니다.")
+                return false
+    
+    '''
     if subject.info[subject_code]['맞틀리스트'][-3:] == ['맞','틀','틀'] and profit < 0:
-        log.info("연속 4번 틀 로 매매하지 않습니다.")
+        res.info("연속 4번 틀 로 매매하지 않습니다.")
         return false
     
     if subject.info[subject_code]['맞틀리스트'][-3:] == ['틀','틀','틀']:
@@ -111,16 +155,16 @@ def is_it_OK(subject_code, current_price):
         elif subject.info[subject_code]['맞틀리스트'][-4:] == ['맞','틀','틀','틀'] and profit < 0:
             pass 
         elif profit > 0:
-            log.info("연속 4번 틀 로 매매하지 않습니다.")
+            res.info("연속 4번 틀 로 매매하지 않습니다.")
             return false
         else:
-            log.info("연속 4번 틀 로 매매하지 않습니다.")
+            res.info("연속 4번 틀 로 매매하지 않습니다.")
             return false
     
     if subject.info[subject_code]['맞틀리스트'][-4:] == ['틀','틀','틀','맞']:
-        log.info("연속 4번 틀 로 매매하지 않습니다.")
+        res.info("연속 4번 틀 로 매매하지 않습니다.")
         return false
-    
+    '''
     if d.get_mode() == d.REAL:
         contract_cnt = int(contract.my_deposit / subject.info[subject_code]['위탁증거금'])
     

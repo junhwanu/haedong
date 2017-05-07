@@ -526,7 +526,7 @@ class api():
 
                         log.info("캔들 추가, 체결시간: " + str(current_time))
                     
-                        log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
+                        #log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
                         '''
                         if subject.info[subject_code]['flow'] == '상향': 
                             log.debug("매수 예정가 : " + str(calc.data[subject_code]['추세선'][-1] - 5 * subject.info[subject_code]['단위']))
