@@ -13,7 +13,7 @@ def init():
 
     start_date = input()
     #end_date = get_yesterday()
-    end_date = '20170506'
+    end_date = '20170423'
     #end_date = str(int(start_date) + 1)
     print('종목코드를 입력하세요. (ex. CL)')
     subject_code = input()
@@ -21,56 +21,108 @@ def init():
     kw = kiwoom.api(2)
 
     connect()
-    for date in range( int(start_date), int(end_date) ):
-        tick_cnt = 0
-        candle_cnt = 0
-        print(str(date) + '테스트 시작.')
-        table_name = subject_code  +'_'+ str(date)
-        log.info('table_name : ' + table_name)
-        if exist_table(table_name) == False:
-            log.info('테이블이 없음.')
-            continue
+
+    if subject.info[subject_code]['전략'] == '남한산성':
+        for date in range( int(start_date), int(end_date) ):
+            tick_cnt = 0
+            candle_cnt = 0
+            print(str(date) + '테스트 시작.')
+            table_name = subject_code  +'_'+ str(date)
+            log.info('table_name : ' + table_name)
+            if exist_table(table_name) == False:
+                log.info('테이블이 없음.')
+                continue
         
-        # subject_code, data 날짜에 맞는 테이블을 불러온다.
-        candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}
-        data = read_tick(table_name)
-        print('데이터개수 : ' + str(len(data)))
-
-        time.sleep(2)
-        for idx in range(len(data)):
-            _tick = {}
-            tick = data[idx] # 한 tick 읽어 온다.
+            # subject_code, data 날짜에 맞는 테이블을 불러온다.
+            candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}
+            data = read_tick(table_name)
             
-            if tick != None: # tick 정보가 있으면
-                candle['현재가'] = float(tick[1])
-                candle['거래량'] += int(tick[4])
-                candle['체결시간'] = tick[0]
-                candle['영업일자'] = tick[5]
-                
-                if tick_cnt == 0:
-                    candle['시가'] = float(tick[1])
-                if candle['고가'] < float(tick[1]):
-                    candle['고가'] = float(tick[1])
-                if candle['저가'] > float(tick[1]):
-                    candle['저가'] = float(tick[1])
+            time.sleep(2)
+            start_time = str(data[0][0])[8:10]
 
-                recent_price[subject_code] = float(tick[1])
-                _tick = setTick(tick)
+            for idx in range(len(data)):
+                _tick = {}
+                tick = data[idx] # 한 tick 읽어 온다.
+                if tick != None:
+                    if str(tick[0])[8:10] != start_time: # 캔들 완성
+                        tick_cnt = 0
+                        candle_cnt += 1
+                        #res.info(str(candle))
+                        kw.OnReceiveTrData(subject.info[subject_code]['화면번호'], '해외선물옵션분차트조회', None, None, None, candle) 
+                        print(candle)
+                        candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}  
+                        start_time = str(tick[0])[8:10]
+                    else:
+                        candle['현재가'] = float(tick[1])
+                        candle['거래량'] += int(tick[4])
+                        candle['체결시간'] = tick[0]
+                        candle['영업일자'] = tick[5]
                 
-                tick_cnt += 1
-                if candle_cnt > 10:
-                    kw.OnReceiveRealData(subject_code, '해외선물시세', _tick)
-                    pass
-                if tick_cnt == subject.info[subject_code]['시간단위']:
-                    tick_cnt = 0
-                    candle_cnt += 1
-                    #res.info(str(candle))
-                    kw.OnReceiveTrData(subject.info[subject_code]['화면번호'], '해외선물옵션틱그래프조회', None, None, None, candle) 
-                    candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}  
-                    #input()
-            else:
-                print(str(date) + ' 테스트 종료.')
-                break 
+                        if tick_cnt == 0:
+                            candle['시가'] = float(tick[1])
+                        if candle['고가'] < float(tick[1]):
+                            candle['고가'] = float(tick[1])
+                        if candle['저가'] > float(tick[1]):
+                            candle['저가'] = float(tick[1])
+
+                        recent_price[subject_code] = float(tick[1])
+                        _tick = setTick(tick)
+                        if candle_cnt > 10:
+                            kw.OnReceiveRealData(subject_code, '해외선물시세', _tick)
+                else:
+                    print(str(date) + ' 테스트 종료.')
+                    break 
+                
+    else:
+        for date in range( int(start_date), int(end_date) ):
+            tick_cnt = 0
+            candle_cnt = 0
+            print(str(date) + '테스트 시작.')
+            table_name = subject_code  +'_'+ str(date)
+            log.info('table_name : ' + table_name)
+            if exist_table(table_name) == False:
+                log.info('테이블이 없음.')
+                continue
+        
+            # subject_code, data 날짜에 맞는 테이블을 불러온다.
+            candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}
+            data = read_tick(table_name)
+            print('데이터개수 : ' + str(len(data)))
+
+            time.sleep(2)
+            for idx in range(len(data)):
+                _tick = {}
+                tick = data[idx] # 한 tick 읽어 온다.
+                if tick != None: # tick 정보가 있으면
+                    candle['현재가'] = float(tick[1])
+                    candle['거래량'] += int(tick[4])
+                    candle['체결시간'] = tick[0]
+                    candle['영업일자'] = tick[5]
+                
+                    if tick_cnt == 0:
+                        candle['시가'] = float(tick[1])
+                    if candle['고가'] < float(tick[1]):
+                        candle['고가'] = float(tick[1])
+                    if candle['저가'] > float(tick[1]):
+                        candle['저가'] = float(tick[1])
+
+                    recent_price[subject_code] = float(tick[1])
+                    _tick = setTick(tick)
+                
+                    tick_cnt += 1
+                    if candle_cnt > 10:
+                        kw.OnReceiveRealData(subject_code, '해외선물시세', _tick)
+                        pass
+                    if tick_cnt == subject.info[subject_code]['시간단위']:
+                        tick_cnt = 0
+                        candle_cnt += 1
+                        #res.info(str(candle))
+                        kw.OnReceiveTrData(subject.info[subject_code]['화면번호'], '해외선물옵션틱그래프조회', None, None, None, candle) 
+                        candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}  
+                        #input()
+                else:
+                    print(str(date) + ' 테스트 종료.')
+                    break 
     disconnect()
 
 def setTick(tick):

@@ -66,8 +66,14 @@
     <Compile Include="module\log_result.py" />
     <Compile Include="module\my_cmd.py" />
     <Compile Include="module\my_util.py" />
+    <Compile Include="module\ns.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="module\para.py" />
     <Compile Include="module\parabolic_sar.py" />
+    <Compile Include="module\reverse_full_para.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="module\santa.py">
       <SubType>Code</SubType>
     </Compile>
