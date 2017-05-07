@@ -3,7 +3,7 @@ import screen
 
 import define as d
 
-GC = "GC"
+GC = "GCM17"
 
 info = {      
             GC:{
@@ -27,7 +27,7 @@ info = {
                 "af":0.0008,
                 "maxaf":0.002,
                 "flow":"",
-                "전략":"풀파라",
+                "전략":"남한산성",
                 "누적수익": 0,
                 "신규매매수량":2,
                 "반전시현재가":0,

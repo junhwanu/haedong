@@ -229,7 +229,21 @@ class api():
             time.sleep(0.05)
             rtn = self.comm_rq_data("해외선물옵션틱그래프조회","opc10001", prevNext, subject.info[subject_code]['화면번호'])
         
+    def request_week_info(self, subject_code, date, prevNext):
 
+        self.set_input_value("종목코드", subject_code)
+        self.set_input_value("조회일자", date)
+
+        rtn = self.comm_rq_data("해외선물옵션주차트조회","opc10004", prevNext, subject.info[subject_code]['화면번호'])
+
+        if rtn != 0:
+            # 에러코드별 로그
+            log.error(self.parse_error_code(rtn))
+            
+        while rtn == -200:
+            time.sleep(0.05)
+            rtn = self.comm_rq_data("해외선물옵션주차트조회","opc10004", prevNext, subject.info[subject_code]['화면번호'])
+        
     def set_input_value(self, sID, sValue):
         """
         Tran 입력 값을 서버통신 전에 입력한다.
@@ -325,6 +339,30 @@ class api():
             contract.my_deposit = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '주문가능금액').strip())
             log.info('예수금 현황 : ' + str(contract.my_deposit))
             return    
+        if sRQName == "해외선물옵션분차트조회":
+            for subject_code in subject.info.keys():
+                if sScrNo == subject.info[subject_code]['화면번호']:  
+                    if subject_code not in calc.data or calc.data[subject_code]['idx'] == -1:
+                        calc.create_data(subject_code)
+                        if d.get_mode() == d.TEST:
+                            self.recent_price[subject_code] = candle['현재가']
+                            self.recent_candle_time[subject_code] = candle['체결시간']
+
+                    if d.get_mode() == d.TEST: # 테스트
+                        price = candle
+
+                    # 캔들이 갱신되었는지 확인
+                    if self.recent_candle_time[subject_code] != price['체결시간'] or subject_code not in self.last_price or self.last_price[subject_code] != price:
+                        # 캔들 갱신
+                        calc.push(subject_code, price)
+                        self.recent_candle_time[subject_code] = price['체결시간']
+                        self.current_candle[subject_code] = []
+
+                        if d.get_mode() == d.REAL:
+                            log.info("캔들 추가, 체결시간: " + self.recent_candle_time[subject_code])
+                    
+                    self.last_price[subject_code] = price
+                    break
 
         if sRQName == "해외선물옵션틱그래프조회":
             for subject_code in subject.info.keys():
@@ -351,7 +389,7 @@ class api():
                                     price['저가'] = self.candle_data[subject_code][current_idx + 5]
                                     price['체결시간'] = self.candle_data[subject_code][current_idx + 2]
                                     price['거래량'] = self.candle_data[subject_code][current_idx + 1]
-                                
+                                    price['영업일자'] = self.candle_data[subject_code][current_idx + 6]
                                     current_idx -= 7
                                     ''' 오늘 데이터만 받아오는 코드
                                     if int(data[current_idx + 2]) >= int(start_time):
@@ -388,7 +426,8 @@ class api():
                                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = float(data[6])
                                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['체결시간'] = float(data[3])
                                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['거래량'] = float(data[2])
-                                    
+                                    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['영업일자'] = data[7]
+
                                     self.temp_candle[subject_code] = []
                                     if subject.info[subject_code]['현재가변동횟수'] == subject.info[subject_code]['시간단위']:
                                         self.temp_candle.append(subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
@@ -417,6 +456,7 @@ class api():
                         price['시가'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '시가')
                         price['체결시간'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '체결시간')
                         price['거래량'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '거래량')
+                        price['영업일자'] = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 1, '영업일자')
 
                         #subject.info[subject_code]['현재가변동횟수'] = int(self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRecordName, 0, '최종틱갯수'))
                     elif d.get_mode() == d.TEST: # 테스트
@@ -561,10 +601,6 @@ class api():
                         subject.info[subject_code]['청산내용'] = {'신규주문':True, '매도수구분':'신규매수', '수량': contract.get_contract_count(subject_code)}
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
             '''
-            # 최근가 평균으로 현재가 보정
-            self.recent_price_list[subject_code].append(current_price)
-            self.recent_price_list[subject_code].pop(0)
-            self.adjusted_price[subject_code] = round( float(sum(self.recent_price_list[subject_code])) / max(len(self.recent_price_list[subject_code]), 1) , subject.info[subject_code]['자릿수'])
             self.current_candle[subject_code].append(current_price)
 
             if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and self.state == '매매가능':# and my_util.is_trade_time(subject_code) is True:

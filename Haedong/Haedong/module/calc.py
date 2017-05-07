@@ -38,6 +38,7 @@ def create_data(subject_code):
     data[subject_code]['고가'] = []
     data[subject_code]['저가'] = []
     data[subject_code]['체결시간'] = []
+    data[subject_code]['영업일자'] = []
     data[subject_code]['캔들'] = []
     data[subject_code]['SAR반전시간'] = []
     data[subject_code]['매매가능가'] = 0
@@ -76,6 +77,19 @@ def create_data(subject_code):
 
     data[subject_code]['플로우'] = []
     data[subject_code]['SAR'] = []
+
+    # 남한산성 데이터
+    if subject.info[subject_code]['전략'] == '남한산성':
+        data[subject_code]['단기선'] = []
+        data[subject_code]['중기선'] = []
+        data[subject_code]['금일'] = {}
+        data[subject_code]['주간'] = {}
+        data[subject_code]['피보나치값'] = [23.6, 38.2, 50, 61.8, 76.4]
+        for idx in range(0, 5):
+            data[subject_code]['단기선'].append(0);
+            data[subject_code]['중기선'].append(0);
+
+    # 남한산성 데이터 종료
 
     #chart.create_figure(subject_code)
     #if d.get_mode() is d.REAL: chart.create_figure(subject_code)
@@ -125,14 +139,16 @@ def push(subject_code, price):
     lowest_price = float(price['저가'])
     current_time = int(price['체결시간'])
     volume = int(price['거래량'])
+    date = int(price['영업일자'])
 
-    candle = data[subject_code]['idx'] + 1, start_price, highest_price, lowest_price, current_price, volume
+    candle = data[subject_code]['idx'] + 1, start_price, highest_price, lowest_price, current_price, volume, date
 
     data[subject_code]['현재가'].append(current_price)
     data[subject_code]['시가'].append(start_price)
     data[subject_code]['고가'].append(highest_price)
     data[subject_code]['저가'].append(lowest_price)
     data[subject_code]['체결시간'].append(current_time)
+    data[subject_code]['영업일자'].append(date)
     data[subject_code]['캔들'].append(candle)
 
     data[subject_code]['idx'] = data[subject_code]['idx'] + 1
@@ -225,6 +241,9 @@ def calc(subject_code):
             init_sar(subject_code)
         elif data[subject_code]['idx'] > 5:
             calculate_sar(subject_code)
+    elif subject.info[subject_code]['전략'] == '남한산성':
+        if data[subject_code]['idx'] > 10:
+            calc_ns(subject_code)
 
 
 
@@ -395,6 +414,53 @@ def calc_stdev(subject_code):
 
     return math.sqrt(sum / (line_range - 1))
     
+##### 남한산성 데이터 계산 #####
+def calc_ns(subject_code):
+    ## 어제 중심선 찾기, 금일 시가 찾기
+    today_date = data[subject_code]['영업일자'][-1] # 오늘 영업일자
+    yesterday_highest = 0
+    yesterday_lowest = 9999999
+    data[subject_code]['금일']['저가'] = 9999999
+    data[subject_code]['금일']['고가'] = 0
+    for idx in range(data[subject_code]['idx'], 0, -1):
+        if data[subject_code]['금일']['저가'] > data[subject_code]['저가'][idx]:
+            data[subject_code]['금일']['저가'] = data[subject_code]['저가'][idx]
+        if data[subject_code]['금일']['고가'] < data[subject_code]['고가'][idx]:
+            data[subject_code]['금일']['고가'] = data[subject_code]['고가'][idx]
+
+        if data[subject_code]['영업일자'][idx] != today_date:
+            data[subject_code]['금일']['시가'] = data[subject_code]['시가'][idx+1] # 금일 시가
+            yesterday_date = data[subject_code]['영업일자'][idx]
+            for i in range(idx, -999999, -1):
+                if data[subject_code]['영업일자'][i] != yesterday_date: break
+                if data[subject_code]['고가'][i] > yesterday_highest:
+                    yesterday_highest = data[subject_code]['고가'][i]
+                if data[subject_code]['저가'][i] < yesterday_lowest:
+                    yesterday_lowest = data[subject_code]['저가'][i]
+            break
+
+    data[subject_code]['금일']['중심선'] = (yesterday_highest + yesterday_lowest) / 2
+
+    ## 단기로그선 계산
+    log_high = math.log10(data[subject_code]['금일']['고가'])
+    log_low = math.log10(data[subject_code]['금일']['저가'])
+    log_diff = log_high - log_low
+    for i in range(0, 5):
+        log_temp = log_diff * -data[subject_code]['피보나치값'][i] / 100
+        data[subject_code]['단기선'][i] = math.pow(10, log_high + log_temp)
+    print("Asdf")
+    log.info('금일 : ' + str(data[subject_code]['금일']))
+    log.info('단기선 : ' + str(data[subject_code]['단기선']))
+    ## 중기로그선 계산
+    '''
+    if is_monday:
+        #지난주 주봉 읽어옴
+     else:
+        #오늘 ~ 월요일 까지 60분봉 받아옴
+    '''
+
+    ## 완성봉 확인
+
 ##### 볼린저 밴드 계산 #####
 def calc_bollinger_bands(subject_code, length = 20, numsd = 2):
     if data[subject_code]['idx'] < length:
