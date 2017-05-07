@@ -228,7 +228,23 @@ class api():
         while rtn == -200:
             time.sleep(0.05)
             rtn = self.comm_rq_data("해외선물옵션틱그래프조회","opc10001", prevNext, subject.info[subject_code]['화면번호'])
-        
+    
+    def request_min_info(self, subject_code, tick_unit, prevNext):
+        print('여기까지')
+        self.set_input_value("종목코드", subject_code)
+        self.set_input_value("시간단위", tick_unit)
+
+        rtn = self.comm_rq_data("해외선물옵션분차트조회","opc10002", prevNext, subject.info[subject_code]['화면번호'])
+
+        if rtn != 0:
+            # 에러코드별 로그
+            log.error(self.parse_error_code(rtn))
+            
+        while rtn == -200:
+            time.sleep(0.05)
+            rtn = self.comm_rq_data("해외선물옵션분차트조회","opc10002", prevNext, dbsubject.info[subject_code]['화면번호'])
+    
+    
     def request_week_info(self, subject_code, date, prevNext):
 
         self.set_input_value("종목코드", subject_code)
@@ -340,17 +356,47 @@ class api():
             log.info('예수금 현황 : ' + str(contract.my_deposit))
             return    
         if sRQName == "해외선물옵션분차트조회":
+            print("여기까지2")
             for subject_code in subject.info.keys():
-                if sScrNo == subject.info[subject_code]['화면번호']:  
+                if sScrNo == subject.info[subject_code]['화면번호']:
+                    print("여기까지3")  
                     if subject_code not in calc.data or calc.data[subject_code]['idx'] == -1:
                         calc.create_data(subject_code)
                         if d.get_mode() == d.TEST:
                             self.recent_price[subject_code] = candle['현재가']
                             self.recent_candle_time[subject_code] = candle['체결시간']
-
+                    print("여기까지4")
                     if d.get_mode() == d.TEST: # 테스트
                         price = candle
 
+                    data = self.ocx.dynamicCall("GetCommFullData(QString, QString, int)", sTrCode, sRecordName, 0)
+                    data = data.split()
+
+                    self.candle_data[subject_code] = data
+
+                    print("여기까지5")
+                    current_idx = len(self.candle_data[subject_code]) - 7
+                    start_time = self.get_start_time(subject_code)
+                    print("여기까지6")
+                    print(current_idx)
+                    print(data)
+                    while current_idx >= 0:
+                        print("asdf")
+                        price['현재가'] = self.candle_data[subject_code][current_idx]
+                        price['시가'] = self.candle_data[subject_code][current_idx + 3]
+                        price['고가'] = self.candle_data[subject_code][current_idx + 4]
+                        price['저가'] = self.candle_data[subject_code][current_idx + 5]
+                        price['체결시간'] = self.candle_data[subject_code][current_idx + 2]
+                        price['거래량'] = self.candle_data[subject_code][current_idx + 1]
+                        price['영업일자'] = self.candle_data[subject_code][current_idx + 6]
+                        current_idx -= 7
+                        ''' 오늘 데이터만 받아오는 코드
+                        if int(data[current_idx + 2]) >= int(start_time):
+                            calc.push(subject_code, price)
+                        '''
+                        
+                        calc.push(subject_code, price)
+                    '''
                     # 캔들이 갱신되었는지 확인
                     if self.recent_candle_time[subject_code] != price['체결시간'] or subject_code not in self.last_price or self.last_price[subject_code] != price:
                         # 캔들 갱신
@@ -363,6 +409,7 @@ class api():
                     
                     self.last_price[subject_code] = price
                     break
+                    '''
 
         if sRQName == "해외선물옵션틱그래프조회":
             for subject_code in subject.info.keys():
@@ -489,7 +536,11 @@ class api():
                     del subject.info[subject_symbol]
                     
                     # 초기 데이터 요청
-                    self.request_tick_info(subject_code,subject.info[subject_code]["시간단위"], "")
+                    if subject.info[subject_code]['전략'] == '풀파라':
+                        self.request_tick_info(subject_code,subject.info[subject_code]["시간단위"], "")
+                    elif subject.info[subject_code]['전략'] == '남한산성':
+                        self.request_min_info(subject_code,subject.info[subject_code]["시간단위"], "")
+                        
                     time.sleep(0.3)
                         
             if d.RECEIVED_PRODUCT_COUNT == d.PRODUCT_CNT:

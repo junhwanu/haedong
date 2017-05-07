@@ -104,16 +104,7 @@ class api():
 
         self.set_input_value("종목코드", subject_code)
         self.set_input_value("시간단위", tick_unit)
-        '''
-        temp = prevNext
-        if prevNext != "":
-            tmp_num = temp.split()[2]
-            a = tmp_num[0:len(tmp_num)-6]
-            tmp_num.replace(a, "")
-            if int(a) <= 1756800000 and ' 09 ' in temp:
-                temp = temp.replace(' 09 ', ' 00 ')
-                temp = temp.replace('F0','EE')
-            '''
+
         rtn = self.comm_rq_data("해외선물옵션분차트조회","opc10002", prevNext, dbsubject.info[subject_code]['화면번호'])
 
         if rtn != 0:

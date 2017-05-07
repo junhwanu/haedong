@@ -3,7 +3,7 @@ import screen
 
 import define as d
 
-GC = "GCM17"
+GC = "GC"
 
 info = {      
             GC:{
