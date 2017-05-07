@@ -654,10 +654,10 @@ def calculate_sar(subject_code):
             
             if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
                 subject.info[subject_code]['맞틀리스트'].append('틀')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                log.info(subject.info[subject_code]['맞틀리스트'])
             else:
                 subject.info[subject_code]['맞틀리스트'].append('맞')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                log.info(subject.info[subject_code]['맞틀리스트'])
                 
             t_sar = {}
             t_sar['시작값'] = ep
@@ -698,10 +698,10 @@ def calculate_sar(subject_code):
             
             if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
                 subject.info[subject_code]['맞틀리스트'].append('맞')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                log.info(subject.info[subject_code]['맞틀리스트'])
             else:
                 subject.info[subject_code]['맞틀리스트'].append('틀')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                log.info(subject.info[subject_code]['맞틀리스트'])
             
             t_sar = {}
             t_sar['시작값'] = ep            

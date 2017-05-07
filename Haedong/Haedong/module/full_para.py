@@ -100,14 +100,14 @@ def is_it_OK(subject_code, current_price):
     if profit != 0 and profit > 50:
         print("이전 profit이 50 이상으로 매매 포기 profit:%s" % profit)
         res.info("이전 profit이 50 이상으로 매매 포기 profit:%s" % profit)
-        if profit > 160:
-            subject.info[subject_code]['맞틀리스트'].append('틀')
-            subject.info[subject_code]['맞틀리스트'].append('틀')
-            subject.info[subject_code]['맞틀리스트'].append('틀')
-            subject.info[subject_code]['맞틀리스트'].append('틀')
-            subject.info[subject_code]['맞틀리스트'].append('틀')
-            res.info("!!!!!!!!!!!!!!!!!!")
-            res.info(subject.info[subject_code]['맞틀리스트'])
+        #if profit > 160:
+        #    subject.info[subject_code]['맞틀리스트'].append('틀')
+        #    subject.info[subject_code]['맞틀리스트'].append('틀')
+        #    subject.info[subject_code]['맞틀리스트'].append('틀')
+        #    subject.info[subject_code]['맞틀리스트'].append('틀')
+        #    subject.info[subject_code]['맞틀리스트'].append('틀')
+        #    res.info("!!!!!!!!!!!!!!!!!!")
+        #    res.info(subject.info[subject_code]['맞틀리스트'])
         return false
     
     
