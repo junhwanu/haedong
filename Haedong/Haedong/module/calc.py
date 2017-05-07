@@ -77,6 +77,7 @@ def create_data(subject_code):
 
     data[subject_code]['플로우'] = []
     data[subject_code]['SAR'] = []
+    data[subject_code]['NS갱신시간'] = ""
 
     # 남한산성 데이터
     if subject.info[subject_code]['전략'] == '남한산성':
@@ -427,6 +428,8 @@ def calc_ns(subject_code):
             data[subject_code]['금일']['저가'] = data[subject_code]['저가'][idx]
         if data[subject_code]['금일']['고가'] < data[subject_code]['고가'][idx]:
             data[subject_code]['금일']['고가'] = data[subject_code]['고가'][idx]
+        
+        
 
         if data[subject_code]['영업일자'][idx] != today_date:
             data[subject_code]['금일']['시가'] = data[subject_code]['시가'][idx+1] # 금일 시가

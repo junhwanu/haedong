@@ -373,15 +373,12 @@ class api():
                     data = data.split()
 
                     self.candle_data[subject_code] = data
-
-                    print("여기까지5")
+                    
                     current_idx = len(self.candle_data[subject_code]) - 7
                     start_time = self.get_start_time(subject_code)
-                    print("여기까지6")
-                    print(current_idx)
-                    print(data)
+                                        
                     while current_idx >= 0:
-                        print("asdf")
+                        
                         price['현재가'] = self.candle_data[subject_code][current_idx]
                         price['시가'] = self.candle_data[subject_code][current_idx + 3]
                         price['고가'] = self.candle_data[subject_code][current_idx + 4]
@@ -616,17 +613,7 @@ class api():
                         calc.push(subject_code, subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
 
                         log.info("캔들 추가, 체결시간: " + str(current_time))
-                    
-                        #log.debug("종목코드(" + subject_code + ")  현재 Flow : " + subject.info[subject_code]['flow'] + " / SAR : " + str(subject.info[subject_code]['sar']) + " / 추세 : " + my_util.is_sorted(subject_code))
-                        '''
-                        if subject.info[subject_code]['flow'] == '상향': 
-                            log.debug("매수 예정가 : " + str(calc.data[subject_code]['추세선'][-1] - 5 * subject.info[subject_code]['단위']))
-                        elif subject.info[subject_code]['flow'] == '하향': 
-                            log.debug("매도 예정가 : " + str(calc.data[subject_code]['추세선'][-1] + 5 * subject.info[subject_code]['단위']))
-                        log.debug("추세선 : " + str(calc.data[subject_code]['추세선'][-1]))
-                        log.debug("추세선밴드 상한 : " + str(calc.data[subject_code]['추세선밴드']['상한선'][-1]))
-                        log.debug("추세선밴드 하한 : " + str(calc.data[subject_code]['추세선밴드']['하한선'][-1]))
-                        '''
+
                     else:
                         self.temp_candle[subject_code].append(subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']])
                         log.debug('초기 데이터 수신이 완료되지 않은 상태로 캔들이 완성되어 temp_candle에 삽입.')
@@ -634,6 +621,12 @@ class api():
                     subject.info[subject_code]['현재가변동횟수'] = 0
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
                     subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 999999
+                
+                if subject.info[subject_code]['전략'] == '남한산성': 
+                    if current_time[10:12] == '00':
+                        if current_time[8:10] != data[subject_code]['NS갱신시간']:
+                            data[subject_code]['NS갱신시간'] = current_time[8:10] 
+                            self.request_min_info(subject_code, "60", "")
                     
             elif d.get_mode() == d.TEST: #테스트
                 current_price = sRealData['현재가']    
@@ -670,6 +663,8 @@ class api():
                         sell_contents = big_para.is_it_sell(subject_code, current_price)
                     elif subject.info[subject_code]['전략'] == '풀파라':
                         sell_contents = full_para.is_it_sell(subject_code, current_price)
+                    elif subject.info[subject_code]['전략'] == '남한산성':
+                        sell_contents = ns.is_it_sell(subject_code, current_price)
                     if sell_contents['신규주문'] == True:
                         res.info('주문 체결시간 : ' + str(current_time))
                         subject.info[subject_code]['청산내용'] = sell_contents
@@ -710,6 +705,8 @@ class api():
                         order_contents = big_para.is_it_OK(subject_code, current_price)
                     elif subject.info[subject_code]['전략'] == '풀파라':
                         order_contents = full_para.is_it_OK(subject_code, current_price)
+                    elif subject.info[subject_code]['전략'] == '남한산성':
+                        order_contents = ns.is_it_OK(subject_code, current_price)
                     else:
                         return
 
