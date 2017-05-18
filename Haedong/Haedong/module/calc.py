@@ -726,6 +726,14 @@ def calculate_sar(subject_code):
                 log.info(subject.info[subject_code]['맞틀리스트'])
             else:
                 subject.info[subject_code]['맞틀리스트'].append('맞')
+                profit_tic = (next_sar - data[subject_code]['이전반전시SAR값'][-2])/subject.info[subject_code]['단위']
+                if profit_tic > 160:
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀') 
+                    log.info("profit is over 160 tic, so take your time until right flow is showed us")
                 log.info(subject.info[subject_code]['맞틀리스트'])
                 
             t_sar = {}
@@ -767,6 +775,14 @@ def calculate_sar(subject_code):
             
             if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
                 subject.info[subject_code]['맞틀리스트'].append('맞')
+                profit_tic = (data[subject_code]['이전반전시SAR값'][-2] - next_sar)/subject.info[subject_code]['단위']
+                if profit_tic > 160:
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    log.info("profit is over 160 tic, so take your time until right flow is showed us")
                 log.info(subject.info[subject_code]['맞틀리스트'])
             else:
                 subject.info[subject_code]['맞틀리스트'].append('틀')
