@@ -81,6 +81,7 @@ def create_data(subject_code):
 
     data[subject_code]['플로우'] = []
     data[subject_code]['SAR'] = []
+    data[subject_code]['NS갱신시간'] = ""
 
     # 남한산성 데이터
     if subject.info[subject_code]['전략'] == '남한산성':
@@ -446,6 +447,8 @@ def calc_ns(subject_code):
             data[subject_code]['금일']['저가'] = data[subject_code]['저가'][idx]
         if data[subject_code]['금일']['고가'] < data[subject_code]['고가'][idx]:
             data[subject_code]['금일']['고가'] = data[subject_code]['고가'][idx]
+        
+        
 
         if data[subject_code]['영업일자'][idx] != today_date:
             data[subject_code]['금일']['시가'] = data[subject_code]['시가'][idx+1] # 금일 시가
@@ -739,10 +742,18 @@ def calculate_sar(subject_code):
             
             if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
                 subject.info[subject_code]['맞틀리스트'].append('틀')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                log.info(subject.info[subject_code]['맞틀리스트'])
             else:
                 subject.info[subject_code]['맞틀리스트'].append('맞')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                profit_tic = (next_sar - data[subject_code]['이전반전시SAR값'][-2])/subject.info[subject_code]['단위']
+                if profit_tic > 160:
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀') 
+                    log.info("profit is over 160 tic, so take your time until right flow is showed us")
+                log.info(subject.info[subject_code]['맞틀리스트'])
                 
             t_sar = {}
             t_sar['시작값'] = ep
@@ -783,10 +794,18 @@ def calculate_sar(subject_code):
             
             if data[subject_code]['이전반전시SAR값'][-2] - next_sar > 0:
                 subject.info[subject_code]['맞틀리스트'].append('맞')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                profit_tic = (data[subject_code]['이전반전시SAR값'][-2] - next_sar)/subject.info[subject_code]['단위']
+                if profit_tic > 160:
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    subject.info[subject_code]['맞틀리스트'].append('틀')
+                    log.info("profit is over 160 tic, so take your time until right flow is showed us")
+                log.info(subject.info[subject_code]['맞틀리스트'])
             else:
                 subject.info[subject_code]['맞틀리스트'].append('틀')
-                #print(subject.info[subject_code]['맞틀리스트'])
+                log.info(subject.info[subject_code]['맞틀리스트'])
             
             t_sar = {}
             t_sar['시작값'] = ep            

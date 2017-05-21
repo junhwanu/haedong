@@ -13,7 +13,7 @@ def init():
 
     start_date = input()
     #end_date = get_yesterday()
-    end_date = '20170506'
+    end_date = '20170508'
     #end_date = str(int(start_date) + 1)
     print('종목코드를 입력하세요. (ex. CL)')
     subject_code = input()
@@ -164,7 +164,7 @@ def send_order(contract_type, subject_code, contract_cnt, order_type):
             order_info['체결수량'] = contract_cnt
 
     kw.OnReceiveChejanData('1', None, None, order_info)
-   
+        
     return 0
 
 def get_yesterday():
