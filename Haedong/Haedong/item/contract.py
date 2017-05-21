@@ -75,13 +75,17 @@ def add_contract(order_info, order_contents): # 계약타입(목표달성 청산
         list[subject_code]['계약타입'][DRIBBLE] = safe_num + dribble_num
         list[subject_code]['체결가'] = float(order_info['체결표시가격'])
         list[subject_code]['매도수구분'] = order_contents['매도수구분']
-
-        if order_contents['매도수구분'] == '신규매도':
-            list[subject_code]['익절가'] = list[subject_code]['체결가'] - order_contents['익절틱'] * subject.info[subject_code]['단위']
-            list[subject_code]['손절가'] = list[subject_code]['체결가'] + order_contents['손절틱'] * subject.info[subject_code]['단위']
-        elif order_contents['매도수구분'] == '신규매수':
-            list[subject_code]['익절가'] = list[subject_code]['체결가'] + order_contents['익절틱'] * subject.info[subject_code]['단위']
-            list[subject_code]['손절가'] = list[subject_code]['체결가'] - order_contents['손절틱'] * subject.info[subject_code]['단위']
+        
+        if order_contents['손절틱'] == 9999:
+            list[subject_code]['익절가'] = 0
+            list[subject_code]['손절가'] = 0
+        else:
+            if order_contents['매도수구분'] == '신규매도':
+                list[subject_code]['익절가'] = list[subject_code]['체결가'] - order_contents['익절틱'] * subject.info[subject_code]['단위']
+                list[subject_code]['손절가'] = list[subject_code]['체결가'] + order_contents['손절틱'] * subject.info[subject_code]['단위']
+            elif order_contents['매도수구분'] == '신규매수':
+                list[subject_code]['익절가'] = list[subject_code]['체결가'] + order_contents['익절틱'] * subject.info[subject_code]['단위']
+                list[subject_code]['손절가'] = list[subject_code]['체결가'] - order_contents['손절틱'] * subject.info[subject_code]['단위']
         list[subject_code]['보유수량'] = int(order_info['신규수량'])
         log.info('종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(safe_num) + '개, 드리블수량 ' + str(dribble_num) + '개 추가.')
         log.info('현재 보유 계약 수량, 종목코드 : ' + subject_code + ', 목표달성청산수량 ' + str(list[subject_code]['계약타입'][SAFE]) + '개, 드리블수량 ' + str(list[subject_code]['계약타입'][DRIBBLE]) + '개 보유')
