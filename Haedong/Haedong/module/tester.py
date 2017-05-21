@@ -13,7 +13,7 @@ def init():
 
     start_date = input()
     #end_date = get_yesterday()
-    end_date = '20170508'
+    end_date = '20170521'
     #end_date = str(int(start_date) + 1)
     print('종목코드를 입력하세요. (ex. CL)')
     subject_code = input()
@@ -23,9 +23,9 @@ def init():
     connect()
 
     if subject.info[subject_code]['전략'] == '남한산성':
+        candle_cnt = 0
         for date in range( int(start_date), int(end_date) ):
             tick_cnt = 0
-            candle_cnt = 0
             print(str(date) + '테스트 시작.')
             table_name = subject_code  +'_'+ str(date)
             log.info('table_name : ' + table_name)
@@ -37,7 +37,6 @@ def init():
             candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}
             data = read_tick(table_name)
             
-            time.sleep(2)
             start_time = str(data[0][0])[8:10]
 
             for idx in range(len(data)):
@@ -49,7 +48,6 @@ def init():
                         candle_cnt += 1
                         #res.info(str(candle))
                         kw.OnReceiveTrData(subject.info[subject_code]['화면번호'], '해외선물옵션분차트조회', None, None, None, candle) 
-                        print(candle)
                         candle = {'현재가':0, '거래량':0, '체결시간':0, '시가':0, '고가':0, '저가':999999999, '영업일자':0}  
                         start_time = str(tick[0])[8:10]
                     else:
@@ -67,7 +65,8 @@ def init():
 
                         recent_price[subject_code] = float(tick[1])
                         _tick = setTick(tick)
-                        if candle_cnt > 10:
+                        tick_cnt += 1
+                        if candle_cnt > 24:
                             kw.OnReceiveRealData(subject_code, '해외선물시세', _tick)
                 else:
                     print(str(date) + ' 테스트 종료.')

@@ -470,15 +470,14 @@ def calc_ns(subject_code):
     for i in range(0, 5):
         log_temp = log_diff * -data[subject_code]['피보나치값'][i] / 100
         data[subject_code]['단기선'][i] = math.pow(10, log_high + log_temp)
-    print("Asdf")
-    log.info('금일 : ' + str(data[subject_code]['금일']))
-    log.info('단기선 : ' + str(data[subject_code]['단기선']))
+    #log.info('금일 : ' + str(data[subject_code]['금일']))
+    #log.info('단기선 : ' + str(data[subject_code]['단기선']))
     ## 중기로그선 계산
     '''
     if is_monday:
-        #지난주 주봉 읽어옴
-     else:
-        #오늘 ~ 월요일 까지 60분봉 받아옴
+        # 지난주 주봉 읽어옴
+    else:
+        # 오늘 ~ 월요일 까지 60분봉 받아옴
     '''
 
     ## 완성봉 확인
