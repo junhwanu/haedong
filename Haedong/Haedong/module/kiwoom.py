@@ -968,7 +968,6 @@ class api():
             print("로그인 성공")
             # 계좌번호 저장
             self.account = self.get_login_info("ACCNO")
-            notification.sendMessage('로그인 성공.', self.account);
             log.info("계좌번호 : " + self.account)
             
             if d.get_mode() == d.REAL:   
