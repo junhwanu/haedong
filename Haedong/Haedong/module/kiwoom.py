@@ -951,7 +951,7 @@ class api():
                 
                 try:
                     if d.get_mode() == d.REAL:
-                        notification.sendMessage("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
+                        notification.sendMessage("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]" + str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
                         #gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
                 except Exception as err: pass
 
