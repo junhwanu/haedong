@@ -60,6 +60,7 @@
     <Compile Include="module\kiwoom.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="module\notification.py" />
     <Compile Include="module\log.py">
       <SubType>Code</SubType>
     </Compile>
