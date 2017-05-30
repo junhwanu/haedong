@@ -8,6 +8,7 @@ import subject, contract
 import my_util
 import log_result as res
 import jango
+import notification
 
 from PyQt5.QAxContainer import QAxWidget
 from PyQt5.QtWidgets import QApplication
@@ -843,6 +844,7 @@ class api():
                             print("first_chungsan=77")
                         '''
                         
+                        notification.sendMessage('보유계약 ' + str(remove_cnt) + '개 청산, 수익 : ' + str(round(profit, 1)), self.account)
                         res.info('누적 수익 : ' + str(subject.info[subject_code]['누적수익']))
                         if contract.get_contract_count(subject_code) == 0:
                             if profit > 0:
@@ -949,7 +951,8 @@ class api():
                 
                 try:
                     if d.get_mode() == d.REAL:
-                        gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
+                        notification.sendMessage("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]" + str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
+                        #gmail.send_email("신규매매[" + subject.info[subject_code]['주문내용']['매도수구분'] + "]", str(subject.info[subject_code]['주문내용']) + '    누적 수익 : ' + str(subject.info[subject_code]['누적수익']),self.account)
                 except Exception as err: pass
 
 
@@ -988,7 +991,8 @@ class api():
             if int(c_time) >= 800 or int(c_time) < 700:
                 # 메일 발송
                 if d.get_mode() == d.REAL:
-                    gmail.send_email('[긴급' + str(c_time) + '] 해동이 작동 중지', '에러코드')
+                    notification.sendMessage('[긴급' + str(c_time) + '] 해동이 작동 중지', '에러코드')
+                    #gmail.send_email('[긴급' + str(c_time) + '] 해동이 작동 중지', '에러코드')
 
                 # 자동이 재시작 로직 작성
                 pass

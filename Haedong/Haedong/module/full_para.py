@@ -137,9 +137,8 @@ def is_it_OK(subject_code, current_price):
 
             if subject.info[subject_code]['맞틀리스트'][-4:] == ['맞','틀','틀','틀'] and profit < 0:
                 pass
-            #elif profit > 0:
-            #    log.info("연속 4번 틀 로 매매하지 않습니다.")
-            #    return false
+            elif profit > 0:
+                pass
             else:
                 log.info("연속 4번 틀 로 매매하지 않습니다.")
                 return false
