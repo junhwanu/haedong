@@ -82,6 +82,10 @@ def create_data(subject_code):
     data[subject_code]['플로우'] = []
     data[subject_code]['SAR'] = []
     data[subject_code]['NS갱신시간'] = ""
+    
+    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']] = {}
+    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
+    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 99999
 
     # 남한산성 데이터
     if subject.info[subject_code]['전략'] == '남한산성':
@@ -138,6 +142,7 @@ def push(subject_code, price):
     highest_price = round(float(price['고가']), subject.info[subject_code]['자릿수'])
     lowest_price = round(float(price['저가']), subject.info[subject_code]['자릿수'])
     '''
+    #print(price)
     current_price = float(price['현재가'])
     start_price = float(price['시가'])
     highest_price = float(price['고가'])
@@ -235,6 +240,7 @@ def calc(subject_code):
         calc_linear_regression(subject_code)
         calc_bollinger_bands(subject_code)
         calc_ilmok_chart(subject_code)
+        
     elif subject.info[subject_code]['전략'] == '큰파라':
         calc_ma_line(subject_code)
         
@@ -462,6 +468,7 @@ def calc_ns(subject_code):
             break
 
     data[subject_code]['금일']['중심선'] = (yesterday_highest + yesterday_lowest) / 2
+    #print("금일 중심선은 %s 입니다" % data[subject_code]['금일']['중심선'])
 
     ## 단기로그선 계산
     log_high = math.log10(data[subject_code]['금일']['고가'])
