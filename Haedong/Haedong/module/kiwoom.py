@@ -693,7 +693,7 @@ class api():
                         self.send_order('신규매도', subject_code, contract.get_contract_count(subject_code))
             '''
             self.current_candle[subject_code].append(current_price)
-
+            #1
             if subject_code in self.recent_price.keys() and self.recent_price[subject_code] != current_price and self.state == '매매가능':# and my_util.is_trade_time(subject_code) is True:
                 #log.debug("price changed, " + str(self.recent_price[subject_code]) + " -> " + str(current_price) + ', ' + current_time)
                 
