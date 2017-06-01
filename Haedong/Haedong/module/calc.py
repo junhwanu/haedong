@@ -81,14 +81,17 @@ def create_data(subject_code):
 
     data[subject_code]['플로우'] = []
     data[subject_code]['SAR'] = []
-    data[subject_code]['NS갱신시간'] = ""
     
-    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']] = {}
-    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
-    subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 99999
-
+    
     # 남한산성 데이터
     if subject.info[subject_code]['전략'] == '남한산성':
+        
+        data[subject_code]['NS갱신시간'] = ""
+        subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']] = {}
+        subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['고가'] = 0
+        subject.info[subject_code]['현재캔들'][subject.info[subject_code]['시간단위']]['저가'] = 99999
+        subject.info[subject_code]['현재캔들']['체결시간'] = '000000'
+        
         data[subject_code]['단기선'] = []
         data[subject_code]['중기선'] = []
         data[subject_code]['금일'] = {}
@@ -135,14 +138,14 @@ def is_sorted(subject_code, lst):
 
 def push(subject_code, price):
     '''
-    캔들 추가
+       캔들 추가
     '''
     '''
     current_price = round(float(price['현재가']), subject.info[subject_code]['자릿수'])
     highest_price = round(float(price['고가']), subject.info[subject_code]['자릿수'])
     lowest_price = round(float(price['저가']), subject.info[subject_code]['자릿수'])
     '''
-    #print(price)
+    #log.info("종목:%s, 캔들:%s" % (subject_code,price))
     current_price = float(price['현재가'])
     start_price = float(price['시가'])
     highest_price = float(price['고가'])

@@ -4,6 +4,7 @@ import log_result as res
 import define as d
 
 def is_it_OK(subject_code, current_price):
+    print("ns_is_it_OK")
     global date
     false = {'신규주문':False}
     mesu_medo_type = ''
@@ -51,7 +52,7 @@ def is_it_OK(subject_code, current_price):
     
 
 def is_it_sell(subject_code, current_price):
-    
+    print("ns_is_it_sell")
     siga = calc.data[subject_code]['시가'][-1]
     goga = calc.data[subject_code]['고가'][-1]
     juga = calc.data[subject_code]['저가'][-1]
@@ -173,14 +174,14 @@ def get_mang_gg(subject_code,current_price):
     if current_price > start_price: # 매수일때
         for idx in range(0, 5):
             if calc.data[subject_code]['단기선'][idx] >= start_price and calc.data[subject_code]['단기선'][idx] <= current_price:
-                print("시발1" + str(calc.data[subject_code]['단기선'][idx]))
+                #print("망지지1" + str(calc.data[subject_code]['단기선'][idx]))
                 return calc.data[subject_code]['단기선'][idx]
         return 9999
     else: # 매도일때
         current_price = current_price + subject.info[subject_code]['단위']*2            
         for idx in range(0, 5):
             if calc.data[subject_code]['단기선'][idx] <= start_price and calc.data[subject_code]['단기선'][idx] >= current_price:
-                print("시발2" + str(calc.data[subject_code]['단기선'][idx]))
+                #print("망지지2" + str(calc.data[subject_code]['단기선'][idx]))
                 return calc.data[subject_code]['단기선'][idx]
         return 0
 
