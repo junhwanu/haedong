@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import sys, time, os
-import gmail, log, calc, santa, screen, para, tester, bol, chart, trend_band, big_para, full_para, ns
+import gmail, log, calc, santa, screen, para, tester, bol, trend_band, big_para, full_para, ns
 import define as d
 import json
 import math

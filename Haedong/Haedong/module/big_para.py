@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-import contract, subject, log, calc, time, chart, my_util
+import contract, subject, log, calc, time, my_util
 import define as d
 import log_result as res
 import datetime

@@ -1,8 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
-import subject, contract, log, chart, my_util
-import matplotlib.pyplot as plt
+import subject, contract, log, my_util
 import define as d
-from scipy import stats
 import log_result as res
 import math
 
