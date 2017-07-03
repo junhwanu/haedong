@@ -11,8 +11,8 @@ class Login(threading.Thread):
     USER_PASSWD = 'passwd'
     AUTH_PASSWD = 'passwd'
 
-    HAEDONG_PNAME = ["kfstarter.exe", "KFStarter.exe"]
-    HAEDONG_PID = 0
+    LOGIN_PNAME = ["kfstarter.exe", "KFStarter.exe"]
+    LOGIN_PID = 0
     REAL_INVEST = False
     AUTO_LOGIN = True
 
@@ -63,19 +63,25 @@ class Login(threading.Thread):
         looping_flag = True
         while looping_flag:
             for proc in psutil.process_iter():
-                if proc.name() in self.HAEDONG_PNAME:
-                    self.HAEDONG_PID = proc.pid
-                    print('로그인 프로그램 pid(%d)' % self.HAEDONG_PID)
+                if proc.name() in self.LOGIN_PNAME:
+                    self.LOGIN_PID = proc.pid
+                    print('로그인 프로그램 pid(%d)' % self.LOGIN_PID)
                     looping_flag = False
 
             if looping_flag :
                 print("로그인 프로그램을 찾는 중입니다.")
                 time.sleep(5)
 
-        app = pywinauto.Application().connect(process=self.HAEDONG_PID)
+        app = pywinauto.Application().connect(process=self.LOGIN_PID)
 
         title = "영웅문W Login"
         dlg = pywinauto.timings.WaitUntilPasses(20, 0.5, lambda: app.window_(title=title))
+
+        try :
+            dlg.Edit1.SetFocus()
+        except pywinauto.findwindows.ElementNotFoundError as err :
+            time.sleep(3)
+            print("로그인 윈도우를 찾지 못했습니다. 5초후 재시도")
 
         user_id = dlg.Edit1
         user_id.SetFocus()
