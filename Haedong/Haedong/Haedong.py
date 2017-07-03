@@ -7,24 +7,41 @@ import define as d
 import log_result as res
 import matplotlib.pyplot as plt
 import datetime
+import health_server
 
 kw = None
             
 if __name__ == "__main__":
     log.init(os.path.dirname(os.path.abspath(__file__).replace('\\','/')))
     res.init(os.path.dirname(os.path.abspath(__file__).replace('\\','/')))
-    
-    print('실제투자(1), 테스트(2), DB Insert(3)')
-    d.mode = int(input())
+
+    d.mode = 0
+
+    if len(sys.argv) == 1:
+        print('실제투자(1), 테스트(2), DB Insert(3)')
+        d.mode = int(input())
+
+    else :
+        d.mode = int(sys.argv[1])
         
     #cmd.init()
     if d.get_mode() == 1:
+
+        # health server run
+        health_server_thread = health_server.HealthConnectManager()
+        health_server_thread.start()
+
         try:
             kw = kiwoom.api()
         except Exception as err:
             body = str(err) + '\n'
             body = body + str(sys.exc_info()[0])
             gmail.send_email("[긴급] 해동이 작동중지.", body)
+
+            health_server_thread.close()
+            health_server_thread.join(3)
+            print("헬스 체크서버 종료")
+
     elif d.get_mode() == 2:
         tester.init() 
 

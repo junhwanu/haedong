@@ -12,6 +12,7 @@ import notification
 
 from PyQt5.QAxContainer import QAxWidget
 from PyQt5.QtWidgets import QApplication
+import auto_login
 
 kiwoom = None
 
@@ -60,6 +61,7 @@ class api():
 
             if self.connect() == 0:
                 self.app.exec_()
+
         elif d.get_mode() == d.TEST:
             self.state = '매매가능'
             pass
@@ -81,6 +83,11 @@ class api():
             rtn = self.ocx.dynamicCall("CommConnect(1)")
             if rtn == 0:
                 print("연결 성공")
+
+                # auto login
+                lg = auto_login.Login()
+                lg.start()
+
             else:
                 print("연결 실패")
 
@@ -294,7 +301,9 @@ class api():
         """ Quit the server """
 
         QApplication.quit()
-        sys.exit()  
+
+        raise NotImplementedError
+        #sys.exit()
 
     ####################################################
     # Control Event Handlers
