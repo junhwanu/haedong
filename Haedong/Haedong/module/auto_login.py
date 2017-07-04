@@ -11,57 +11,68 @@ class Login(threading.Thread):
     USER_PASSWD = 'passwd'
     AUTH_PASSWD = 'passwd'
 
-    HEADONG_PNAME = ""
-    HEADONG_PID = 0
+    HAEDONG_PNAME = ["kfstarter.exe", "KFStarter.exe"]
+    HAEDONG_PID = 0
     REAL_INVEST = False
+    AUTO_LOGIN = True
 
     def __init__(self):
         threading.Thread.__init__(self)
         self.__suspend = False
         self.__exit = False
 
-        self.HEADONG_PNAME = "kfstarter.exe"
-        self.HEADONG_PID = 0
-
         # 사용자 계정 정보 Config 읽기
         config = configparser.RawConfigParser()
-
         config.read(os.path.dirname(os.path.abspath(__file__).replace('\\','/')) + '/../config/user.cfg')
-        print(os.path.dirname(os.path.abspath(__file__).replace('\\','/')) + '/../config/user.cfg')
 
-        if config.has_section('user_account') and config.has_section('test_config'):
-            self.USER_ID = config.get('user_account', 'userid')
-            self.USER_PASSWD = config.get('user_account', 'userpasswd')
-            self.AUTH_PASSWD = config.get('user_account', 'authpasswd')
+        # config file searching
+        if config.has_section('AUTO_LOGIN_CONFIG'):
 
-            # 실제 투자 / 모의투자
-            real_flag = config.get('test_config', 'real_invest_flag')
-            if real_flag == 'y':
-                self.REAL_INVEST = True
-                print("실제 투자용 자동 로그인")
-            else:
-                self.REAL_INVEST = False
-                print("모의 투자용 자동 로그인")
+            if config.BOOLEAN_STATES.get(config.get('AUTO_LOGIN_CONFIG', 'AUTO_LOGIN_ENABLE')) :
+                self.AUTO_LOGIN = True
+                self.USER_ID = config.get('AUTO_LOGIN_CONFIG', 'USER_ID')
+                self.USER_PASSWD = config.get('AUTO_LOGIN_CONFIG', 'USER_PASSWD')
+                self.AUTH_PASSWD = config.get('AUTO_LOGIN_CONFIG', 'AUTH_PASSWD')
+
+                # 실제 투자 / 모의투자
+                if config.BOOLEAN_STATES.get(config.get('AUTO_LOGIN_CONFIG', 'REAL_INVEST_FLAG')):
+                    self.REAL_INVEST = True
+                else:
+                    self.REAL_INVEST = False
+
+            else :
+                self.AUTO_LOGIN = False
 
         else :
-            print("Config file을 찾을 수 없습니다.")
+            print('Auto Login Config File을 찾을 수 없습니다.')
+            self.AUTO_LOGIN = False
+            time.sleep(1)
 
     def run(self):
+        if self.AUTO_LOGIN is False :
+            print("자동 로그인을 사용하지 않습니다.")
+            return
+
+        if self.REAL_INVEST :
+            print("실제 투자용 자동 로그인")
+        else :
+            print("모의 투자용 자동 로그인")
+
         time.sleep(3)
 
         looping_flag = True
         while looping_flag:
             for proc in psutil.process_iter():
-                if proc.name() == self.HEADONG_PNAME:
-                    self.HEADONG_PID = proc.pid
-                    print('로그인 프로그램 pid(%d)' % self.HEADONG_PID)
+                if proc.name() in self.HAEDONG_PNAME:
+                    self.HAEDONG_PID = proc.pid
+                    print('로그인 프로그램 pid(%d)' % self.HAEDONG_PID)
                     looping_flag = False
 
-            if looping_flag is True:
-                print("로그인 프로그램을 찾을 수 없습니다. 3초 후 다시 검색합니다.")
-                time.sleep(3)
+            if looping_flag :
+                print("로그인 프로그램을 찾는 중입니다.")
+                time.sleep(5)
 
-        app = pywinauto.Application().connect(process=self.HEADONG_PID)
+        app = pywinauto.Application().connect(process=self.HAEDONG_PID)
 
         title = "영웅문W Login"
         dlg = pywinauto.timings.WaitUntilPasses(20, 0.5, lambda: app.window_(title=title))
@@ -77,7 +88,7 @@ class Login(threading.Thread):
         print('키움 사용자 PASSWORD(%s)' % self.USER_PASSWD)
 
         # 모의투자
-        if self.REAL_INVEST is True:
+        if self.REAL_INVEST :
             auth_passwd = dlg.Edit3
             auth_passwd.SetFocus()
             auth_passwd.TypeKeys(self.AUTH_PASSWD)
