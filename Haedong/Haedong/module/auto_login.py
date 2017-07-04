@@ -5,6 +5,7 @@ import pywinauto
 import configparser
 import os
 import pyautogui
+from PIL import Image
 
 class Login(threading.Thread):
     LOGIN_PNAME = ["kfstarter.exe", "KFStarter.exe"]
@@ -114,14 +115,17 @@ class Login(threading.Thread):
         로그인버튼.Click()
 
     def auto_write_passwd(self):
+        화면x, 화면y = pyautogui.size()
+        아이콘 = Image.open(self.MODULE_PATH + '/../config/kf.png')
+
         while True:
             print('트레이 아이콘을 찾는 중입니다.')
-            트레이아이콘 = pyautogui.locateCenterOnScreen(self.MODULE_PATH + '/../config/kf.png', grayscale=True)
+            아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100))
 
-            if 트레이아이콘:
+            if 아이콘위치:
                 print('트레이 아이콘을 찾았습니다.')
-                print(트레이아이콘)
-                x, y = 트레이아이콘
+                print(아이콘위치)
+                x, y = 아이콘위치
                 print(x, y)
                 pyautogui.click(x, y, button='right')
                 break
