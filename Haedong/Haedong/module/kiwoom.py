@@ -85,8 +85,8 @@ class api():
                 print("연결 성공")
 
                 # auto login
-                lg = auto_login.Login()
-                lg.start()
+                login_thr = auto_login.Login()
+                login_thr.start()
 
             else:
                 print("연결 실패")

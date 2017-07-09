@@ -5,6 +5,7 @@ import pywinauto
 import configparser
 import os
 import pyautogui
+import cv2
 from PIL import Image
 
 class Login(threading.Thread):
@@ -120,7 +121,8 @@ class Login(threading.Thread):
 
         while True:
             print('트레이 아이콘을 찾는 중입니다.')
-            아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100))
+            #아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100), tolerance =50)
+            아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100), confidence=.5)
 
             if 아이콘위치:
                 print('트레이 아이콘을 찾았습니다.')
