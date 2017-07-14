@@ -118,7 +118,7 @@ class Login(threading.Thread):
     def auto_write_passwd(self):
         화면x, 화면y = pyautogui.size()
         아이콘 = Image.open(self.MODULE_PATH + '/../config/kf1.png')
-        x, y = (0, 0)
+
         while True:
             print('트레이 아이콘을 찾는 중입니다.')
             #아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100), tolerance =50)
