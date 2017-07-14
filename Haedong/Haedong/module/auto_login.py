@@ -122,7 +122,7 @@ class Login(threading.Thread):
         while True:
             print('트레이 아이콘을 찾는 중입니다.')
             #아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100), tolerance =50)
-            아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100), confidence=.5)
+            아이콘위치 = pyautogui.locateCenterOnScreen(아이콘, region=(화면x - 400, 화면y - 100, 400, 100), confidence=.7)
 
             if 아이콘위치:
                 print('트레이 아이콘을 찾았습니다.')
@@ -132,11 +132,11 @@ class Login(threading.Thread):
                 pyautogui.click(x, y, button='right')
                 break
 
-        time.sleep(2)
+        time.sleep(1)
         # 등록 버튼 누르기
         print('등록버튼 누르기')
-        pyautogui.moveRel(10, -35)
-        pyautogui.click()
+        # pyautogui.moveRel(10, -35)
+        pyautogui.click(x+10, y-35)
 
         time.sleep(2)
 
